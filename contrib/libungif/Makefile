@@ -13,6 +13,8 @@ install:
 uninstall:
 	cd lib; make uninstall-lib
 
+distclean: clean
+
 clean:
 	cd lib; make clean
 	rm -f giflib-$(VERSION)-1.i386.rpm giflib-$(VERSION)-1.src.rpm \

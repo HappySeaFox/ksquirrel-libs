@@ -1,0 +1,16 @@
+Current version: 0.2.1
+----------------------
+
+fmt_filters 0.2.1
+****************************************
+* fix in contrast tool
+
+
+fmt_filters 0.2
+****************************************
+* added colorize tool
+
+
+fmt_filters 0.1
+***************************************
+* added brightness, contrast, gamma tools

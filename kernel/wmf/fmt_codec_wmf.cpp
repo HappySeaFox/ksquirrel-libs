@@ -19,15 +19,14 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fileio.h"
+#include "error.h"
+
 #include "fmt_codec_wmf_defs.h"
 #include "fmt_codec_wmf.h"
-
-#include "error.h"
 
 /*
  *
@@ -74,15 +73,15 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,15,80,76,84,69,25,0,0,192,192,192,255,255,255,0,0,0,4,4,4,109,150,124,48,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,72,73,68,65,84,120,218,99,96,96,112,1,1,6,32,112,20,20,20,20,1,51,148,148,148,68,92,160,12,160,144,49,20,32,24,70,198,70,70,198,202,74,202,96,134,146,178,50,178,136,17,136,1,20,1,18,80,6,134,118,136,201,74,34,80,75,193,182,130,157,225,0,0,119,2,20,9,72,251,91,108,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,0,0,0,76,76,76,38,185,199,251,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,95,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,165,51,167,78,157,25,25,26,193,176,116,234,212,169,161,145,145,51,192,12,160,200,12,134,149,145,145,64,70,36,50,3,166,11,110,14,200,82,176,201,92,96,119,44,96,0,0,55,98,57,74,221,72,115,50,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     frs.close();
 
@@ -100,17 +99,17 @@ s32 fmt_codec::fmt_init(std::string file)
     call(2, (char **)argv, &buf, &w, &h);
 
     if(!buf)
-	return SQERR_NOMEMORY;
+	return SQE_R_NOMEMORY;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage)
-        return SQERR_NOTOK;
+        return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
@@ -120,30 +119,18 @@ s32 fmt_codec::fmt_next()
     finfo.image[currentImage].w = w;
     finfo.image[currentImage].h = h;
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
     finfo.images++;
+    finfo.image[currentImage].compression = "-";
+    finfo.image[currentImage].colorspace = "Vectorized RGB";
 
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << "Vectorized RGB" << "\n"
-        << "-\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
-    
     line = -1;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -156,90 +143,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
     memcpy(scan, buf + line * finfo.image[currentImage].w * sizeof(RGBA), finfo.image[currentImage].w * sizeof(RGBA));
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    s32                 w, h, bpp;
-    s32                 m_bytes;
-    jmp_buf             jmp;
-    ifstreamK           m_frs;
-    u8			*m_buf;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-
-    m_frs.close();
-
-    m_buf = 0;
-
-    if(setjmp(jmp))
-    {
-        if(m_buf)
-	    delete [] m_buf;
-
-        return SQERR_BADFILE;
-    }
-
-    const char * argv[] = 
-    {
-	"wmf2gd",
-	file.c_str()
-    };
-
-    call(2, (char **)argv, &m_buf, &w, &h);
-
-    if(!m_buf)
-	longjmp(jmp, 1);
-
-    bpp = 32;
-
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "Vectorized RGB" << "\n"
-        << "-" << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-        longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-    int line = -1;
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA    *scan = *image + h2 * w;
-
-	line++;
-
-	memcpy(scan, m_buf + line * w * sizeof(RGBA), w * sizeof(RGBA));
-    }
-
-    delete [] m_buf;
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     finfo.meta.clear();
     finfo.image.clear();
@@ -254,14 +161,52 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string, RGBA *, s32, s32, const fmt_writeoptions &)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_NOTSUPPORTED;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
 {
     return false;
+}
+
+bool fmt_codec::fmt_readable() const
+{
+    return true;
 }

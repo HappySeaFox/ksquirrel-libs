@@ -3,10 +3,13 @@ How to install 'ksquirrel-libs' package:
    a) from sources
    # tar zxfv ksquirrel-libs-0.6.0.tar.gz
    # cd ksquirrel-libs-0.6.0/
-   # ./configure.gnu
+   # ./reconfigure
    # make
    # su -c 'make install'
    
    b) from binary packages
 RPM  # rpm -ihv ksquirrel-libs-0.6.0.rpm
 TGZ  # installpkg ksquirrel-libs-0.6.0.tgz
+
+Note: You can pass all regular 'configure' parameters to configure.gnu.
+      You needn't specify --libdir, it's already done in configure.gnu.

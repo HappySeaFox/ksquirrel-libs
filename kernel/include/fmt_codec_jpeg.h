@@ -37,22 +37,31 @@ class fmt_codec : public fmt_codec_base
 	virtual std::string	fmt_mime();
 	virtual std::string	fmt_pixmap();
 
-	virtual s32	fmt_init(std::string file);
-	virtual s32	fmt_next();
-	virtual s32	fmt_next_pass();
+	virtual bool    fmt_readable() const;
+	virtual s32	fmt_read_init(std::string file);
+	virtual s32	fmt_read_next();
+	virtual s32	fmt_read_next_pass();
 	virtual s32	fmt_read_scanline(RGBA *scan);
-	virtual s32	fmt_readimage(std::string file, RGBA **image, std::string &dump);
-	virtual void	fmt_close();
+	virtual void	fmt_read_close();
 
 	virtual bool	fmt_writable() const;
 	virtual void	fmt_getwriteoptions(fmt_writeoptionsabs *);
-	virtual s32	fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt);
+        virtual s32     fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt);
+        virtual s32     fmt_write_next();
+        virtual s32     fmt_write_next_pass();
+        virtual s32     fmt_write_scanline(RGBA *scan);
+        virtual void    fmt_write_close();
 
     private:
 	struct jpeg_decompress_struct	cinfo;
 	struct my_error_mgr		jerr;
 	JSAMPARRAY			buffer;
 	FILE				*fptr;
+
+	FILE				*m_fptr;
+	struct jpeg_compress_struct 	m_cinfo;
+        struct jpeg_error_mgr 		m_jerr;
+	JSAMPROW 			row_pointer;
 };
 
 extern "C" fmt_codec_base* fmt_codec_create()

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+for i in bmp camera cut fli gif ico iff jpeg pcx pix png pnm psd ras rawrgb sgi sun svg tga tiff utah wbmp wmf xbm xcur xpm xwd;
+do kwrite $i/fmt_codec_$i.cpp ;
+done

@@ -19,18 +19,14 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include "fmt_types.h"
-#include "fmt_codec_utah_defs.h"
-#include "fmt_codec_utah.h"
-
+#include "fileio.h"
 #include "error.h"
 
-#define SQ_HAVE_FMT_UTILS
-#include "fmt_utils.h"
+#include "fmt_codec_utah_defs.h"
+#include "fmt_codec_utah.h"
 
 /*
  *
@@ -72,42 +68,42 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,8,6,0,0,0,31,243,255,97,0,0,0,186,73,68,65,84,120,218,165,147,49,15,130,48,16,133,191,154,254,47,150,206,116,198,196,24,227,228,224,239,113,54,38,50,151,249,6,248,95,36,117,48,96,105,41,18,120,211,245,122,239,122,185,190,167,174,247,11,33,158,143,151,103,5,206,183,147,2,208,241,69,223,247,180,109,187,72,54,198,140,113,210,64,235,111,170,40,138,89,114,215,117,147,73,15,108,128,136,32,34,0,40,192,179,3,26,160,124,151,155,200,205,177,249,237,192,85,110,188,176,181,29,115,67,156,171,153,44,49,71,156,171,25,48,89,162,171,220,34,57,158,34,105,96,107,139,173,109,82,180,122,130,220,139,97,195,248,172,0,191,231,23,118,235,64,205,153,73,68,178,82,14,37,109,140,73,189,16,107,126,149,18,151,220,246,207,210,31,160,33,78,92,252,132,72,89,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,78,78,78,170,194,90,202,202,202,70,70,70,254,254,254,178,178,178,242,242,242,174,174,174,222,222,222,2,2,2,65,60,145,233,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,94,73,68,65,84,120,218,99,16,4,129,4,6,6,6,97,99,99,99,195,25,32,70,104,104,168,73,37,80,200,25,200,48,20,20,128,136,24,27,3,25,46,80,192,32,164,4,6,42,12,78,171,22,105,41,105,173,82,97,16,90,164,5,100,0,69,132,192,34,139,144,69,128,140,85,96,53,48,93,112,115,64,150,26,27,59,48,48,176,128,184,142,2,12,0,152,20,27,171,101,163,83,199,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     currentImage = -1;
 
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage)
-        return SQERR_NOTOK;
+        return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
     finfo.image[currentImage].passes = 1;
 
-    if(!frs.readK(&utah, sizeof(UTAH_HEADER))) return SQERR_BADFILE;
+    if(!frs.readK(&utah, sizeof(UTAH_HEADER))) return SQE_R_BADFILE;
 
-    if(utah.magic != UTAH_MAGIC)  return SQERR_BADFILE;
+    if(utah.magic != UTAH_MAGIC)  return SQE_R_BADFILE;
 
-    if(utah.ncolors != 3 && utah.ncolors != 4) return SQERR_NOTSUPPORTED;
+    if(utah.ncolors != 3 && utah.ncolors != 4) return SQE_R_NOTSUPPORTED;
 
-    if(utah.ncmap != 1 && utah.ncmap != 0 && utah.ncmap != utah.ncolors) return SQERR_BADFILE;
+    if(utah.ncmap != 1 && utah.ncmap != 0 && utah.ncmap != utah.ncolors) return SQE_R_BADFILE;
 
     finfo.image[currentImage].w = utah.xsize;
     finfo.image[currentImage].h = utah.ysize;
@@ -123,28 +119,16 @@ s32 fmt_codec::fmt_next()
     utah.blue
     );
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
     finfo.images++;
+    finfo.image[currentImage].compression = "RLE";
+    finfo.image[currentImage].colorspace = "Color indexed";
 
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << "Color indexed" << "\n"
-        << "RLE" << "\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
-
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -155,71 +139,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    s32                 w, h, bpp;
-    s32                 m_bytes;
-    jmp_buf             jmp;
-    ifstreamK           m_frs;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-
-    if(setjmp(jmp))
-    {
-        m_frs.close();
-        return SQERR_BADFILE;
-    }
-
-/*
-    w = 
-    h = 
-    bpp = 
-*/
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "??" << "\n"
-        << "??" << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-        longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA    *scan = *image + h2 * w;
-
-
-    }
-
-    m_frs.close();
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     frs.close();
 
@@ -234,11 +157,44 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_OK;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
@@ -246,3 +202,7 @@ bool fmt_codec::fmt_writable() const
     return false;
 }
 
+bool fmt_codec::fmt_readable() const
+{
+    return true;
+}

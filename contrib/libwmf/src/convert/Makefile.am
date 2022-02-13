@@ -14,11 +14,16 @@ else
 WMF2LAYERS = 
 endif
 
-if LIBWMF_OPT_GD
-WMF2GD = wmf2gd
-else
+#if LIBWMF_OPT_GD
+#WMF2GD = wmf2gd
+#else
 WMF2GD = 
-endif
+#endif
+
+noinst_LIBRARIES = libwww.a
+
+libwww_a_SOURCES = wmf2gd.c
+libwww_a_LIBADD  = ../libwmf.la ../libwmflite.la
 
 if LIBWMF_OPT_X
 WMF2X = wmf2x
@@ -32,7 +37,7 @@ else
 WMF2PLOT = 
 endif
 
-bin_PROGRAMS = $(WMF2LAYERS) $(WMF2GD) $(WMF2X) $(WMF2PLOT)
+bin_PROGRAMS = $(WMF2LAYERS) $(WMF2X) $(WMF2PLOT)
 
 wmf2eps_LDADD = ../libwmf.la ../libwmflite.la
 
@@ -40,7 +45,7 @@ wmf2fig_LDADD = ../libwmf.la ../libwmflite.la
 
 wmf2svg_LDADD = ../libwmf.la ../libwmflite.la
 
-wmf2gd_LDADD = ../libwmf.la ../libwmflite.la
+#wmf2gd_LDADD = ../.libs/libwmf.a ../.libs/libwmflite.a
 
 wmf2x_LDADD = ../libwmf.la ../libwmflite.la
 

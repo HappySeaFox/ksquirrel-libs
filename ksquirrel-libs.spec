@@ -2,7 +2,7 @@ Name: ksquirrel-libs
 Summary: Ksquirrel - image viewer for KDE 
 Group: User Interface/Desktops 
 Version: 0.6.0 
-Release: pre2
+Release: pre3
 Copyright: LGPL 
 Source: %{name}-%{version}-%{release}.tar.bz2
 URL: http://ksquirrel.sf.net 
@@ -19,13 +19,14 @@ Requires: libpng, libjpeg, libtiff
 Ksquirrel is an image viewer for KDE implemented using OpenGL. 
 You should have your videocard specific drivers been installed.
 
-* ksquirrel-libs is a set of image decoders for KSquirrel
+* ksquirrel-libs is a set of image codecs for KSquirrel
 * or other viewers
 
 %prep 
 %setup
 
-CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" ./configure --libdir=/usr/lib/ksquirrel-libs $LOCALFLAGS
+#CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" ./configure --libdir=/usr/lib/ksquirrel-libs $LOCALFLAGS
+./configure --libdir=/usr/lib/ksquirrel-libs
 
 %build 
 %__make %{?_smp_mflags} 

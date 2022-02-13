@@ -1,0 +1,26 @@
+h1, h2, h3   { font-family: tahoma, verdana, Helvetica, arial, sans-serif; }
+
+a:link.menulink       { color: #ffffff; text-decoration: none }
+a:visited.menulink    { color: #ffffff; text-decoration: none }
+a:active.menulink     { color: #ffffff; text-decoration: none }
+a:hover.menulink      { color: #ffffff; text-decoration: underline }
+
+body.index
+	{ 
+	    background: #ffffff;
+	    font-family: Tahoma, Arial, Helvetica, sans-serif; color: #000000;
+    	}
+
+body	{ 
+	    background: #ffffff;
+	    font-family: Tahoma, Arial, Helvetica, sans-serif; color: #000000;
+	    
+	    background-repeat: no-repeat;
+	    background-attachment: fixed;
+	    background-image:  url(belka_bkgr.gif);
+	    background-position: right bottom;
+    	}
+
+td.menuitem 	{ padding: 3px; }
+
+p.red { text-indent: 8mm; }

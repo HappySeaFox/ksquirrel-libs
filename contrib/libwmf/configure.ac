@@ -709,26 +709,26 @@ _ldflags=$LDFLAGS
 
 search_for_plot=no
 
-if [ test "$search_for_plot" != "no" ]; then
-	AC_CHECK_HEADER(plot.h,[
-		AC_CHECK_LIB(plot,pl_libplot_ver,[
-			AC_LIBPLOT_LIBS
-			if [ test $ac_can_link_libplot != no ]; then
-				if [ test "x$PLOT_DIR" != "x" ]; then
-					WMF_PLOT_CFLAGS="-I$PLOT_DIR/include"
-					WMF_PLOT_LDFLAGS="-L$PLOT_DIR/lib $LIBPLOT_LIBS"
-				else
-					WMF_PLOT_LDFLAGS="$LIBPLOT_LIBS"
-				fi
-				AC_DEFINE(HAVE_LIBPLOT,1,[define if you have libplot])
-				libwmf_plot=maybe
-			else
-				AC_MSG_ERROR(* * * sorry - unable to link against libplot * * *)
-			fi
-		],[	AC_MSG_ERROR(GNU plotutils >= 2.4.0 required)
-		])
-	])
-fi
+#if [ test "$search_for_plot" != "no" ]; then
+#	AC_CHECK_HEADER(plot.h,[
+#		AC_CHECK_LIB(plot,pl_libplot_ver,[
+#			AC_LIBPLOT_LIBS
+#			if [ test $ac_can_link_libplot != no ]; then
+#				if [ test "x$PLOT_DIR" != "x" ]; then
+#					WMF_PLOT_CFLAGS="-I$PLOT_DIR/include"
+#					WMF_PLOT_LDFLAGS="-L$PLOT_DIR/lib $LIBPLOT_LIBS"
+#				else
+#					WMF_PLOT_LDFLAGS="$LIBPLOT_LIBS"
+#				fi
+#				AC_DEFINE(HAVE_LIBPLOT,1,[define if you have libplot])
+#				libwmf_plot=maybe
+#			else
+#				AC_MSG_ERROR(* * * sorry - unable to link against libplot * * *)
+#			fi
+#		],[	AC_MSG_ERROR(GNU plotutils >= 2.4.0 required)
+#		])
+#	])
+#fi
 
 AM_CONDITIONAL(LIBWMF_OPT_PLOT,[ test "x$libwmf_plot" != "xno" ])
 
@@ -877,10 +877,6 @@ AH_BOTTOM([
 
 AC_CONFIG_FILES([
 Makefile
-doc/Makefile
-doc/caolan/Makefile
-doc/caolan/pics/Makefile
-doc/html/Makefile
 fonts/Makefile
 fonts/libwmf-fontmap
 fonts/fontmap

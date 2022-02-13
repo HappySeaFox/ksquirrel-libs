@@ -19,17 +19,16 @@
     Boston, MA 02111-1307, USA.
 */
 
-
-#include <setjmp.h>
-#include <sstream>
+#include <csetjmp>
 #include <iostream>
 #include <cstdio>
 
 #include "fmt_types.h"
+#include "fileio.h"
+#include "error.h"
+
 #include "fmt_codec_jpeg_defs.h"
 #include "fmt_codec_jpeg.h"
-
-#include "error.h"
 
 /*
  *
@@ -89,30 +88,30 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,21,80,76,84,69,4,132,132,4,4,4,192,192,192,255,255,255,0,0,0,128,128,0,134,134,134,79,212,14,132,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,1,98,75,71,68,0,136,5,29,72,0,0,0,9,112,72,89,115,0,0,11,17,0,0,11,17,1,127,100,95,145,0,0,0,7,116,73,77,69,7,212,10,17,19,35,2,169,169,215,166,0,0,0,82,73,68,65,84,120,156,61,142,193,13,192,48,8,3,89,33,125,244,15,43,88,108,144,76,64,217,127,149,18,135,214,175,147,101,108,68,100,108,73,233,50,51,37,0,208,209,80,214,108,201,74,234,145,5,71,134,23,68,186,123,18,80,120,156,244,216,153,2,102,190,171,191,231,52,67,123,148,171,124,227,126,1,202,77,25,76,179,115,138,216,0,0,0,0,73,69,78,68,174,66,96,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,128,128,0,76,76,76,137,239,99,177,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,93,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,83,167,134,206,156,26,10,102,204,140,140,132,137,68,2,69,150,2,69,102,70,78,5,50,34,129,12,176,26,152,46,184,57,32,75,193,38,115,129,221,177,128,1,0,131,30,58,190,241,2,42,229,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     fptr = fopen(file.c_str(), "rb");
 
     if(!fptr)
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     currentImage = -1;
 
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage)
-	return SQERR_NOTOK;
+	return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
@@ -126,7 +125,7 @@ s32 fmt_codec::fmt_next()
 //        printf("JUMP!!\n");
 	jpeg_destroy_decompress(&cinfo);
 	fclose(fptr);
-	return SQERR_NOTOK;
+	return SQE_NOTOK;
     }
 
     jpeg_create_decompress(&cinfo);
@@ -152,33 +151,22 @@ s32 fmt_codec::fmt_next()
     
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
 
-    stringstream type;
+    std::string type;
 
     switch(cinfo.jpeg_color_space)
     {
-	case JCS_GRAYSCALE:   type <<  "Grayscale (black&white)"; break;
-	case JCS_RGB:         type <<  "RGB";                     break;
-	case JCS_YCbCr:       type <<  "YUV";                     break;
-	case JCS_CMYK:        type <<  "CMYK";                    break;
-	case JCS_YCCK:        type <<  "YCCK";                    break;
+	case JCS_GRAYSCALE:   type =  "Grayscale (black&white)"; break;
+	case JCS_RGB:         type =  "RGB";                     break;
+	case JCS_YCbCr:       type =  "YUV";                     break;
+	case JCS_CMYK:        type =  "CMYK";                    break;
+	case JCS_YCCK:        type =  "YCCK";                    break;
 
 	default:
-	    type <<  "Unknown";
+	    type = "Unknown";
     }
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << type.str() << "\n"
-        << "JPEG\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
+    finfo.image[currentImage].compression = "JPEG";
+    finfo.image[currentImage].colorspace = type;
 
     jpeg_saved_marker_ptr it = cinfo.marker_list;
 
@@ -215,12 +203,12 @@ s32 fmt_codec::fmt_next()
 
     finfo.images++;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
 	
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -234,116 +222,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     for(i = 0;i < finfo.image[0].w;i++)
 	memcpy(scan+i, buffer[0] + i*3, 3);
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    struct jpeg_decompress_struct	m_cinfo;
-    struct my_error_mgr 		m_jerr;
-    s32 				i, j;
-    JSAMPARRAY 				m_buffer;
-    FILE				*m_fptr;
-    s32					w, h, bpp;
-    s32 				m_bytes;
-
-    m_fptr = fopen(file.c_str(), "rb");
-
-    if(!m_fptr)
-	return SQERR_NOFILE;
-
-    m_cinfo.err = jpeg_std_error(&m_jerr.pub);
-    m_jerr.pub.error_exit = my_error_exit;
-
-    if(setjmp(m_jerr.setjmp_buffer)) 
-    {
-	jpeg_destroy_decompress(&m_cinfo);
-	fclose(m_fptr);
-	return SQERR_NOTOK;
-    }
-
-    jpeg_create_decompress(&m_cinfo);
-    jpeg_stdio_src(&m_cinfo, m_fptr);
-    jpeg_read_header(&m_cinfo, TRUE);
-
-    if(m_cinfo.jpeg_color_space == JCS_GRAYSCALE)
-    {
-	bpp = 8;
-        m_cinfo.out_color_space = JCS_RGB;
-	m_cinfo.desired_number_of_colors = 256;
-	m_cinfo.quantize_colors = FALSE;
-	m_cinfo.two_pass_quantize = FALSE;
-    }
-    else
-	bpp = 24;
-
-    jpeg_start_decompress(&m_cinfo);
-
-    w = m_cinfo.output_width;
-    h = m_cinfo.output_height;
-
-    m_buffer = (*m_cinfo.mem->alloc_sarray)((j_common_ptr)&m_cinfo, 
-	    JPOOL_IMAGE, m_cinfo.output_width * m_cinfo.output_components, 1);
-	    
-    stringstream m_type;
-
-    switch(m_cinfo.jpeg_color_space)
-    {
-	case JCS_GRAYSCALE:  m_type << "Grayscale (black&white)"; break;
-	case JCS_RGB:        m_type << "RGB";                     break;
-	case JCS_YCbCr:      m_type << "YUV";                     break;
-	case JCS_CMYK:       m_type << "CMYK";                    break;
-	case JCS_YCCK:       m_type << "YCCK";                    break;
-
-	default:
-	    m_type << "Unknown";
-    }
-
-    m_bytes = w * h * sizeof(RGBA);    
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << m_type.str() << "\n"
-        << "JPEG" << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-    
-    if(!*image)
-    {
-	fclose(m_fptr);
-	return SQERR_NOMEMORY;
-    }
-
-    memset(*image, 255, m_bytes);
-
-    i = 0;
-
-    while(m_cinfo.output_scanline < m_cinfo.output_height)
-    {
-	(void)jpeg_read_scanlines(&m_cinfo, m_buffer, 1);
-
-        for(j = 0;j < w;j++)
-	    memcpy(*image + i*w + j, m_buffer[0] + j*3, 3);
-
-	i++;
-    }
-
-    (void)jpeg_finish_decompress(&m_cinfo);
-    jpeg_destroy_decompress(&m_cinfo);
-    fclose(m_fptr);
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     (void)jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
@@ -358,24 +240,22 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 100;
     opt->compression_def = 25;
+    opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    FILE 	*m_fptr;
-		    
-    if(!image || !w || !h)
-	return SQERR_NOMEMORY;
-			
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
     m_fptr = fopen(file.c_str(), "wb");
 
     if(!m_fptr)
-        return SQERR_NOFILE;
-
-    struct jpeg_compress_struct m_cinfo;
-    struct jpeg_error_mgr m_jerr;
-
-    JSAMPROW row_pointer[1];
+        return SQE_W_NOFILE;
 
     m_cinfo.err = jpeg_std_error(&m_jerr);
 
@@ -383,12 +263,10 @@ s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const
 
     jpeg_stdio_dest(&m_cinfo, m_fptr);
 
-    J_COLOR_SPACE cs = JCS_RGB;
-
-    m_cinfo.image_width = w;
-    m_cinfo.image_height = h;
+    m_cinfo.image_width = image.w;
+    m_cinfo.image_height = image.h;
     m_cinfo.input_components = 3;
-    m_cinfo.in_color_space = cs;
+    m_cinfo.in_color_space = JCS_RGB;
 
     jpeg_set_defaults(&m_cinfo);
 
@@ -396,36 +274,50 @@ s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const
 
     jpeg_start_compress(&m_cinfo, true);
 
-    RGB scan[w];
-    RGBA *srgba;
-    s32 line = 0;
+    return SQE_OK;
+}
 
-    while(m_cinfo.next_scanline < m_cinfo.image_height)
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    RGB sr[writeimage.w];
+
+    for(s32 s = 0;s < writeimage.w;s++)
     {
-	srgba = image + line * w;
-
-	for(s32 s = 0;s < w;s++)
-	{
-	    memcpy(scan+s, srgba + s, sizeof(RGB));
-	}
-
-	row_pointer[0] = (JSAMPLE *)scan;
-
-	(void)jpeg_write_scanlines(&m_cinfo, row_pointer, 1);
-
-	line++;
+        memcpy(sr+s, scan+s, sizeof(RGB));
     }
 
+    row_pointer = (JSAMPLE *)sr;
+
+    (void)jpeg_write_scanlines(&m_cinfo, &row_pointer, 1);
+
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
     jpeg_finish_compress(&m_cinfo);
 
     fclose(m_fptr);
 
     jpeg_destroy_compress(&m_cinfo);
-
-    return SQERR_OK;
 }
 
 bool fmt_codec::fmt_writable() const
+{
+    return true;
+}
+
+bool fmt_codec::fmt_readable() const
 {
     return true;
 }

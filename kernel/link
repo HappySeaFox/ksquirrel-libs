@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# create symlinks from all codecs (bmp/.libs/libSQ_codec_bmp.so, ...)
+# to /usr/lib/ksquirrel-libs/
+#
+# Can be used by developers
+#
+# Usage:
+#  $ cd ksquirrel-libs/kernel/
+#  $ ./link
+#
+
+KSQUIRREL_LIBS="/usr/lib/ksquirrel-libs/"
+
+mkdir $KSQUIRREL_LIBS > /dev/null 2>&1
+
+for i in bmp camera cut fli gif ico iff jpeg pcx pix png pnm psd ras rawrgb sgi sun svg tga tiff utah wbmp wmf xbm xcur xpm xwd;
+do ln -s `pwd`/$i/.libs/libSQ_codec_$i.so $KSQUIRREL_LIBS;
+done
+
+ln -s `pwd`/xpm/rgbmap $KSQUIRREL_LIBS

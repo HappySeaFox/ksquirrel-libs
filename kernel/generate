@@ -1,6 +1,36 @@
 #!/bin/sh
 
+# Generate new development directory for image format
+#
+# Usage:
+#  $ ./generate <format>
+#  
+#  or
+#
+#  $ ./generate <format> -build
+#  to create compiling script
+#
+#  or
+#
+#  $ ./generate <format> -build -utils
+#  to create compiling script and add support of fmt_utils
+#
+#  or
+#
+#  $ ./generate <format> -utils
+#  to add support of fmt_utils (but don't generate compiling script)
+#
+
+HAVE_BUILD="no"
+HAVE_UTILS="no"
+
 if [ "x$1" = "x" ]; then echo "Need argument" && exit 0 ; fi
+
+if [ "$2" = "-build" ]; then HAVE_BUILD="yes"; fi
+if [ "$3" = "-build" ]; then HAVE_BUILD="yes"; fi
+
+if [ "$2" = "-utils" ]; then HAVE_UTILS="yes"; fi
+if [ "$3" = "-utils" ]; then HAVE_UTILS="yes"; fi
 
 name=$1
 mkdir $name
@@ -11,15 +41,22 @@ create_build()
 cat << EOF > compile-c++
 #!/bin/sh
 
-rm -f libSQ_read_$1.so
+rm -f libSQ_codec_$1.so
 
-g++ -Wall -Werror -O2 -fPIC -c fmt_codec_$1.cpp
-
-g++ -Wall -Werror -O2 -shared fmt_codec_$1.o -o libSQ_read_$1.so
-
-rm -f fmt_codec_$1.o
-
+g++ -I. -I.. -I../include -Wall -O2 -fPIC -c fmt_codec_$1.cpp
+g++ -I. -I.. -I../include -Wall -O2 -fPIC -c ../fileio.cpp
 EOF
+
+if test $HAVE_UTILS = yes; then
+echo "g++ -I. -I.. -I../include -Wall -O2 -fPIC -c ../fmt_utils.cpp" >> compile-c++;
+fi
+
+if test $HAVE_UTILS = no; then
+echo "g++ -Wall -shared fileio.o fmt_codec_$1.o -o libSQ_codec_$1.so" >> compile-c++; else
+echo "g++ -Wall -shared fileio.o fmt_utils.o fmt_codec_$1.o -o libSQ_codec_$1.so" >> compile-c++;
+fi
+
+echo "rm -f fmt_codec_$1.o fileio.o fmt_utils.o" >> compile-c++
 
 chmod +x compile-c++
 } # function
@@ -29,7 +66,14 @@ INCLUDES = -I.. -I../include
 
 lib_LTLIBRARIES = libSQ_codec_${name}.la
 
-libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h
+EOF
+
+if test $HAVE_UTILS = yes ; then
+echo "libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h ../fileio.cpp ../fmt_utils.cpp" >> Makefile.am; else
+echo "libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h ../fileio.cpp" >> Makefile.am;
+fi
+
+cat << EOF >> Makefile.am
 
 libSQ_codec_${name}_la_LIBDADD = 
 
@@ -78,16 +122,21 @@ class fmt_codec : public fmt_codec_base
         virtual std::string     fmt_mime();
         virtual std::string     fmt_pixmap();
 
-        virtual s32     fmt_init(std::string file);
-        virtual s32     fmt_next();
-        virtual s32     fmt_next_pass();
+	virtual bool    fmt_readable() const;
+        virtual s32     fmt_read_init(std::string file);
+        virtual s32     fmt_read_next();
+        virtual s32     fmt_read_next_pass();
         virtual s32     fmt_read_scanline(RGBA *scan);
-        virtual s32     fmt_readimage(std::string file, RGBA **image, std::string &dump);
-        virtual void    fmt_close();
+        virtual void    fmt_read_close();
 
         virtual bool    fmt_writable() const;
         virtual void    fmt_getwriteoptions(fmt_writeoptionsabs *);
-        virtual s32     fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt);
+
+        virtual s32     fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt);
+	virtual s32     fmt_write_next();
+	virtual s32     fmt_write_next_pass();
+	virtual s32     fmt_write_scanline(RGBA *scan);
+        virtual void    fmt_write_close();
 
     private:
 	// define variables you need here
@@ -129,8 +178,8 @@ cat << EOF > fmt_codec_${name}_defs.h
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_READ_IMAGE_${name}
-#define KSQUIRREL_READ_IMAGE_${name}
+#ifndef KSQUIRREL_CODEC_DEFS_${name}
+#define KSQUIRREL_CODEC_DEFS_${name}
 
 // define constants here
 
@@ -159,19 +208,26 @@ cat << EOF > fmt_codec_${name}.cpp
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fileio.h"
+
 #include "fmt_codec_${name}_defs.h"
 #include "fmt_codec_${name}.h"
 
 #include "error.h"
+EOF
 
-// uncomment, if you need fmt_utils
-//#define SQ_HAVE_FMT_UTILS
-//#include "fmt_utils.h"
+if test $HAVE_UTILS = yes ; then
+cat << EOF >> fmt_codec_${name}.cpp
+
+#include "fmt_utils.h"
+using namespace fmt_utils;
+EOF
+fi
+
+cat << EOF >> fmt_codec_${name}.cpp
 
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
@@ -204,55 +260,43 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     currentImage = -1;
+    read_error = false;
 
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage)
-        return SQERR_NOTOK;
+        return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
 
 
-
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
     finfo.images++;
+    finfo.image[currentImage].compression = "";
+    finfo.image[currentImage].colorspace = "";
 
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << "??" << "\n" // color model (RGB/RGBA/YUV/Color indexed ...)
-        << "??" << "\n"       // compression (RLE/-/JPEG ...)
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
-
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -263,71 +307,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    s32                 w, h, bpp;
-    s32                 m_bytes;
-    jmp_buf             jmp;
-    ifstreamK           m_frs;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-
-    if(setjmp(jmp))
-    {
-        m_frs.close();
-        return SQERR_BADFILE;
-    }
-
-/*
-    w = 
-    h = 
-    bpp = 
-*/
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "??" << "\n"
-        << "??" << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-        longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA    *scan = *image + h2 * w;
-
-
-    }
-
-    m_frs.close();
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     frs.close();
 
@@ -338,16 +321,49 @@ void fmt_codec::fmt_close()
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
+    opt->passes = 1;
     opt->compression_scheme = CompressionNo;
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
-    opt->color_space = SpaceInternal;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_OK;
+    if(!image.w || !image.h || file.empty())
+        return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+        return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
@@ -355,9 +371,13 @@ bool fmt_codec::fmt_writable() const
     return false;
 }
 
+bool fmt_codec::fmt_readable() const
+{
+    return true;
+}
 EOF
 
-if [ "$2" = "-build" ]; then create_build $name; else echo; fi
+if test $HAVE_BUILD = yes ; then create_build $name; fi
 
 echo
 echo "All done!"

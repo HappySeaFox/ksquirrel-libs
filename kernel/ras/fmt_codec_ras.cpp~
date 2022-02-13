@@ -14,29 +14,38 @@
     Library General Public License for more details.
 
     You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.  If not, write to
+    as32 with this library; see the file COPYING.  If not, write to
     the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
+
+#include "fmt_types.h"
+#include "fileio.h"
+#include "error.h"
 
 #include "fmt_codec_ras_defs.h"
 #include "fmt_codec_ras.h"
 
-#include "error.h"
+/*
+ *
+ * The Sun Raster image file format is the native bitmap format of the Sun
+ * Microsystems UNIX platforms using the SunOS operating system. This format is
+ * capable of storing black-and-white, gray-scale, and color bitmapped data of any
+ * pixel depth. The use of color maps and a simple Run-Length data compression
+ * are also supported. Typically, most images found on a SunOS system are Sun
+ * Raster images, and this format is supported by most UNIX imaging applications.
+ *
+ */
 
-bool fmt_readdata(ifstreamK &, unsigned char *, unsigned long, bool);
+bool fmt_readdata(ifstreamK &, u8 *, u32, bool);
 
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
 
 fmt_codec::~fmt_codec()
 {}
-
-typedef unsigned char uchar;
 
 std::string fmt_codec::fmt_version()
 {
@@ -60,15 +69,15 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,102,255,204,4,4,4,193,122,37,156,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,73,73,68,65,84,120,218,99,96,96,8,5,1,6,32,8,20,20,20,20,5,51,148,148,148,68,67,161,12,160,144,49,20,48,152,184,128,129,51,131,137,177,139,177,137,177,9,144,1,6,24,34,46,48,6,88,4,166,11,110,14,196,100,37,81,168,165,96,91,193,206,8,0,0,119,14,23,196,139,226,159,35,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,78,78,78,174,174,174,202,202,202,70,70,70,254,254,254,178,178,178,102,254,206,242,242,242,222,222,222,2,2,2,116,218,129,101,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,102,73,68,65,84,120,218,99,16,4,129,4,6,6,6,97,99,99,99,195,73,32,70,104,104,168,73,39,80,200,25,200,48,20,20,128,136,24,27,3,25,46,80,192,32,94,14,6,37,12,82,171,202,171,150,151,175,90,194,32,85,190,188,106,121,21,68,4,72,175,42,1,137,172,90,85,94,14,150,90,94,85,5,20,129,235,130,155,3,178,212,216,216,129,129,129,5,196,117,20,96,0,0,147,141,40,240,190,118,236,206,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-int fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     currentImage = -1;
     rle = false;
@@ -77,36 +86,36 @@ int fmt_codec::fmt_init(std::string file)
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-int fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
     
     if(currentImage)
-	return SQERR_NOTOK;
+	return SQE_NOTOK;
 	    
     finfo.image.push_back(fmt_image());
 
     finfo.image[currentImage].passes = 1;
 
-    if(!frs.be_getlong(&rfh.ras_magic)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_width)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_height)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_depth)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_length)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_type)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_maptype)) return SQERR_BADFILE;
-    if(!frs.be_getlong(&rfh.ras_maplength)) return SQERR_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_magic)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_width)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_height)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_depth)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_length)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_type)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_maptype)) return SQE_R_BADFILE;
+    if(!frs.be_getlong(&rfh.ras_maplength)) return SQE_R_BADFILE;
 
-    if(rfh.ras_magic != RAS_MAGIC) return SQERR_BADFILE;
+    if(rfh.ras_magic != RAS_MAGIC) return SQE_R_BADFILE;
 
     if(rfh.ras_type != RAS_OLD && rfh.ras_type != RAS_STANDARD && rfh.ras_type != RAS_BYTE_ENCODED && rfh.ras_type != RAS_RGB &&
 	    rfh.ras_type != RAS_TIFF && rfh.ras_type != RAS_IFF &&  rfh.ras_type != RAS_EXPERIMENTAL)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
     else if(rfh.ras_type == RAS_EXPERIMENTAL)
-	return SQERR_NOTSUPPORTED;
+	return SQE_R_NOTSUPPORTED;
 
     finfo.image[currentImage].w = rfh.ras_width;
     finfo.image[currentImage].h = rfh.ras_height;
@@ -118,7 +127,7 @@ int fmt_codec::fmt_next()
 	{
 		if (rfh.ras_depth < 24)
 		{
-		    int numcolors = 1 << rfh.ras_depth, i;
+		    s32 numcolors = 1 << rfh.ras_depth, i;
 
 		    for (i = 0; i < numcolors; i++)
 		    {
@@ -133,18 +142,18 @@ int fmt_codec::fmt_next()
 
 	case RMT_EQUAL_RGB:
 	{
-		char *g, *b;
+		s8 *g, *b;
 
-		int numcolors = 1 << rfh.ras_depth;
+		s32 numcolors = 1 << rfh.ras_depth;
 
-		char r[3 * numcolors];
+		s8 r[3 * numcolors];
 
 		g = r + numcolors;
 		b = g + numcolors;
 
-		if(!frs.readK(r, 3 * numcolors)) return SQERR_BADFILE;
+		if(!frs.readK(r, 3 * numcolors)) return SQE_R_BADFILE;
 
-		for(int i = 0; i < numcolors; i++)
+		for(s32 i = 0; i < numcolors; i++)
 		{
 			pal[i].r = r[i];
 			pal[i].g = g[i];
@@ -155,9 +164,9 @@ int fmt_codec::fmt_next()
 
 	case RMT_RAW:
 	{
-		char colormap[rfh.ras_maplength];
+		s8 colormap[rfh.ras_maplength];
 
-		if(!frs.readK(colormap, rfh.ras_maplength)) return SQERR_BADFILE;
+		if(!frs.readK(colormap, rfh.ras_maplength)) return SQE_R_BADFILE;
 	break;
 	}
     }
@@ -186,38 +195,26 @@ int fmt_codec::fmt_next()
 
     fill = (linelength % 2) ? 1 : 0;
 
-    buf = new unsigned char [rfh.ras_width * sizeof(RGB)];
+    buf = new u8 [rfh.ras_width * sizeof(RGB)];
 
     if(!buf)
-	return SQERR_NOMEMORY;
+	return SQE_R_NOMEMORY;
 
-    int bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-    
     finfo.images++;
+    finfo.image[currentImage].compression = ((isRGB) ? "-":"RLE");
+    finfo.image[currentImage].colorspace = "RGB";
 
-    stringstream s;
-    
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << "RGB" << "\n"
-        << ((isRGB) ? "-":"RLE") << "\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
-
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-int fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
     
-int fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    unsigned int i;
+    u32 i;
 
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
@@ -228,7 +225,7 @@ int fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	case 8:
 		if(!fmt_readdata(frs, buf, linelength, rle))
-		    return SQERR_BADFILE;
+		    return SQE_R_BADFILE;
 
 		for(i = 0;i < rfh.ras_width;i++)
 		    memcpy(scan+i, &pal[i], sizeof(RGB));
@@ -236,16 +233,16 @@ int fmt_codec::fmt_read_scanline(RGBA *scan)
 		if(fill)
 		{
 		    if(!fmt_readdata(frs, &fillchar, fill, rle))
-			return SQERR_BADFILE;
+			return SQE_R_BADFILE;
 		}
     	break;
 
 	case 24:
 	{
-	    unsigned char *b = buf;
+	    u8 *b = buf;
 	    
 	    if(!fmt_readdata(frs, buf, rfh.ras_width * 3, rle))
-		return SQERR_BADFILE;
+		return SQE_R_BADFILE;
 
 	    if(isRGB)
 	        for (i = 0; i < rfh.ras_width; i++)
@@ -267,17 +264,17 @@ int fmt_codec::fmt_read_scanline(RGBA *scan)
 	    if(fill)
 	    {
 	        if(!fmt_readdata(frs, &fillchar, fill, rle))
-		    return SQERR_BADFILE;
+		    return SQE_R_BADFILE;
 	    }
 	}	
 	break;
 
 	case 32:
 	{
-	    unsigned char *b = buf;
+	    u8 *b = buf;
 	    
 	    if(!fmt_readdata(frs, buf, rfh.ras_width * 4, rle))
-		return SQERR_BADFILE;
+		return SQE_R_BADFILE;
 
 	    if(isRGB)
 	        for (i = 0; i < rfh.ras_width; i++)
@@ -301,264 +298,17 @@ int fmt_codec::fmt_read_scanline(RGBA *scan)
 	    if(fill)
 	    {
 	        if(!fmt_readdata(frs, &fillchar, fill, rle))
-		    return SQERR_BADFILE;
+		    return SQE_R_BADFILE;
 	    }
 
 	}
 	break;
     }
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-int fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    jmp_buf		jmp;
-    int 		w, h, bpp, m_bytes;
-    RAS_HEADER 		m_rfh;
-    bool 		m_rle, m_isRGB;
-    unsigned short 	m_fill;
-    unsigned char 	m_fillchar;
-    unsigned short 	m_linelen;
-    RGB			m_pal[256];
-    ifstreamK		m_frs;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-
-    if(setjmp(jmp))
-    {
-	m_frs.close();
-	return SQERR_BADFILE;
-    }
-
-    if(!m_frs.be_getlong(&m_rfh.ras_magic)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_width)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_height)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_depth)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_length)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_type)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_maptype)) longjmp(jmp, 1);
-    if(!m_frs.be_getlong(&m_rfh.ras_maplength)) longjmp(jmp, 1);    
-
-    if(m_rfh.ras_magic != RAS_MAGIC) longjmp(jmp, 1);
-
-    if(m_rfh.ras_type != RAS_OLD && m_rfh.ras_type != RAS_STANDARD && m_rfh.ras_type != RAS_BYTE_ENCODED && m_rfh.ras_type != RAS_RGB &&
-	    m_rfh.ras_type != RAS_TIFF && m_rfh.ras_type != RAS_IFF &&  m_rfh.ras_type != RAS_EXPERIMENTAL)
-	longjmp(jmp, 1);
-    else if(m_rfh.ras_type == RAS_EXPERIMENTAL)
-	return SQERR_NOTSUPPORTED;
-
-    w = m_rfh.ras_width;
-    h = m_rfh.ras_height;
-    bpp = m_rfh.ras_depth;
-
-    switch(m_rfh.ras_maptype)
-    {
-	case RMT_NONE :
-	{
-		if (m_rfh.ras_depth < 24)
-		{
-		    int numcolors = 1 << m_rfh.ras_depth, i;
-
-		    for (i = 0; i < numcolors; i++)
-		    {
-			m_pal[i].r = (255 * i) / (numcolors - 1);
-			m_pal[i].g = (255 * i) / (numcolors - 1);
-			m_pal[i].b = (255 * i) / (numcolors - 1);
-		    }
-		}
-
-	break;
-	}
-
-	case RMT_EQUAL_RGB:
-	{
-		char *g, *b;
-
-		int numcolors = 1 << m_rfh.ras_depth;
-
-		char r[3 * numcolors];
-
-		g = r + numcolors;
-		b = g + numcolors;
-
-		if(!m_frs.readK(r, 3 * numcolors)) longjmp(jmp, 1);
-
-		for(int i = 0; i < numcolors; i++)
-		{
-			m_pal[i].r = r[i];
-			m_pal[i].g = g[i];
-			m_pal[i].b = b[i];
-		}
-	break;
-	}
-
-	case RMT_RAW:
-	{
-		char colormap[m_rfh.ras_maplength];
-		if(!m_frs.readK(colormap, m_rfh.ras_maplength)) longjmp(jmp, 1);
-	break;
-	}
-    }
-
-    m_rle = false;
-    m_isRGB = false;
-
-    switch(m_rfh.ras_type)
-    {
-	case RAS_OLD:
-	case RAS_STANDARD:
-	case RAS_TIFF:
-	case RAS_IFF:
-	break;
-
-	case RAS_BYTE_ENCODED:
-	    m_rle = true;
-	break;
-
-	case RAS_RGB:
-	    m_isRGB = true;
-	break;
-    }
-    
-    if(m_rfh.ras_depth == 1)
-	m_linelen = (short)((m_rfh.ras_width / 8) + (m_rfh.ras_width % 8 ? 1 : 0));
-    else
-	m_linelen = (short)m_rfh.ras_width;
-
-    m_fill = (m_linelen % 2) ? 1 : 0;
-
-    unsigned char m_buf[m_rfh.ras_width * sizeof(RGB)];
-
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream s;
-    
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "RGB" << "\n"
-        << ((m_isRGB) ? "-":"RLE") << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-        cerr << "libSQ_read_ras: Image is null!" << endl;
-	longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-    for(int h2 = 0;h2 < h;h2++)
-    {
-        RGBA 	*scan = *image + h2 * w;
-	
-        unsigned int i;
-
-	switch(bpp)
-	{
-    	    case 1:
-	    break;
-
-	    case 8:
-		if(!fmt_readdata(m_frs, m_buf, m_linelen, m_rle))
-		    longjmp(jmp, 1);
-
-		for(i = 0;i < m_rfh.ras_width;i++)
-		    memcpy(scan+i, &m_pal[i], sizeof(RGB));
-
-		if(m_fill)
-		{
-		    if(!fmt_readdata(m_frs, &m_fillchar, m_fill, m_rle))
-			longjmp(jmp, 1);
-		}
-    	    break;
-
-	    case 24:
-	    {
-		unsigned char *b = m_buf;
-	    
-		if(!fmt_readdata(m_frs, m_buf, m_rfh.ras_width * 3, m_rle))
-		    longjmp(jmp, 1);
-
-		if(m_isRGB)
-	    	    for (i = 0; i < m_rfh.ras_width; i++)
-	    	    {
-	    		scan[i].r = *b;
-    	    		scan[i].g = *(b+1);
-			scan[i].b = *(b+2);
-			b += 3;
-		    }
-		else
-	    	    for (i = 0; i < m_rfh.ras_width; i++)
-	    	    {
-		        scan[i].r = *(b + 2);
-			scan[i].g = *(b + 1);
-			scan[i].b = *b;
-			b += 3;
-		    }
-
-		if(m_fill)
-		{
-	    	    if(!fmt_readdata(m_frs, &m_fillchar, m_fill, m_rle))
-			longjmp(jmp, 1);
-		}
-	    }	
-	    break;
-
-	    case 32:
-	    {
-		unsigned char *b = m_buf;
-	    
-		if(!fmt_readdata(m_frs, m_buf, m_rfh.ras_width * 4, m_rle))
-		    longjmp(jmp, 1);
-
-		if(m_isRGB)
-	    	    for (i = 0; i < m_rfh.ras_width; i++)
-	    	    {
-	    		scan[i].a = *b;
-	    		scan[i].r = *(b+1);
-    	    		scan[i].g = *(b+2);
-			scan[i].b = *(b+3);
-			b += 4;
-		    }
-		else
-	    	    for (i = 0; i < m_rfh.ras_width; i++)
-	    	    {
-			scan[i].r = *(b + 3);
-			scan[i].g = *(b + 2);
-			scan[i].b = *(b + 1);
-			scan[i].a = *b;
-			b += 4;
-		    }
-
-		if(m_fill)
-		{
-	    	    if(!fmt_readdata(m_frs, &m_fillchar, m_fill, m_rle))
-			longjmp(jmp, 1);
-		}
-	    }
-	    break;
-	}
-    }
-
-    m_frs.close();
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     frs.close();
 
@@ -569,12 +319,52 @@ void fmt_codec::fmt_close()
     finfo.image.clear();
 }
 
-
-
-
-bool fmt_readdata(ifstreamK &ff, unsigned char *_buf, unsigned long length, bool rle)
+void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
 {
-    unsigned char repchar, remaining = 0;
+    opt->interlaced = false;
+    opt->compression_scheme = CompressionInternal;
+    opt->compression_min = 0;
+    opt->compression_max = 0;
+    opt->compression_def = 0;
+    opt->passes = 1;
+}
+
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+{
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
+}
+
+bool fmt_codec::fmt_writable() const
+{
+    return false;
+}
+
+
+bool fmt_readdata(ifstreamK &ff, u8 *_buf, u32 length, bool rle)
+{
+    u8 repchar, remaining = 0;
 
     if(rle)
     {
@@ -612,5 +402,10 @@ bool fmt_readdata(ifstreamK &ff, unsigned char *_buf, unsigned long length, bool
 	
     }
 
+    return true;
+}
+
+bool fmt_codec::fmt_readable() const
+{
     return true;
 }

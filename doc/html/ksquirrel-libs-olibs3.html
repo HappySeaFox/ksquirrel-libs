@@ -1,0 +1,359 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>KSquirrel: development</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta name='Author' content='Baryshev Dmitry/Krasu'>
+		    
+    <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+<center><h3><b>How to write a new library for KSquirrel (for example, it will decode abstract 'ttx' format) ?</b></h3></center>
+
+<ul>
+<li>Create a directory with necessary sources ('generate' is distributed with ksquirrel-libs):
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+# ./generate ttx -build
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>Typical fmt_codec_ttx_defs.h
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+#ifndef KSQUIRREL_READ_IMAGE_ttx
+#define KSQUIRREL_READ_IMAGE_ttx
+
+// Define constants you need here
+
+#endif
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>Typical fmt_codec_ttx.h
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_ttx_H
+#define KSQUIRREL_LIBS_CLASS_DEFINITION_ttx_H
+
+#include "fmt_codec_base.h"
+
+class fmt_codec : public fmt_codec_base
+{
+    public:
+
+        fmt_codec();
+        ~fmt_codec();
+
+        virtual std::string     fmt_version();
+        virtual std::string     fmt_quickinfo();
+        virtual std::string     fmt_filter();
+        virtual std::string     fmt_mime();
+        virtual std::string     fmt_pixmap();
+
+        virtual bool    fmt_readable() const;
+        virtual s32     fmt_read_init(std::string file);
+        virtual s32     fmt_read_next();
+        virtual s32     fmt_read_next_pass();
+        virtual s32     fmt_read_scanline(RGBA *scan);
+        virtual void    fmt_read_close();
+
+
+        virtual bool    fmt_writable() const;
+        virtual void    fmt_getwriteoptions(fmt_writeoptionsabs *);
+        virtual s32     fmt_write_init(std::string file, const fmt_image &amp;image,
+					const fmt_writeoptions &amp;opt);
+        virtual s32     fmt_write_next();
+        virtual s32     fmt_write_next_pass();
+        virtual s32     fmt_write_scanline(RGBA *scan);
+        virtual void    fmt_write_close();
+
+    private:
+        // define variables you need here
+};
+
+extern "C" fmt_codec_base* fmt_codec_create()
+{
+    return (new fmt_codec);
+}
+
+extern "C" void fmt_codec_destroy(fmt_codec_base *p)
+{
+    delete p;
+}
+</pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>Typical fmt_codec_ttx.cpp
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+
+#include &#60;iostream&#62;
+
+#include "fmt_types.h"
+#include "fileio.h"
+#include "fmt_codec_ttx_defs.h"
+#include "fmt_codec_ttx.h"
+
+#include "error.h"
+
+fmt_codec::fmt_codec() : fmt_codec_base()
+{}
+
+fmt_codec::~fmt_codec()
+{}
+
+<b>Returns library's version</b>
+std::string fmt_codec::fmt_version()
+{
+    return std::string("0.0.1");
+}
+
+<b>Returns common information on ttx format</b>
+std::string fmt_codec::fmt_quickinfo()
+{
+    return std::string("TTX is a very cool format!");
+}
+
+<b>Filter for a file manager (with a blank after
+each extension)</b>
+std::string fmt_codec::fmt_filter()
+{
+    return std::string("*.ttx1 *.ttx2 *.ttx3 ");
+}
+
+<b>The regular expression defining the file type
+(usually first 2-5 characters in a file).
+This example shows, that format TTX is defined by header
+TTX7, TTX8 or TTX9. If the file has no header
+ (like .ico and .pix) this function should return empty string.</b>
+std::string fmt_codec::fmt_mime()
+{
+    return std::string("TTX[789]");
+}
+    
+<b>Compile <a href='bits.html'>this program</a>,
+create PNG icon 16x16 and run 
+#./bits icon.png > icon.bits.
+Then copy contents of icon.bits here</b>
+std::string fmt_codec::fmt_pixmap()
+{
+    return std::string("");
+}
+
+<b>Open file, initialize variables, etc.</b>
+s32 fmt_codec::fmt_read_init(std::string file)
+{
+    frs.open(file.c_str(), ios::binary | ios::in);
+    
+    if(!frs.good())
+        return SQERR_NOFILE;
+
+    currentImage = -1;
+    read_error = false;
+
+    finfo.animated = false;
+    finfo.images = 0;
+
+    return SQERR_OK;
+}
+
+<b>This method will be called BEFORE decoding of each image in a file,
+so we should seek to correct file offset or do something important now.
+Return SQERR_NOTOK, if the next image can't be decoded (no such image),
+and any other error code on error.</b>
+s32 fmt_codec::fmt_read_next()
+{
+    currentImage++;
+
+    if(currentImage)
+	return SQERR_NOTOK; <b>return, if TTX can
+			     have only one image.</b>
+
+    finfo.image.push_back(fmt_image());
+    
+    <b>Non-interlaced image has 1 pass.
+    If you need to define another value, do it here</b>
+    finfo.image[currentImage].passes = 1;
+
+<b>Here you should read necessary data from file,
+and initialize finfo.image[currentImage].w,h,bpp. Return error
+code you need on error.</b>
+<b>...</b>
+
+    <b>increment image counter, if everything is OK.
+    From here you can return only SQERR_OK</b>
+    finfo.images++;
+    finfo.image[currentImage].compression = "-";
+    finfo.image[currentImage].colorspace = "RGB";
+
+    return SQERR_OK;
+}
+
+<b>This method will be called BEFORE decoding of each pass
+in the interlaced image.</b>
+s32 fmt_codec::fmt_read_next_pass()
+{
+    <b>Our TTX fromat can't be interlaced, so we
+    won't do anything, just return SQERR_OK</b>
+    return SQERR_OK;
+}
+
+<b>Reads scanline in 'scan'. This example just fills
+'scan' with white color (RGBA(255,255,255,255))</b>
+s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+{
+    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+
+    return SQERR_OK;
+}
+
+<b>Closes everything, frees allocated memory, etc.</b>
+void fmt_codec::fmt_read_close()
+{
+    frs.close();
+
+    // you should free information on close
+    finfo.meta.clear();
+    finfo.image.clear();
+}
+
+<b>Returns write options for TTX format. This method won't be
+called, if fmt_writable() returns 'false'</b>
+void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+{
+    <b>Can TTX format be interlaced ? No.</b>
+    opt->interlaced = false;
+
+    <b>With which compression it can be compressed ? 
+    With no compression (like not-RLE BMP).</b>
+    opt->compression_scheme = CompressionNo;
+    
+    <b>minimum, maximum, and default compression level.
+    Ignored, if the compression is CompressionNo.</b>
+    opt->compression_min = 0;
+    opt->compression_max = 0;
+    opt->compression_def = 0;
+
+    <b>TTX can't be interlaced, passes = 1</b>
+    opt->passes = 1;
+
+    <b>KSquirrel shouldn't flip the image
+    before writing</b>
+    opt->needflip = false;
+}
+
+<b>Same to fmt_read_init()</b>
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, 
+				const fmt_writeoptions &opt)
+{
+    if(!image.w || !image.h || file.empty())
+        return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+        return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+<b>Same to fmt_read_next()</b>
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+<b>Same to fmt_read_next_pass()</b>
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+<b>Write scanline. Same to fmt_read_scanline()</b>
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    ...
+    return SQE_OK;
+}
+
+<b>Same to fmt_read_init()</b>
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
+}
+
+<b>Can this library write TTX ? No.</b>
+bool fmt_codec::fmt_writable() const
+{
+    return false;
+}
+
+<b>Can this library read TTX ? Yes.</b>
+bool fmt_codec::fmt_readable() const
+{
+    return true;
+}
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>Compile it
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+  <pre>
+# ./compile-c++
+# 
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+
+<br><br>
+<li>That's all. You've just created a new decoder for KSquirrel. Copy libSQ_codec_ttx.so in /usr/lib/ksquirrel-libs.
+</ul>
+
+<br><br><a href='simplelib.php'>Sample library (RAWRGB codec)</a><br><br>
+
+</body>
+</html>

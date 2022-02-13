@@ -19,20 +19,19 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include <tiffio.h>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
+#include "fileio.h"
+#include "error.h"
+
 #include "fmt_codec_tiff_defs.h"
 #include "fmt_codec_tiff.h"
 
-#define SQ_HAVE_FMT_UTILS
-#include "fmt_utils.h"
-
-#include "error.h"
+using namespace fmt_utils;
 
 /*
  *
@@ -82,15 +81,15 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,0,0,153,4,4,4,41,96,241,199,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,79,73,68,65,84,120,218,99,96,96,8,5,1,6,32,8,20,20,20,20,5,51,148,148,148,68,67,161,12,160,144,49,20,48,152,184,128,129,51,131,137,146,10,16,42,1,25,78,46,78,46,42,46,80,134,146,10,170,136,146,10,152,1,211,5,55,7,98,178,146,40,212,82,176,173,96,103,4,0,0,107,22,23,177,172,1,179,111,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,0,0,153,76,76,76,230,241,105,213,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,87,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,161,145,145,161,83,67,129,140,169,51,35,35,167,206,132,48,66,167,70,162,137,64,24,48,93,112,115,64,150,130,77,230,2,187,99,1,3,0,64,118,57,214,21,155,128,128,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     currentImage = -1;
 
     if((ftiff = TIFFOpen(file.c_str(), "r")) == NULL)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     TIFFSetWarningHandler(NULL);
     TIFFSetErrorHandler(NULL);
@@ -112,25 +111,25 @@ s32 fmt_codec::fmt_init(std::string file)
 
     TIFFSetDirectory(ftiff, 0);
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(dircount)
     {
 	if(currentImage == dircount)
-	    return SQERR_NOTOK;
+	    return SQE_NOTOK;
     }
     else
 	if(currentImage)
-	    return SQERR_NOTOK;
+	    return SQE_NOTOK;
 
     if(dircount != 1 && dircount != 0)
 	if(!TIFFReadDirectory(ftiff))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
     if(currentImage)
 	TIFFRGBAImageEnd(&img);
@@ -153,30 +152,17 @@ s32 fmt_codec::fmt_next()
 
     finfo.image[currentImage].bpp = bps * spp;
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
-    finfo.image[currentImage].hasalpha = true;
-
     finfo.images++;
+    finfo.image[currentImage].hasalpha = true;
+    finfo.image[currentImage].compression = "-"; 
+    finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(finfo.image[currentImage].bpp);
 
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-	<< finfo.image[currentImage].w << "x"
-	<< finfo.image[currentImage].h << "\n"
-	<< finfo.image[currentImage].bpp << "\n"
-	<< fmt_utils::colorSystemByBpp(finfo.image[currentImage].bpp) << "\n"
-	<< "-\n"
-	<< bytes;
-
-    finfo.image[currentImage].dump = s.str();
-
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
     
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -193,102 +179,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
     img.row_offset++;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    TIFF	*m_ftiff;
-    TIFFRGBAImage m_img;
-    s32 m_bytes;
-    s32 w, h, bpp;
-
-    if((m_ftiff = TIFFOpen(file.c_str(), "r")) == NULL)
-	return SQERR_BADFILE;
-
-    TIFFSetWarningHandler(NULL);
-    TIFFSetErrorHandler(NULL);
-
-    s32 m_dircount = 0;
-
-    while(TIFFReadDirectory(m_ftiff))
-    {
-	m_dircount++;
-    }
-
-    TIFFSetDirectory(m_ftiff, 0);
-
-    if(m_dircount != 1 && m_dircount != 0)
-    if(!TIFFReadDirectory(m_ftiff))
-    {
-	TIFFClose(m_ftiff);
-        return SQERR_BADFILE;
-    }
-
-    s32 bps, spp;
-
-    TIFFGetField(m_ftiff, TIFFTAG_IMAGEWIDTH, &w);
-    TIFFGetField(m_ftiff, TIFFTAG_IMAGELENGTH, &h);
-
-    memset(&m_img, 0, sizeof(TIFFRGBAImage));
-
-    TIFFRGBAImageBegin(&m_img, m_ftiff, 1, 0);
-    
-    bps = m_img.bitspersample;
-    spp = m_img.samplesperpixel;
-
-    bpp = bps * spp;
-
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << fmt_utils::colorSystemByBpp(bpp) << "\n"
-        << "-" << "\n"
-        << m_dircount << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-	TIFFRGBAImageEnd(&m_img);
-	TIFFClose(m_ftiff);
-        return SQERR_NOMEMORY;
-    }
-
-    memset(*image, 255, m_bytes);
-
-    const s32 W = w * sizeof(RGBA);
-
-    uint32 buf[W];
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA 	*scan = *image + h2 * w;
-
-	memset(scan, 255, W);
-
-	TIFFRGBAImageGet(&m_img, buf, w, 1);
-
-	memcpy(scan, buf, W);
-
-	m_img.row_offset++;
-    }
-
-    TIFFRGBAImageEnd(&m_img);
-    TIFFClose(m_ftiff);
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     TIFFRGBAImageEnd(&img);
     TIFFClose(ftiff);
@@ -304,43 +198,69 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    TIFF *out;
-    u32 spp = 4;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
 
     out = TIFFOpen(file.c_str(), "w");
 
     if(!out)
-	return SQERR_NOFILE;
+	return SQE_W_NOFILE;
 
-    TIFFSetField(out, TIFFTAG_IMAGEWIDTH,  w);
-    TIFFSetField(out, TIFFTAG_IMAGELENGTH, h);
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    TIFFSetField(out, TIFFTAG_IMAGEWIDTH,  writeimage.w);
+    TIFFSetField(out, TIFFTAG_IMAGELENGTH, writeimage.h);
     TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-    TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, spp);
+    TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, 4);
     TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 8);
     TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
     TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
-    TIFFSetField(out, TIFFTAG_COMPRESSION, (opt.compression_scheme == CompressionRLE ? COMPRESSION_PACKBITS : COMPRESSION_NONE));
+    TIFFSetField(out, TIFFTAG_COMPRESSION, (writeopt.compression_scheme == CompressionRLE ? COMPRESSION_PACKBITS : COMPRESSION_NONE));
     TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(out, (uint32) -1));
-//    TIFFWriteDirectory(out);
+    
+    line = -1;
 
-    for(s32 row = 0; row < h; row++)
-    {
-	RGBA *scan = image + row * w;
+    return SQE_OK;
+}
 
-        if(TIFFWriteScanline(out, (u8 *)scan, row, 0) < 0)
-    	    break;
-    }
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
 
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    ++line;
+
+    if(TIFFWriteScanline(out, (u8 *)scan, line, 0) < 0)
+	return SQE_W_ERROR;
+
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
     TIFFClose(out);
-
-    return SQERR_OK;
 }
 
 bool fmt_codec::fmt_writable() const
+{
+    return true;
+}
+
+bool fmt_codec::fmt_readable() const
 {
     return true;
 }

@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>KSquirrel: development</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta name='Author' content='Baryshev Dmitry/Krasu'>
+		    
+    <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+In ksquirrel-libs I use the following wrappers for built-in types (valid for x86, 32-bit platform): int - <b>s32</b>,
+unsigned int - <b>u32</b>, short - <b>s16</b>, unsigned short - <b>u16</b>, char - <b>s8</b>, unsinged char - <b>u8</b>.
+All of them are defined in <b>fmt_types.h</b>.
+
+<pre>
+<b>Defines one metainfo record. For example:
+ {"JPEG 'COM' marker", "File written by Photoshop"}</b>
+struct fmt_metaentry
+{
+    <b>Group name, for example "SGI Image name"</b>
+    std::string group;
+
+    <b>Information. For example "This image was created with MegaTool 0.5.1"</b>
+    std::string data;
+
+};
+
+<b>Defines 32-bit pixel. Red, Green, Blue and Alpha channel.</b>
+struct RGBA
+{
+    RGBA() : r(0), g(0), b(0), a(0)
+    {}
+
+    RGBA(s32 r1, s32 g1, s32 b1, s32 a1) : r(r1), g(g1), b(b1), a(a1)
+    {}
+
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+}PACKED;
+
+<b>Defines 24-bit color pixel. Red, Green, Blue.</b>
+struct RGB
+{
+    RGB() : r(0), g(0), b(0)
+    {}
+
+    RGB(s32 r1, s32 g1, s32 b1) : r(r1), g(g1), b(b1)
+    {}
+
+    u8 r;
+    u8 g;
+    u8 b;
+
+}PACKED;
+
+<b>Defines one image. It stores the main information about one image: width,
+height, metainfo, ...</b>
+struct fmt_image
+{
+    fmt_image() : w(0), h(0), bpp(0), hasalpha(false), needflip(false),
+		    delay(0), interlaced(false), passes(1)
+    {}
+
+    <b>width of the image</b>
+    s32                 w;
+    <b>height</b>
+    s32                 h;
+    <b>bits per pixel</b>
+    s32                 bpp;
+    <b>has alpha channel ?</b>
+    bool                hasalpha;
+    <b>flip ? (for example BMP needs)</b>
+    bool                needflip;
+    <b>only for animated images (like GIF)</b>
+    s32	                delay;
+    <b>Is it interlaced or normal ?</b>
+    bool		interlaced;
+    <b>Item 'passes' stores a number of passes if the image is iterlaced, or 1 otherwise.</b>
+    s32			passes;
+    <b>color space (RGB, RGBA, CMYK, LAB ...)</b>
+    std::string colorspace;
+    <b>compression type (RLE, JPEG, Deflate ...)</b>
+    std::string compression;
+
+};
+
+<b>The main structure in ksquirrel-libs. It contains all information needed
+to decode a file with one or more images.</b>
+struct fmt_info
+{
+    fmt_info() : images(0), animated(false)
+    {}
+
+    <b>Array of fmt_image structures. One structure defines one image.</b>
+    std::vector&#60;fmt_image&#62;      image;
+
+    <b>Metainfo entries</b>
+    std::vector&#60;fmt_metaentry&#62;  meta;
+
+    <b>Number of images in file.</b>
+    s32			images;
+    <b>Is it animated or static ?</b>
+    bool		animated;
+
+};
+
+
+enum fmt_compression { 
+
+<b>No compression</b>
+CompressionNo = 1,
+
+<b>RLE compression</b>
+CompressionRLE = 2,
+
+<b>Internal cmpression. E.g. compression_level will be passed to internal routines,
+for example in libjpeg, libpng.
+Note: if the image can be compressed with RLE encoding and with only RLE
+encoding, compression_scheme should be CompressionInternal</b>
+CompressionInternal = 4 };
+
+<b>Write options for image format</b>
+struct fmt_writeoptionsabs
+{
+    <b>Can be interlaced ?</b>
+    bool interlaced;
+
+    <b>if interlaced, this value should store preferred number of passes.</b>
+    s32 passes;
+
+    <b>if the image should be flipped before writing</b>
+    bool needflip;
+
+    <b>    with which compression it can be encoded ?
+        for example: CompressionNo | CompressionRLE.
+        it means, that image can be encoded with RLE
+        method or can be saved without any compression.</b>
+    s32  compression_scheme;
+
+    <b>    minimum compression level, maximum and default.
+        For example, JPEG library has minimum = 0,
+        maximum = 100 and default = 25.</b>
+    s32  compression_min, compression_max, compression_def;
+
+}PACKED;
+
+<b>this information will be passed to writing function</b>
+struct fmt_writeoptions
+{
+    <b>write interlaced image or normal ?</b>
+    bool interlaced;
+
+    <b>with which compression encode the image ?</b>
+    fmt_compression compression_scheme;
+
+    <b>compression level</b>
+    s32 compression_level;
+
+    <b>has alpha channel ? If no, A channel in RGBA image will be ignored</b>
+    bool alpha;
+
+}PACKED;
+
+
+<b>We can use comparison operators for RGBA and RGB pixels. For example:</b>
+<strong>
+#define SQ_NEED_OPERATOR_RGBA_RGB
+
+RGBA rgba;
+RGB rgb;
+...
+if(rgba == rgb)
+    printf("Pixels are equal!\n");
+</strong>
+#if defined SQ_NEED_OPERATOR_RGBA_RGBA
+static s32 operator== (const RGBA &rgba1, const RGBA &rgba2)
+{
+    return (rgba1.r == rgba2.r && rgba1.g == rgba2.g && rgba1.b == rgba2.b && rgba1.a == rgba2.a);
+}
+#endif
+
+#if defined SQ_NEED_OPERATOR_RGB_RGBA
+static s32 operator== (const RGB &rgb, const RGBA &rgba)
+{
+    return (rgb.r == rgba.r && rgb.g == rgba.g && rgb.b == rgba.b);
+}
+#endif
+
+#if defined SQ_NEED_OPERATOR_RGBA_RGB
+static s32 operator== (const RGBA &rgba, const RGB &rgb)
+{
+    return (rgba.r == rgb.r && rgba.g == rgb.g && rgba.b == rgb.b);
+}
+#endif
+
+#endif
+</pre>
+</body>
+</html>

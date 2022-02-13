@@ -1,0 +1,44 @@
+<pre>
+#include &#60;stdio.h&#62;
+#include &#60;sys/types.h&#62;
+#include &#60;sys/stat.h&#62;
+#include &#60;unistd.h&#62;
+		     
+int main(int argc, char **argv)
+{
+    int i;
+    for(i = 1;i &#60; argc;i++)
+    {
+	FILE *f = fopen(argv[i], "rb");
+	char c;
+	struct stat buf;
+
+	if(!f)
+	{
+	    fprintf(stderr, "Can't open file.\n");
+	    return 255;
+	}
+
+	int s = 0, sz;
+	stat(argv[i], &buf);
+	
+	sz = buf.st_size;
+
+	printf("%s\nstd::string fmt_codec::fmt_pixmap()\n{\n\treturn std::string(\"", argv[i]);
+
+	while(s++ &#60; sz-1)
+	{
+	    fread(&c, 1, 1, f);
+	    printf("%u,", (unsigned char)c);
+	}
+
+	fread(&c, 1, 1, f);
+	printf("%u", (unsigned char)c);
+
+	printf("\");\n}\n\n");
+	fclose(f);
+    }
+
+    return 0;
+}
+</pre>

@@ -1,9 +1,10 @@
 Important
 ---------
-* if you you want JPEG, PNG, and TIFF support,
-  please install libpng, libjpeg, and libtiff. You should also install devel packages.
+* if you you want JPEG, PNG and TIFF support,
+  please install libpng, libjpeg and libtiff. You should also install devel packages.
 * XWD library requires X11/XWDFile.h.
 * WMF library requires freetype2 and freetype2-devel
+* SVG library requires libxml2 and freetype2 and freetype2-devel
 
 About
 -----
@@ -24,4 +25,4 @@ About
 
 Version
 -------
-Current version: 0.6.0-pre2
+Current version: 0.6.0-pre3

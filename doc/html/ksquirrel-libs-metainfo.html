@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>KSquirrel: development</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta name='Author' content='Baryshev Dmitry/Krasu'>
+		    
+    <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+<p>For support of a metainformation, saved together with some images, in ksquirrel-libs exists the special
+structure similar to map. Support of a metainformation COMPLETELY lays down on library i.e.
+if in image file there are any collateral data, but library ignores it,
+KSquirrel (as well as any other viewer on the basis of ksquirrel-libs) will not display it in 
+<a href="IMG/metainfo_dialog.png">Image Properties</a> dialog.
+
+<p>At present EXIF the information is not supported yet, but in v0.6.0 it possibly will be realized.
+<p>Formally work with a metainformation looks so: [read some information from a file] => [group it] => [keep in object 'finfo']. Further you can see an example of the elementary reading and preservation of a metainformation.
+<p>You should read metainfo in <b>fmt_read_next()</b> and store it in <b>finfo.meta</b>.
+
+<p>
+<b><u>Example</u></b>
+
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+<tbody>
+<tr>
+<td valign="top" bgcolor="#CCCCCC">
+<pre>
+    <b>Read information from file</b>
+    frs.readK(str, 255);
+
+    <b>Don't forget to insert '\0', if necessary</b>
+    str[255] = '\0';
+
+    <b>insert new metaentry</b>
+    finfo.meta.push_back(fmt_metaentry());
+	
+    <b>Setup group name. It can be "JPEG "COM" Marker", "PNG key", 
+    "SGI Image Name", or any other you want.</b>
+    finfo.meta[0].group = "Group name";
+		
+    <b>Copy information</b>
+    finfo.meta[0].data = str;
+</pre>
+</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

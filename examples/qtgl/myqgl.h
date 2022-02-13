@@ -3,7 +3,10 @@
 
 #include <qgl.h>
 
-#define SQ_FIO_NO_IMPLEMENT
+#include <csetjmp>
+
+#include "fmt_types.h"
+#include "fileio.h"
 #include "fmt_codec_base.h"
 
 class MyQGL : public QGLWidget
@@ -29,7 +32,7 @@ class MyQGL : public QGLWidget
 		int w, h;
 		fmt_codec_base* (*fmt_codec_create)();
 		void (*fmt_codec_destroy)(fmt_codec_base*);
-		
+
 		fmt_codec_base	*codeK;
 			
 };

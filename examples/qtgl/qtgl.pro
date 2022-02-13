@@ -8,5 +8,5 @@ INCLUDEPATH += ../../kernel
 
 # Input
 HEADERS += myqgl.h
-SOURCES += main.cpp myqgl.cpp
+SOURCES += main.cpp myqgl.cpp ../../kernel/fmt_utils.cpp
 LIBS    += -lGL -lGLU

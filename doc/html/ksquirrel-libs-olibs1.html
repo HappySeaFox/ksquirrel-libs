@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>KSquirrel: development</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta name='Author' content='Baryshev Dmitry/Krasu'>
+		    
+    <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+<ul>
+<li>First, write regular C program (without main()):
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+									   
+  <pre>
+  const char* fmt_info()
+  {
+       return "It is really cool format!";
+  }
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>Compile it
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+       # gcc -O2 -fPIC -c module.c
+       # gcc -shared -o module.so module.o
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>Let's write a simple test
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+  #include &#60;unistd.h&#62;
+  #include &#60;string.h&#62;
+  #include &#60;errno.h&#62;
+  #include &#60;dlfcn.h&#62;
+
+  #define PATH_LENGTH 256
+      
+  int main(int argc, char * argv[])
+  {
+      char path[PATH_LENGTH], *msg = NULL;
+      const char* (*fmt)();
+      void *module;
+      
+      getcwd(path, PATH_LENGTH);
+      strcat(path, "/");
+      strcat(path, "module.so");
+
+      /* Load module */
+      module = dlopen(path, RTLD_NOW);
+      
+      /* Error ! */
+      if(!module)
+      {
+          msg = dlerror();
+
+          if(msg != NULL)
+	  {
+              dlclose(module);
+              exit(1);
+          }
+      }
+
+      /* Try to resolve function "fmt_info()" */
+      fmt = dlsym(module, "fmt_info");
+
+      msg = dlerror();
+
+      if(msg != NULL)
+      {
+          perror(msg);
+          dlclose(module);
+          exit(1);
+      }
+      
+      /* call fmt_info() through a pointer*/
+      printf("%s\n", fmt());
+
+      /* close module */
+      if(dlclose(module))
+      {
+          perror("error");
+          exit(1);
+      }
+      
+      return 0;
+  }
+  
+  # gcc -o test main.c -ldl
+  # ./test
+  It is really cool format!
+  #
+
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+<br><br>
+<li>That's all! :) Our test program has just loaded <u>module.so</u> and called <u>fmt_info()</u>, located in it. It is very simple, isn't ?
+<br><br>
+</ul>
+
+</body>
+</html>

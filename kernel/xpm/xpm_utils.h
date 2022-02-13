@@ -19,9 +19,6 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef SQ_XPM_UTILS
-#define SQ_XPM_UTILS
-
 #include <cctype>
 
 #define KEY_LENGTH  25
@@ -96,7 +93,7 @@ s32 skip_comments(ifstreamK &ff)
     if((*str == '\n' && *(str+1) == '\0') || (*str == '\n' && *(str+1) == '\r' && *(str+2) == '\0') || (*str == '\r' && *(str+1) == '\n' && *(str+2) == '\0'))
         skipped = true;
 
-    if(strstr(str, "/*") || *str == '#')
+    if(strstr(str, "/*") || *str == '#' || !strlen(str))
         skipped = true;
 
     if(!skipped)
@@ -104,5 +101,3 @@ s32 skip_comments(ifstreamK &ff)
 
     return (int)skipped;
 }
-
-#endif

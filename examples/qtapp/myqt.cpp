@@ -6,23 +6,20 @@
 
 #include "myqt.h"
 
-// this example uses local headers.
-// you can include <ksquirrel-libs/fmt_utils.h>
-// instead
-
-#define SQ_HAVE_FMT_UTILS
 #include "fmt_utils.h"
 #include "error.h"
 
 MyQT::MyQT(QWidget *parent, const char *name) : QLabel(parent, name)
-{}
+{
+    setAlignment(Qt::AlignCenter);
+}
 
 MyQT::~MyQT()
 {}
 
 QPixmap MyQT::loadImage()
 {
-	QLibrary lib("/usr/lib/ksquirrel-libs/libSQ_read_bmp.so");
+	QLibrary lib("/usr/lib/ksquirrel-libs/libSQ_codec_bmp.so");
 	lib.load();
 
 	if(!lib.isLoaded())
@@ -57,21 +54,21 @@ QPixmap MyQT::loadImage()
 
 	codeK = fmt_codec_create();
 
-	i = codeK->fmt_init(s);
+	i = codeK->fmt_read_init(s);
 
-	if(i != SQERR_OK)
+	if(i != SQE_OK)
 	{
-	    codeK->fmt_close();
+	    codeK->fmt_read_close();
 	    return QPixmap();
 	}
 
-	i = codeK->fmt_next();
+	i = codeK->fmt_read_next();
 	
 	finfo = codeK->information();
 
-	if(i != SQERR_OK)
+	if(i != SQE_OK)
 	{
-	    codeK->fmt_close();
+	    codeK->fmt_read_close();
 	    return QPixmap();
 	}
 
@@ -79,7 +76,7 @@ QPixmap MyQT::loadImage()
 
 	if(!image)
 	{
-	    codeK->fmt_close();
+	    codeK->fmt_read_close();
 	    return QPixmap();
 	}
 
@@ -89,7 +86,7 @@ QPixmap MyQT::loadImage()
 
 	for(int pass = 0;pass < finfo.image[current].passes;pass++)
 	{
-		codeK->fmt_next_pass();
+		codeK->fmt_read_next_pass();
 
 		for(int j = 0;j < finfo.image[current].h;j++)
 		{
@@ -99,9 +96,9 @@ QPixmap MyQT::loadImage()
 	}
 
 	if(finfo.image[current].needflip)
-	    fmt_utils::flip((char*)image, finfo.image[current].w * sizeof(RGBA), finfo.image[current].h);
+	    fmt_utils::flipv((char*)image, finfo.image[current].w * sizeof(RGBA), finfo.image[current].h);
 
-	codeK->fmt_close();
+	codeK->fmt_read_close();
 
 	QImage im((unsigned char*)image, finfo.image[current].w, finfo.image[current].h, 32, 0, 0, QImage::LittleEndian);
 	

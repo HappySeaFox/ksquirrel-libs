@@ -26,9 +26,6 @@
 /* define if you have libjpeg */
 #undef HAVE_LIBJPEG
 
-/* define if you have libplot */
-#undef HAVE_LIBPLOT
-
 /* define if you have libpng */
 #undef HAVE_LIBPNG
 

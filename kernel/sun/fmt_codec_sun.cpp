@@ -19,19 +19,18 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 #include <cctype>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
+#include "fileio.h"
+#include "error.h"
+
 #include "fmt_codec_sun_defs.h"
 #include "fmt_codec_sun.h"
 
-#include "error.h"
-
-#define SQ_HAVE_FMT_UTILS
-#include "fmt_utils.h"
+using namespace fmt_utils;
 
 /*
  *
@@ -83,30 +82,30 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,21,80,76,84,69,112,0,65,0,0,0,192,192,192,255,255,255,112,112,112,0,255,0,4,4,4,40,229,232,128,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,89,73,68,65,84,120,218,99,96,96,72,3,1,6,32,16,82,82,82,82,3,49,146,140,141,141,213,210,160,12,160,144,32,20,48,136,184,128,129,35,131,72,104,72,136,171,171,75,32,131,168,139,11,144,17,18,8,20,1,49,92,129,12,23,152,84,168,139,107,8,136,1,215,5,55,7,98,178,49,200,178,36,37,168,173,96,103,36,0,0,248,95,25,196,95,2,95,106,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,150,254,170,202,202,202,114,114,114,254,254,254,178,178,178,174,174,174,242,242,242,78,78,78,222,222,222,70,70,70,168,13,218,242,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,104,73,68,65,84,120,218,99,232,0,129,0,6,6,134,69,74,74,74,90,211,64,12,23,23,23,173,202,0,8,67,163,99,1,132,161,164,212,192,192,208,181,10,2,24,22,27,131,129,21,195,98,65,97,97,67,67,99,41,134,133,198,198,64,134,176,20,80,4,196,48,4,50,140,97,82,130,198,134,194,32,6,92,215,42,152,57,139,84,85,85,149,130,128,86,112,173,88,209,181,170,107,1,3,0,50,59,40,184,41,212,93,7,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::in);
 
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     currentImage = -1;
 
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage)
-        return SQERR_NOTOK;
+        return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
@@ -125,15 +124,15 @@ s32 fmt_codec::fmt_next()
     for(s32 i = 0;i < 5;i++)
     {
 	if(!scanForLex(frs))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	frs.getline(str, 127, '=');
 
 	if(!frs.good())
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	if(strncmp(lex[i], str, strlen(lex[i])))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	frs >> var;
 
@@ -141,46 +140,34 @@ s32 fmt_codec::fmt_next()
     }
 
     if(ver != SUN_ICON_VERSION)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 	
     // ignore images with width != 64 or height != 64
     // @todo get rid of this if()
     if(finfo.image[currentImage].w != 64 || finfo.image[currentImage].h != 64)
-	return SQERR_NOTSUPPORTED;
+	return SQE_R_NOTSUPPORTED;
 
     if(finfo.image[currentImage].bpp != 1)
-	return SQERR_NOTSUPPORTED;
+	return SQE_R_NOTSUPPORTED;
 
     if(validbits != 16 && validbits != 32)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     if(!scanForLex(frs, true))
-	return SQERR_BADFILE;
-
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
+	return SQE_R_BADFILE;
 
     finfo.images++;
+    finfo.image[currentImage].compression = "-";
+    finfo.image[currentImage].colorspace = "Monochrome";
 
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << "Monochrome" << "\n"
-        << "-" << "\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
-    
     line = -1;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -199,7 +186,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     while(decoded < finfo.image[currentImage].w)
     {
 	if(!frs.readCHex(var))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	if(validbits == 16)
 	    fmt_utils::expandMono2Byte(var, indexes);
@@ -211,7 +198,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	lasthex = (decoded >= finfo.image[currentImage].w && line == finfo.image[currentImage].h-1);
 
 	if(!scanForLex(frs, true) && !lasthex)
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	j = i + validbits;
 
@@ -219,145 +206,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    memcpy(scan+i, mono+indexes[k], sizeof(RGB));
     }
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    s32                 w, h, bpp;
-    s32                 m_bytes;
-    jmp_buf             jmp;
-    ifstreamK           m_frs;
-
-    m_frs.open(file.c_str(), ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-
-    if(setjmp(jmp))
-    {
-        m_frs.close();
-        return SQERR_BADFILE;
-    }
-
-    s8 str[128];
-    u32 var, ver, m_validbits;
-
-    u32 * pointers[5] = 
-    {
-	&ver,
-	(u32 *)&w,
-	(u32 *)&h,
-	(u32 *)&bpp,
-	&m_validbits
-    };
-
-    for(s32 i = 0;i < 5;i++)
-    {
-	if(!scanForLex(m_frs))
-	    longjmp(jmp, 1);
-
-	m_frs.getline(str, 127, '=');
-
-	if(!m_frs.good())
-	    longjmp(jmp, 1);
-
-	if(strncmp(lex[i], str, strlen(lex[i])))
-	    longjmp(jmp, 1);
-
-	m_frs >> var;
-
-	*(pointers[i]) = var;
-    }
-
-    if(ver != SUN_ICON_VERSION)
-	longjmp(jmp, 1);
-	
-    // ignore images with width != 64 or height != 64
-    // @todo get rid of this if()
-    if(w != 64 || h != 64)
-	longjmp(jmp, 1);
-
-    if(bpp != 1)
-	longjmp(jmp, 1);
-
-    if(m_validbits != 16 && m_validbits != 32)
-	longjmp(jmp, 1);
-
-    if(!scanForLex(m_frs, true))
-	longjmp(jmp, 1);
-
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "Monocrome" << "\n"
-        << "-" << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-        longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-    s32 m_line = -1;
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA    *scan = *image + h2 * w;
-
-	RGB rgb;
-	RGBA rgba;
-	u32 var, i = 0, j = 0;
-	s32 decoded = 0;
-	u8  indexes[32];
-	bool lasthex;
-
-	m_line++;
-
-	while(decoded < w)
-	{
-	    if(!m_frs.readCHex(var))
-		longjmp(jmp, 1);
-
-	    if(m_validbits == 16)
-		fmt_utils::expandMono2Byte(var, indexes);
-	    else
-		fmt_utils::expandMono4Byte(var, indexes);
-
-	    decoded += m_validbits;
-
-	    lasthex = (decoded >= w && m_line == h-1);
-
-	    if(!scanForLex(m_frs, true) && !lasthex)
-		longjmp(jmp, 1);
-
-	    j = i + m_validbits;
-
-	    for(u32 k = 0;i < j;i++,k++)
-		memcpy(scan+i, mono+indexes[k], sizeof(RGB));
-	}
-    }
-
-    m_frs.close();
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     frs.close();
 
@@ -372,11 +224,44 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_OK;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
@@ -404,4 +289,9 @@ bool scanForLex(ifstreamK &f, bool digit)
 	f.seekg(-1, ios::cur);
 
     return found;
+}
+
+bool fmt_codec::fmt_readable() const
+{
+    return true;
 }

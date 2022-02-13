@@ -19,15 +19,14 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fileio.h"
+#include "error.h"
+
 #include "fmt_codec_fli_defs.h"
 #include "fmt_codec_fli.h"
-
-#include "error.h"
 
 /*
  *
@@ -71,21 +70,21 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,170,8,138,4,4,4,227,59,112,255,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,80,73,68,65,84,120,218,61,142,193,13,192,48,8,3,189,2,15,22,176,216,160,153,128,50,64,251,200,254,171,148,16,154,123,157,44,48,0,152,11,36,175,136,104,9,73,157,45,25,93,13,70,20,55,6,233,225,76,177,240,8,91,137,181,156,36,133,53,243,111,157,158,221,76,237,163,117,181,222,120,62,112,172,23,177,216,139,37,27,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,170,8,137,76,76,76,62,31,71,3,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,90,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,161,161,83,103,78,13,5,50,34,103,78,157,57,51,18,36,18,9,101,192,69,128,140,80,176,26,152,46,184,57,32,75,193,38,115,129,221,177,128,1,0,92,2,58,22,70,224,27,73,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
     
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 			
     if(!frs.readK(&flic, sizeof(FLICHEADER)))
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     if(flic.FileId != 0xAF11)// && flic.FileId != 0xAF12)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     if(flic.Flags != 3)
 	cerr << "libSQ_read_fli: WARNING: Flags != 3" << endl;
@@ -97,7 +96,7 @@ s32 fmt_codec::fmt_init(std::string file)
     buf = (u8**)calloc(flic.Height, sizeof(u8*));
 
     if(!buf)
-	return SQERR_NOMEMORY;
+	return SQE_R_NOMEMORY;
 
     for(s32 i = 0;i < flic.Height;i++)
     {
@@ -109,21 +108,21 @@ s32 fmt_codec::fmt_init(std::string file)
 	buf[i] = (u8*)calloc(flic.Width, sizeof(u8));
 	
 	if(!buf[i])
-	    return SQERR_NOMEMORY;
+	    return SQE_R_NOMEMORY;
     }
     
     finfo.images = 0;
     finfo.animated = false;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage == flic.NumberOfFrames || currentImage == MAX_FRAME)
-	return SQERR_NOTOK;
+	return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
@@ -146,10 +145,10 @@ s32 fmt_codec::fmt_next()
     while(true)
     {
 	if(!skip_flood(frs))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	if(!frs.readK(&chunk, sizeof(CHUNKHEADER)))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 //	prs32f("Read MAIN chunk: size: %d, type: %X\n", chunk.size, chunk.type);
 
@@ -158,14 +157,14 @@ s32 fmt_codec::fmt_next()
 		    chunk.type != CHUNK_FRAME_TYPE &&
 		    chunk.type != CHUNK_SEGMENT_TABLE &&
 		    chunk.type != CHUNK_HUFFMAN_TABLE)
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 	if(chunk.type != CHUNK_FRAME_TYPE)
 	    frs.seekg(chunk.size - sizeof(CHUNKHEADER), ios::cur);
 	else
 	{
 	    if(!frs.readK(&subchunks, sizeof(u16)))
-		return SQERR_BADFILE;
+		return SQE_R_BADFILE;
 //	    prs32f("Chunk #%X has %d subchunks\n", chunk.type, subchunks);
 	    frs.seekg(sizeof(u16) * 4, ios::cur);
 	    break;
@@ -182,7 +181,7 @@ s32 fmt_codec::fmt_next()
         pos = frs.tellg(); 
 
         if(!frs.readK(&subchunk, sizeof(CHUNKHEADER)))
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 
 //	prs32f("*** Subchunk: %d\n", subchunk.type);
 
@@ -197,27 +196,27 @@ s32 fmt_codec::fmt_next()
 		RGB e;
 
 		if(!frs.readK(&packets, sizeof(u16)))
-		    return SQERR_BADFILE;
+		    return SQE_R_BADFILE;
 //		prs32f("COLOR_64 packets: %d\n", packets);
 
 		for(s32 i = 0;i < packets;i++)
 		{
-		    if(!frs.readK(&skip, 1)) return SQERR_BADFILE;
-		    if(!frs.readK(&count, 1)) return SQERR_BADFILE;
+		    if(!frs.readK(&skip, 1)) return SQE_R_BADFILE;
+		    if(!frs.readK(&count, 1)) return SQE_R_BADFILE;
 //		    prs32f("COLOR64 skip: %d, count: %d\n", skip, count);
 
 		    if(count)
 		    {
 			for(s32 j = 0;j < count;j++)
 			{
-			    if(!frs.readK(&e, sizeof(RGB))) return SQERR_BADFILE;
+			    if(!frs.readK(&e, sizeof(RGB))) return SQE_R_BADFILE;
 //			    prs32f("COLOR_64 PALLETTE CHANGE %d,%d,%d\n", e.r, e.g, e.b);
 			}
 		    }
 		    else
 		    {
 //			prs32f("Reading pallette...\n");
-			if(!frs.readK(pal, sizeof(RGB) * 256)) return SQERR_BADFILE;
+			if(!frs.readK(pal, sizeof(RGB) * 256)) return SQE_R_BADFILE;
 
 			u8 *pp = (u8 *)pal;
 
@@ -244,11 +243,11 @@ s32 fmt_codec::fmt_next()
 		{
 		    s32 index = 0;
 		    count = 0;
-		    if(!frs.readK(&c, 1)) return SQERR_BADFILE;
+		    if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
 
 		    while(count < finfo.image[currentImage].w)
 		    {
-			if(!frs.readK(&c, 1)) return SQERR_BADFILE;
+			if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
 
 			if(c < 0)
 			{
@@ -256,7 +255,7 @@ s32 fmt_codec::fmt_next()
 
 			    for(s32 i = 0;i < c;i++)
 			    {
-				if(!frs.readK(&value, 1)) return SQERR_BADFILE;
+				if(!frs.readK(&value, 1)) return SQE_R_BADFILE;
 				buf[j][index] = value;
 				index++;
 			    }
@@ -265,7 +264,7 @@ s32 fmt_codec::fmt_next()
 			}
 			else
 			{
-			    if(!frs.readK(&value, 1)) return SQERR_BADFILE;
+			    if(!frs.readK(&value, 1)) return SQE_R_BADFILE;
 
 			    for(s32 i = 0;i < c;i++)
 			    {
@@ -287,8 +286,8 @@ s32 fmt_codec::fmt_next()
 		s8 size;
 		s32 count;
 
-		if(!frs.readK(&starty, 2)) return SQERR_BADFILE;
-		if(!frs.readK(&totaly, 2)) return SQERR_BADFILE;
+		if(!frs.readK(&starty, 2)) return SQE_R_BADFILE;
+		if(!frs.readK(&totaly, 2)) return SQE_R_BADFILE;
 
 		ally = starty + totaly;
 		
@@ -299,15 +298,15 @@ s32 fmt_codec::fmt_next()
 		    count = 0;
 		    index = 0;
 
-		    if(!frs.readK(&packets, 1)) return SQERR_BADFILE;
+		    if(!frs.readK(&packets, 1)) return SQE_R_BADFILE;
 
 		    while(count < finfo.image[currentImage].w)
 		    {
 			for(s32 k = 0;k < packets;k++)
 			{
 //			    prs32f("LINE %d\n", j);
-			    if(!frs.readK(&skip, 1)) return SQERR_BADFILE;
-			    if(!frs.readK(&size, 1)) return SQERR_BADFILE;
+			    if(!frs.readK(&skip, 1)) return SQE_R_BADFILE;
+			    if(!frs.readK(&size, 1)) return SQE_R_BADFILE;
 
 			    index += skip;
 			    
@@ -315,12 +314,12 @@ s32 fmt_codec::fmt_next()
 
 			    if(size > 0)
 			    {
-				if(!frs.readK(buf[j]+index, size)) return SQERR_BADFILE;
+				if(!frs.readK(buf[j]+index, size)) return SQE_R_BADFILE;
 			    }
 			    else if(size < 0)
 			    {
 				size = -size;
-				if(!frs.readK(&byte, 1)) return SQERR_BADFILE;
+				if(!frs.readK(&byte, 1)) return SQE_R_BADFILE;
 				memset(buf[j]+index, byte, size);
 			    }
 
@@ -343,7 +342,7 @@ s32 fmt_codec::fmt_next()
 
 		for(s32 j = 0;j < finfo.image[currentImage].h;j++)
 		{
-		    if(!frs.readK(buf[j], finfo.image[currentImage].w)) return SQERR_BADFILE;
+		    if(!frs.readK(buf[j], finfo.image[currentImage].w)) return SQE_R_BADFILE;
 		}
 	    }
 	    break;
@@ -358,30 +357,18 @@ s32 fmt_codec::fmt_next()
 //	prs32f("POS2: %d\n", ftell(fptr));
     }
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
     finfo.images++;
+    finfo.image[currentImage].compression = "RLE/DELTA_FLI";
+    finfo.image[currentImage].colorspace = "Color indexed";
 
-    stringstream s;
-    
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << "Color indexed" << "\n"
-        << "RLE/DELTA_FLI\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
-
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
     line = -1;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -395,315 +382,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	memcpy(scan+i, pal+buf[line][i], sizeof(RGB));
     }
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    s32 w, h, bpp;
-    FLICHEADER m_flic;
-    RGB m_pal[768];
-    s32 m_line;
-    s32 m_bytes;
-    ifstreamK	m_frs;
-    jmp_buf	jmp;
-
-    if(setjmp(jmp))
-    {
-	m_frs.close();
-	return SQERR_BADFILE;
-    }
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-			
-    if(!m_frs.readK(&m_flic, sizeof(FLICHEADER)))
-	longjmp(jmp, 1);;
-
-    if(m_flic.FileId != 0xAF11)// && m_flic.FileId != 0xAF12)
-	longjmp(jmp, 1);;
-
-    if(m_flic.Flags != 3)
-	cerr << "libSQ_read_fli: WARNING: Flags != 3" << endl;
-
-    memset(m_pal, 0, 768);
-
-    u8 m_buf[m_flic.Height][m_flic.Width];
-
-    w = m_flic.Width;
-    h = m_flic.Height;
-    bpp = 8;
-
-    CHUNKHEADER chunk;
-    CHUNKHEADER subchunk;
-    u16 subchunks;
-
-    fstream::pos_type pos = m_frs.tellg();
-//    prs32f("POS AFTER HEADER: %d\n", pos);
-
-    while(true)
-    {
-	if(!skip_flood(m_frs))
-	    longjmp(jmp, 1);
-
-	if(!m_frs.readK(&chunk, sizeof(CHUNKHEADER)))
-	    longjmp(jmp, 1);
-
-//	prs32f("Read MAIN chunk: size: %d, type: %X\n", chunk.size, chunk.type);
-
-	if(chunk.type != CHUNK_PREFIX_TYPE &&
-		    chunk.type != CHUNK_SCRIPT_CHUNK && 
-		    chunk.type != CHUNK_FRAME_TYPE &&
-		    chunk.type != CHUNK_SEGMENT_TABLE &&
-		    chunk.type != CHUNK_HUFFMAN_TABLE)
-	    longjmp(jmp, 1);
-
-	if(chunk.type != CHUNK_FRAME_TYPE)
-	    m_frs.seekg(chunk.size - sizeof(CHUNKHEADER), ios::cur);
-	else
-	{
-	    if(!m_frs.readK(&subchunks, sizeof(u16)))
-		longjmp(jmp, 1);
-//	    prs32f("Chunk #%X has %d subchunks\n", chunk.type, subchunks);
-	    m_frs.seekg(sizeof(u16) * 4, ios::cur);
-	    break;
-	}
-    }
-    
-//    cout << "GO!\n";
-
-//    prs32f("POS MAIN: %d\n", ftell(fptr));
-//    fsetpos(fptr, (fpos_t*)&pos);
-//    fseek(fptr, chunk.size, SEEK_CUR);
-//    prs32f("POS2 MAIN: %d\n", ftell(fptr));
-
-    while(subchunks--)
-    {
-        pos = m_frs.tellg(); 
-
-        if(!m_frs.readK(&subchunk, sizeof(CHUNKHEADER)))
-	    longjmp(jmp, 1);
-
-//	prs32f("*** Subchunk: %d\n", subchunk.type);
-
-	switch(subchunk.type)
-        {
-    	    case CHUNK_COLOR_64:
-    	    case CHUNK_COLOR_256:
-	    {
-//		prs32f("*** Palette64 CHUNK\n");
-		u8 skip, count;
-		u16 packets;
-		RGB e;
-
-		if(!m_frs.readK(&packets, sizeof(u16)))
-		    longjmp(jmp, 1);
-//		prs32f("COLOR_64 packets: %d\n", packets);
-
-		for(s32 i = 0;i < packets;i++)
-		{
-		    if(!m_frs.readK(&skip, 1)) longjmp(jmp, 1);
-		    if(!m_frs.readK(&count, 1)) longjmp(jmp, 1);
-//		    prs32f("COLOR64 skip: %d, count: %d\n", skip, count);
-
-		    if(count)
-		    {
-			for(s32 j = 0;j < count;j++)
-			{
-			    if(!m_frs.readK(&e, sizeof(RGB))) longjmp(jmp, 1);
-//			    prs32f("COLOR_64 PALLETTE CHANGE %d,%d,%d\n", e.r, e.g, e.b);
-			}
-		    }
-		    else
-		    {
-//			prs32f("Reading pallette...\n");
-			if(!m_frs.readK(m_pal, sizeof(RGB) * 256)) longjmp(jmp, 1);
-
-			u8 *pp = (u8 *)m_pal;
-
-			if(subchunk.type == CHUNK_COLOR_64)
-			    for(s32 j = 0;j < 768;j++)
-				pp[j] <<= 2;
-
-//			for(s32 j = 0;j < 256;j++)
-//			prs32f("COLOR_64 PALLETTE %d,%d,%d\n", m_pal[j].r, m_pal[j].g, m_pal[j].b);
-//			prs32f("\n");
-		    }
-		}
-	    }
-	    break;
-
-	    case CHUNK_RLE:
-	    {
-//		prs32f("*** RLE DATA CHUNK\n");
-		u8 value;
-		s8 c;
-		s32 count;
-
-		for(s32 j = 0;j < h;j++)
-		{
-		    s32 index = 0;
-		    count = 0;
-		    if(!m_frs.readK(&c, 1)) longjmp(jmp, 1);
-
-		    while(count < w)
-		    {
-			if(!m_frs.readK(&c, 1)) longjmp(jmp, 1);
-
-			if(c < 0)
-			{
-			    c = -c;
-
-			    for(s32 i = 0;i < c;i++)
-			    {
-				if(!m_frs.readK(&value, 1)) longjmp(jmp, 1);
-				m_buf[j][index] = value;
-				index++;
-			    }
-
-			    count += c;
-			}
-			else
-			{
-			    if(!m_frs.readK(&value, 1)) longjmp(jmp, 1);
-
-			    for(s32 i = 0;i < c;i++)
-			    {
-				m_buf[j][index] = value;
-				index++;
-			    }
-
-			    count += c;
-			}
-		    }
-		}
-	    }
-	    break;
-	    
-	    case CHUNK_DELTA_FLI:
-	    {
-		u16 starty, totaly, ally, index;
-		u8 packets, skip, byte;
-		s8 size;
-		s32 count;
-
-		if(!m_frs.readK(&starty, 2)) longjmp(jmp, 1);
-		if(!m_frs.readK(&totaly, 2)) longjmp(jmp, 1);
-
-		ally = starty + totaly;
-		
-//		prs32f("Y: %d, Total: %d\n", starty, totaly);
-
-		for(s32 j = starty;j < ally;j++)
-		{
-		    count = 0;
-		    index = 0;
-
-		    if(!m_frs.readK(&packets, 1)) longjmp(jmp, 1);
-
-		    while(count < w)
-		    {
-			for(s32 k = 0;k < packets;k++)
-			{
-//			    prs32f("LINE %d\n", j);
-			    if(!m_frs.readK(&skip, 1)) longjmp(jmp, 1);
-			    if(!m_frs.readK(&size, 1)) longjmp(jmp, 1);
-
-			    index += skip;
-			    
-//			    prs32f("SKIP: %d, SIZE: %d\n", skip, size);
-
-			    if(size > 0)
-			    {
-				if(!m_frs.readK(m_buf[j]+index, size)) longjmp(jmp, 1);
-			    }
-			    else if(size < 0)
-			    {
-				size = -size;
-				if(!m_frs.readK(&byte, 1)) longjmp(jmp, 1);
-				memset(m_buf[j]+index, byte, size);
-			    }
-
-			    index += size;
-			    count += size;
-			}
-
-			break;
-		    }
-		}
-	    }
-	    break;
-
-	    case CHUNK_BLACK:
-	    break;
-
-	    case CHUNK_COPY:
-	    {
-//		prs32f("*** COPY DATA CHUNK\n");
-
-		for(s32 j = 0;j < h;j++)
-		{
-		    if(!m_frs.readK(m_buf[j], w)) longjmp(jmp, 1);
-		}
-	    }
-	    break;
-
-	    default:
-//		prs32f("*** UNKNOWN CHUNK! SEEKING ANYWAY\n");
-		m_frs.seekg(pos);
-		m_frs.seekg(subchunk.size, ios::cur);
-	}
-
-//	prs32f("POS: %d\n", ftell(fptr));
-//	prs32f("POS2: %d\n", ftell(fptr));
-    }
-
-    stringstream s;
-
-    m_bytes = w * h * sizeof(RGBA);
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "Color indexed" << "\n"
-        << "RLE/DELTA_FLI\n"
-	<< m_flic.NumberOfFrames << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-						
-    if(!*image)
-    {
-	longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-    
-    m_line = -1;
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-	RGBA 	*scan = *image + h2 * w;
-
-	m_line++;
-	
-	for(s32 i = 0;i < w;i++)
-	{
-	    memcpy(scan+i, m_pal+m_buf[m_line][i], sizeof(RGB));
-	}
-    }
-
-    m_frs.close();
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     if(buf)
     {
@@ -767,9 +449,40 @@ bool fmt_codec::skip_flood(ifstreamK &s)
 //    prs32f("SKIP_FLOOD pos2: %d\n", ftell(f));
 }
 
-s32 fmt_codec::fmt_writeimage(std::string, RGBA *, s32, s32, const fmt_writeoptions &)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_NOTSUPPORTED;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *)
@@ -778,4 +491,9 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *)
 bool fmt_codec::fmt_writable() const
 {
     return false;
+}
+
+bool fmt_codec::fmt_readable() const
+{
+    return true;
 }

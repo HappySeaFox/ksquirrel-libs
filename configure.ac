@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.0-pre2], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.0-pre3], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre2)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre3)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -34,7 +34,7 @@ AC_C_CONST
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
-AC_FUNC_ERROR_AT_LINE
+#AC_FUNC_ERROR_AT_LINE
 AC_FUNC_REALLOC
 AC_FUNC_STAT
 
@@ -47,15 +47,22 @@ sq_have_camera="yes"
 AC_CHECK_LIB([jpeg], [main], [], [sq_have_jpeg="no"])
 #AC_CHECK_LIB([png], [png_create_read_struct], [], [sq_have_png="no"])
 
-AC_CHECK_HEADERS([jpeglib.h jconfig.h jerror.h jmorecfg.h], [], [sq_have_jpeg="no"])
+AC_CHECK_HEADERS([jpeglib.h], [], [sq_have_jpeg="no"])
 AC_CHECK_HEADERS([netinet/in.h], [], [sq_have_camera="no"])
 AC_CHECK_HEADERS([png.h], [], [sq_have_png="no"])
 AC_CHECK_HEADERS([X11/XWDFile.h], [], [sq_have_xwd="no"])
 AC_CHECK_HEADERS([tiffio.h tiff.h], [], [sq_have_tiff="no"])
 
 AC_CONFIG_SUBDIRS([contrib/libwmf])
+AC_CONFIG_SUBDIRS([contrib/libpixman])
+AC_CONFIG_SUBDIRS([contrib/cairo])
+AC_CONFIG_SUBDIRS([contrib/libsvg])
+AC_CONFIG_SUBDIRS([contrib/libsvg-cairo])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([doc/Makefile])
+AC_CONFIG_FILES([doc/html/Makefile])
+AC_CONFIG_FILES([doc/sources/Makefile])
 AC_CONFIG_FILES([contrib/Makefile])
 AC_CONFIG_FILES([examples/Makefile])
 AC_CONFIG_FILES([kernel/Makefile])
@@ -80,6 +87,7 @@ AC_CONFIG_FILES([kernel/rawrgb/Makefile])
 AC_CONFIG_FILES([kernel/wmf/Makefile])
 AC_CONFIG_FILES([kernel/wbmp/Makefile])
 AC_CONFIG_FILES([kernel/sun/Makefile])
+AC_CONFIG_FILES([kernel/svg/Makefile])
 
 if test $sq_have_png = yes; then
 AC_CONFIG_FILES([kernel/png/Makefile])
@@ -122,7 +130,7 @@ Installation options:
 Libraries:
 ----------"
 
-sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wmf wbmp sun"
+sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wmf wbmp sun svg"
 sq_disabled=""
 
 if test $sq_have_jpeg = yes; then sq_enabled=`echo -n $sq_enabled jpeg `; else sq_disabled=`echo -n $sq_disabled jpeg `; fi

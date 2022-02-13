@@ -42,7 +42,7 @@ libwmflite_la_LDFLAGS = $(SYS_LIBM) \
 	-version-info $(LT_LITE_CURRENT):$(LT_LITE_REVISION):$(LT_LITE_AGE) \
 	-release $(LT_RELEASE) -export-dynamic
 
-libwmf_la_SOURCES = font.c stream.c wmf.c xml.c
+libwmf_la_SOURCES = font.c stream.c wmf.c xml.c 
 
 if LIBWMF_OPT_TRIO
 LIBTRIO = extra/trio/libtrio.la

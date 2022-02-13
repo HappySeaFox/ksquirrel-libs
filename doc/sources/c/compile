@@ -1,0 +1,5 @@
+#!/bin/sh
+
+gcc -Wall -O2 -fPIC -c module.c
+gcc -shared -o module.so module.o
+gcc -o test main.c -ldl

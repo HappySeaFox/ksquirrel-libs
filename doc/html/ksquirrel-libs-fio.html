@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>KSquirrel: development</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta name='Author' content='Baryshev Dmitry/Krasu'>
+
+    <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+For reading and writing data I use the following classes, inherited from ifstream and ofstream.
+
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+<tbody>
+<tr>
+<td valign="top" bgcolor="#CCCCCC">
+<pre>
+<b>Class for reading binary data</b>
+class ifstreamK : public ifstream
+{
+    public:
+	ifstreamK();
+
+	<b>Read 'size' bytes of binary data and store it into 'data'.
+	Returns true if reading was successful, and false otherwise</b>
+	bool readK(void *data, int size);
+
+        <b>Read string from file</b>
+        bool getS(char *, const int);
+
+        <b>Read ascii hex value from file (like "0xFFFF00")</b>
+        bool readCHex(u32 &amp;hex);
+
+	<b>big-endian-oriented reading</b>
+	bool be_getchar(u8 *c);
+	bool be_getshort(u16 *s);
+	bool be_getlong(u32 *l);
+};
+
+<b>Class for writing binary data</b>
+class ofstreamK : public ofstream
+{
+    public:
+	ofstreamK();
+
+	bool writeK(void *data, int size);
+};
+</pre>
+</td>
+</tr>
+</tbody>
+</table>
+
+<b><u>Examples</u></b>
+
+<ul>
+<li> Read structure from binary file
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+     typedef struct
+     {
+         int a;
+         short b;
+         char c;
+
+     }Data;
+
+     ...
+
+     class::class()
+     {
+         fs.open("file.bin", ios::in | ios::binary);
+     }
+
+     int class::readstruct(Data *s)
+     {
+         bool b = fs.readK(s, sizeof(Data));
+	
+         cerr &#60;&#60; "Reading " &#60;&#60; (b ? "OK" : "Failed") &#60;&#60; endl;
+     }
+
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+
+<br><br>
+<li> Write structure to binary file
+<br><br>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+  <tbody>
+  <tr>
+  <td valign="top" bgcolor="#CCCCCC">
+
+  <pre>
+     typedef struct
+     {
+         int a;
+         short b;
+         char c;
+
+     }Data;
+
+     ...
+
+     class::class()
+     {
+         fs.open("file.bin", ios::out | ios::binary);
+     }
+
+     int class::writestruct(Data *s)
+     {
+         bool b = fs.writeK(s, sizeof(Data));
+
+         cerr &#60;&#60; "Writing " &#60;&#60; (b ? "OK" : "Failed") &#60;&#60; endl;
+     }
+
+  </pre>
+  </td>
+  </tr>
+  </tbody>
+</table>
+
+</ul>
+</body>
+</html>

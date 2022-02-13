@@ -18,17 +18,17 @@
     the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
     Boston, MA 02111-1307, USA.
 */
-							
-#include <csetjmp>
-#include <sstream>
+
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fileio.h"
+#include "error.h"
+
 #include "fmt_codec_gif_defs.h"
 
 #include "gif_lib.h"
 #include "fmt_codec_gif.h"
-#include "error.h"
 
 /*
  *
@@ -74,16 +74,16 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,0,128,0,4,4,4,88,206,239,123,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,83,73,68,65,84,120,218,61,142,193,17,128,48,8,4,175,133,60,104,224,164,3,83,1,82,128,62,210,127,43,2,65,247,181,115,3,7,0,86,130,224,25,99,72,9,73,89,45,17,157,13,166,23,23,166,169,209,120,96,170,187,90,38,170,33,76,177,78,106,38,229,219,250,123,118,51,165,143,214,213,122,227,126,1,99,132,23,143,7,210,12,10,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,0,128,0,76,76,76,151,95,119,105,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,90,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,32,35,52,50,50,52,18,200,152,58,115,102,100,36,72,100,234,84,160,8,152,1,20,136,132,169,129,48,160,186,224,230,128,44,5,155,204,5,118,199,2,6,0,38,50,57,42,250,158,60,196,0,0,0,0,73,69,78,68,174,66,96,130");
 }
     
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
     
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 	    
     frs.close();
 
@@ -96,10 +96,10 @@ s32 fmt_codec::fmt_init(std::string file)
     linesz = gif->SWidth * sizeof(GifPixelType);
 
     if((buf = (u8*)malloc(linesz)) == NULL)
-        return SQERR_NOMEMORY;
+        return SQE_R_NOMEMORY;
 
     if((saved = (RGBA *)calloc(linesz, sizeof(RGBA))) == NULL)
-        return SQERR_NOMEMORY;
+        return SQE_R_NOMEMORY;
 
     if(gif->SColorMap)
     {
@@ -121,7 +121,7 @@ s32 fmt_codec::fmt_init(std::string file)
     Lines = (RGBA **)calloc(Lines_h, sizeof(RGBA*));
 
     if(!Lines)
-	return SQERR_NOMEMORY;
+	return SQE_R_NOMEMORY;
 
     for(s32 i = 0;i < Lines_h;i++)
     {
@@ -133,7 +133,7 @@ s32 fmt_codec::fmt_init(std::string file)
     Last = (RGBA **)calloc(gif->SHeight, sizeof(RGBA*));
 
     if(!Last)
-	return SQERR_NOMEMORY;
+	return SQE_R_NOMEMORY;
 
     for(s32 i = 0;i < gif->SHeight;i++)
     {
@@ -145,7 +145,7 @@ s32 fmt_codec::fmt_init(std::string file)
 	Last[i] = (RGBA *)calloc(gif->SWidth, sizeof(RGBA));
 
 	if(!Last[i])
-	    return SQERR_NOMEMORY;
+	    return SQE_R_NOMEMORY;
 
 //	for(s32 k = 0;k < gif->SWidth;k++)
 //	    memcpy(Last[i]+k, &back, sizeof(RGBA));
@@ -157,20 +157,20 @@ s32 fmt_codec::fmt_init(std::string file)
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
     layer++;
     currentPass++;
     line = 0;
     curLine = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     bool foundExt = false;
 
@@ -181,7 +181,7 @@ s32 fmt_codec::fmt_next()
     finfo.image[currentImage].interlaced = gif->Image.Interlace;
     finfo.image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
 
-//    prs32f("Entering fmt_next\n\n");
+//    prs32f("Entering fmt_read_next\n\n");
 
     while(true)
     {
@@ -189,7 +189,7 @@ s32 fmt_codec::fmt_next()
 	{
 //	    prs32f("DGifGetRecordType(gif, &record) == GIF_ERROR\n");
 	    PrintGifError();
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 	}
 
 //	prs32f("record = %d\n", record);
@@ -199,7 +199,7 @@ s32 fmt_codec::fmt_next()
 		if(DGifGetImageDesc(gif) == GIF_ERROR)
 		{
 		    PrintGifError();
-		    return SQERR_BADFILE;
+		    return SQE_R_BADFILE;
 		}
 
 		finfo.images++;
@@ -229,7 +229,7 @@ s32 fmt_codec::fmt_next()
 
 		if(gif->Image.Left + gif->Image.Width > gif->SWidth || gif->Image.Top + gif->Image.Height > gif->SHeight)
 		{
-	    	    return SQERR_BADFILE;
+	    	    return SQE_R_BADFILE;
 		}
 	    break;
 
@@ -237,7 +237,7 @@ s32 fmt_codec::fmt_next()
 		if(DGifGetExtension(gif, &ExtCode, &Extension) == GIF_ERROR)
 		{
 		    PrintGifError();
-		    return SQERR_BADFILE;
+		    return SQE_R_BADFILE;
 		}
 		
 		if(ExtCode == 249)
@@ -284,13 +284,13 @@ s32 fmt_codec::fmt_next()
 		    if(DGifGetExtensionNext(gif, &Extension) == GIF_ERROR)
 		    {
 			PrintGifError();
-			return SQERR_BADFILE;
+			return SQE_R_BADFILE;
 		    }
 		}
 	    break;
 	    
 	    case TERMINATE_RECORD_TYPE:
-		return SQERR_NOTOK;
+		return SQE_NOTOK;
 
 	    default: ;
 	}
@@ -317,27 +317,15 @@ s32 fmt_codec::fmt_next()
 		"Color indexed",
 		finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA));
 */
-	    stringstream s;
-
-	    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
-    	    s   << fmt_quickinfo() << "\n"
-	        << finfo.image[currentImage].w << "x"
-		<< finfo.image[currentImage].h << "\n"
-		<< finfo.image[currentImage].bpp << "\n"
-		<< "Color indexed" << "\n"
-		<< "LZW\n"
-		<< bytes;
-
-	    finfo.image[currentImage].dump = s.str();
-
+	    finfo.image[currentImage].compression = "LZW";
+    	    finfo.image[currentImage].colorspace = "Color indexed";
 	    finfo.image[currentImage].interlaced = gif->Image.Interlace;
 	    finfo.image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
 
 	    layer = -1;
 	    currentPass = -1;
 
-	    return SQERR_OK;
+	    return SQE_OK;
 	}
     }
 }
@@ -360,7 +348,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	
 	curLine++;
 
-	return SQERR_OK;
+	return SQE_OK;
     }
 
     curLine++;
@@ -381,7 +369,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    {
 	        PrintGifError();
 	        memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
-	        return SQERR_BADFILE;
+	        return SQE_R_BADFILE;
 	    }
 	    else
 	    {
@@ -429,7 +417,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		Lines[line] = (RGBA*)realloc(Lines[line], finfo.image[currentImage].w * sizeof(RGBA));
 
 		if(!Lines[line])
-		    return SQERR_NOMEMORY;
+		    return SQE_R_NOMEMORY;
 			
 		memcpy(Lines[line], scan, finfo.image[currentImage].w * sizeof(RGBA));
 	    }
@@ -453,7 +441,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
         {
 	    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 	    PrintGifError();
-	    return SQERR_BADFILE;
+	    return SQE_R_BADFILE;
 	}
 	else
 	{
@@ -508,277 +496,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	}
     }
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    GifFileType 	*m_gif;
-    GifRecordType	m_record;
-    GifByteType		*m_Extension;
-    u8	**m_buf;
-    s32			m_i, m_j, m_Row = 0, m_Col = 0, m_Width = 0, m_Height = 0, ExtCode, m_transIndex;
-    RGBA		m_back;
-    ColorMapObject	*m_map;
-    s32 		w = 0, h = 0, bpp = 0;
-    s32 		m_bytes;
-    ifstreamK		m_frs;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-    
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-	
-    m_frs.close();
-
-    m_transIndex = -1;
-
-    m_gif = DGifOpenFileName(file.c_str());
-
-    if((m_buf = (u8**)calloc(m_gif->SHeight, sizeof(u8*))) == NULL)
-        return SQERR_NOMEMORY;
-
-    for(m_i = 0;m_i < m_gif->SHeight;m_i++)
-	m_buf[m_i] = (u8 *)0;
-
-    for(m_i = 0;m_i < m_gif->SHeight;m_i++)
-	if((m_buf[m_i] = (u8*)calloc(m_gif->SWidth, sizeof(u8))) == NULL)
-	{
-	    for(s32 k = 0;k < m_i;k++)
-		free(m_buf[k]);
-
-	    free(m_buf);
-
-	    DGifCloseFile(m_gif);
-
-    	    return SQERR_NOMEMORY;
-	}
-
-    if(m_gif->SColorMap)
-    {
-	m_back.r = m_gif->SColorMap->Colors[m_gif->SBackGroundColor].Red;
-	m_back.g = m_gif->SColorMap->Colors[m_gif->SBackGroundColor].Green;
-	m_back.b = m_gif->SColorMap->Colors[m_gif->SBackGroundColor].Blue;
-	m_back.a = 255;
-    }
-    else
-    {
-	memset(&m_back, 0, sizeof(RGBA));
-    }
-
-    m_map = (m_gif->Image.ColorMap) ? m_gif->Image.ColorMap : m_gif->SColorMap;
-
-    while(true)
-    {
-        if(DGifGetRecordType(m_gif, &m_record) == GIF_ERROR)
-	{
-	    PrintGifError();
-
-	    for(s32 k = 0;k < m_gif->SHeight;k++)
-		free(m_buf[k]);
-
-	    free(m_buf);
-
-	    DGifCloseFile(m_gif);
-	
-	    return SQERR_BADFILE;
-	}
-
-	switch(m_record)
-	{
-	    case IMAGE_DESC_RECORD_TYPE:
-		if(DGifGetImageDesc(m_gif) == GIF_ERROR)
-		{
-		    PrintGifError();
-		    
-		    for(s32 k = 0;k < m_gif->SHeight;k++)
-			free(m_buf[k]);
-		    
-		    free(m_buf);
-		    
-		    DGifCloseFile(m_gif);
-
-		    return SQERR_BADFILE;
-		}
-
-		m_Row = m_gif->Image.Top;
-		m_Col = m_gif->Image.Left;
-		w = m_gif->SWidth;
-		h = m_gif->SHeight;
-		m_Width = m_gif->Image.Width;
-		m_Height = m_gif->Image.Height;
-		bpp = 8;
-
-		if(m_gif->Image.Left + m_gif->Image.Width > m_gif->SWidth || m_gif->Image.Top + m_gif->Image.Height > m_gif->SHeight)
-		{
-		    for(s32 k = 0;k < m_gif->SHeight;k++)
-			free(m_buf[k]);
-
-		    free(m_buf);
-
-		    DGifCloseFile(m_gif);
-	    	    return SQERR_BADFILE;
-		}
-	    break;
-
-	    case EXTENSION_RECORD_TYPE:
-		if(DGifGetExtension(m_gif, &ExtCode, &m_Extension) == GIF_ERROR)
-		{
-		    PrintGifError();
-
-		    for(s32 k = 0;k < m_gif->SHeight;k++)
-			free(m_buf[k]);
-
-		    free(m_buf);
-
-		    DGifCloseFile(m_gif);
-		    return SQERR_BADFILE;
-		}
-		
-		if(ExtCode == 249)
-		{
-		    bool b = m_Extension[1] & 1;
-
-		    if(b)
-			m_transIndex = m_Extension[4];
-		}
-
-		while(m_Extension)
-		{
-		    if(DGifGetExtensionNext(m_gif, &m_Extension) == GIF_ERROR)
-		    {
-			PrintGifError();
-
-			for(s32 k = 0;k < m_gif->SHeight;k++)
-			    free(m_buf[k]);
-
-			free(m_buf);
-
-			DGifCloseFile(m_gif);
-			return SQERR_BADFILE;
-		    }
-		}
-	    break;
-	    
-	    case TERMINATE_RECORD_TYPE:
-		for(s32 k = 0;k < m_gif->SHeight;k++)
-		    free(m_buf[k]);
-
-		free(m_buf);
-
-		DGifCloseFile(m_gif);
-	    return SQERR_BADFILE;
-
-	    default: ;
-	}
-
-	if(m_record == IMAGE_DESC_RECORD_TYPE)
-	{
-	    m_map = (m_gif->Image.ColorMap) ? m_gif->Image.ColorMap : m_gif->SColorMap;
-	    m_back.a = (m_transIndex != -1) ? 0 : 255;
-	    break;
-	}
-    }
-
-    m_bytes = w * h * sizeof(RGBA);
-/*
-    sprs32f(dump, "%s\n%d\n%d\n%d\n%s\nLZW\n%d\n%d\n",
-        fmt_quickinfo(),
-        w,
-        h,
-        bpp,
-        "Color indexed",
-        1,
-        m_bytes);
-*/
-    stringstream s;
-    
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << "Color indexed" << "\n"
-        << "LZW" << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-
-	for(s32 k = 0;k < m_gif->SHeight;k++)
-	    free(m_buf[k]);
-
-	free(m_buf);
-
-	DGifCloseFile(m_gif);
-
-        return SQERR_NOMEMORY;
-    }
-
-    memset(*image, 255, m_bytes);
-
-    if(m_gif->Image.Interlace)
-    {
-	for(m_i = 0;m_i < 4;m_i++)
-	{
-	    for(m_j = m_Row + InterlacedOffset[m_i];m_j < m_Row + m_Height;m_j += InterlacedJumps[m_i])
-	    {
-		if(DGifGetLine(m_gif, &m_buf[m_j][m_Col], m_Width) == GIF_ERROR)
-		{
-		    PrintGifError();
-		}
-	    }
-	}
-    }
-    else
-    {
-	for(s32 h2 = m_Row;h2 < m_Height+m_Row;h2++)
-	{
-	    if(DGifGetLine(m_gif, &m_buf[h2][m_Col], m_Width) == GIF_ERROR)
-	    {
-	        PrintGifError();
-	    }
-	}
-    }
-
-    RGB *r;
-
-    for(m_i = m_Row;m_i < m_Height+m_Row;m_i++)
-    {
-	RGBA *scan = *image + m_i * w;
-
-	for(m_j = m_Col;m_j < m_Col+m_Width;m_j++)
-	{
-	    r = (RGB*)(&m_map->Colors[m_buf[m_i][m_j]]);
-
-	    if(m_buf[m_i][m_j] == m_transIndex && m_transIndex != -1)
-	    {
-		if(back == *r)
-		    (scan+m_j)->a = 0;
-	    }
-	    else
-	    {
-	        memcpy(scan+m_j, r, sizeof(RGB));
-		(scan+m_j)->a = 255;
-	    }
-	}
-    }
-
-    for(s32 k = 0;k < m_gif->SHeight;k++)
-	free(m_buf[k]);
-
-    free(m_buf);
-
-    DGifCloseFile(m_gif);
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     if(buf)
 	free(buf);
@@ -819,15 +540,52 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string , RGBA *, s32 , s32 , const fmt_writeoptions &)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
 
-    return SQERR_OK;
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
 {
     return false;
+}
+
+bool fmt_codec::fmt_readable() const
+{
+    return true;
 }

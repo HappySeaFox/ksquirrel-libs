@@ -19,19 +19,15 @@
     Boston, MA 02111-1307, USA.
 */
 
-
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include "fmt_types.h"
-#include "fmt_codec_ico_defs.h"
-#include "fmt_codec_ico.h"
-
+#include "fmt_utils.h"
+#include "fileio.h"
 #include "error.h"
 
-#define SQ_HAVE_FMT_UTILS
-#include "fmt_utils.h"
+#include "fmt_codec_ico_defs.h"
+#include "fmt_codec_ico.h"
 
 /*
  *
@@ -70,15 +66,15 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,21,80,76,84,69,112,0,25,192,192,192,255,255,255,0,0,0,0,0,128,0,255,0,4,4,4,78,45,246,135,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,74,73,68,65,84,120,218,99,96,96,72,3,1,6,32,72,20,20,20,20,3,51,148,148,148,196,210,160,12,160,144,49,20,48,152,184,128,129,51,131,73,136,107,168,75,104,8,136,17,226,226,234,226,138,157,1,83,3,211,5,55,7,98,178,146,24,212,82,176,173,96,103,36,0,0,118,239,27,119,25,223,110,163,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,202,202,202,70,70,70,162,254,162,254,254,254,178,178,178,174,174,174,222,222,222,78,78,78,242,242,242,2,2,110,128,61,19,185,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,93,73,68,65,84,120,218,99,232,0,129,0,6,6,6,69,65,65,65,161,50,16,195,197,197,69,104,122,0,132,33,209,161,0,97,8,10,54,48,48,52,41,65,0,131,214,42,48,88,196,208,181,120,149,241,170,197,86,32,198,226,85,86,86,139,23,49,104,1,25,171,64,12,184,8,66,13,76,23,220,156,70,65,16,0,90,193,1,226,106,52,48,0,0,32,131,45,4,210,173,140,82,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
-        return SQERR_NOFILE;
+        return SQE_R_NOFILE;
 
     currentImage = -1;
 
@@ -86,20 +82,20 @@ s32 fmt_codec::fmt_init(std::string file)
     bAND = 0;
 
     if(!frs.readK(&ifh, sizeof(ICO_HEADER)))
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     if(ifh.idType != 1 && ifh.idType != 2)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 	
 //    printf("ICO: count = %d\n", ifh.idCount);
 
     ide = (ICO_DIRENTRY*)calloc(ifh.idCount, sizeof(ICO_DIRENTRY));
 
     if(!ide)
-	return SQERR_NOMEMORY;
+	return SQE_R_NOMEMORY;
 
     if(!frs.readK(ide, sizeof(ICO_DIRENTRY) * ifh.idCount))
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
 //    for(s32 i = 0;i < ifh.idCount;i++)
 //    printf("colorcount: %d, bitcount: %d, bytes: %d\n", ide[i].bColorCount, ide[i].wBitCount, ide[i].dwBytes);
@@ -107,15 +103,15 @@ s32 fmt_codec::fmt_init(std::string file)
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage == ifh.idCount)
-	return SQERR_NOTOK;
+	return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());
 
@@ -133,19 +129,19 @@ s32 fmt_codec::fmt_next()
     
 /*
     if(finfo.image[currentImage].w != 16 && finfo.image[currentImage].w != 32 && finfo.image[currentImage].w != 64)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     if(finfo.image[currentImage].h != 16 && finfo.image[currentImage].h != 32 && finfo.image[currentImage].h != 64)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     if(ide.bColorCount != 2 && ide.bColorCount != 8 && ide.bColorCount != 16)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 */
 
     frs.seekg(ide[currentImage].dwImageOffset, ios::beg);
 
     if(!frs.readK(&bih, sizeof(BITMAPINFO_HEADER)))
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
     finfo.image[currentImage].bpp = bih.BitCount;
 //    printf("bitcount #2: %d\n", bih.BitCount);
@@ -157,7 +153,7 @@ s32 fmt_codec::fmt_next()
 
 	for(i = 0;i < pal_entr;i++)
 	{
-		if(!frs.readK(&rgba, sizeof(RGBA))) return SQERR_BADFILE;
+		if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
 		pal[i].r = rgba.b;
 		pal[i].g = rgba.g;
@@ -184,11 +180,11 @@ s32 fmt_codec::fmt_next()
     bAND = (u8 *)realloc(bAND, count * sizeof(u8));
 
     if(!bAND)
-        return SQERR_NOMEMORY;
+        return SQE_R_NOMEMORY;
 
     u8 realAND[count3];
 
-    if(!frs.readK(realAND, count3)) return SQERR_BADFILE;
+    if(!frs.readK(realAND, count3)) return SQE_R_BADFILE;
 
 /*    
     for(i = 0;i < count3;i++)
@@ -223,8 +219,6 @@ s32 fmt_codec::fmt_next()
 	printf("%d %d %d\n",(pal)[i].r,(pal)[i].g,(pal)[i].b);
 */
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
     finfo.image[currentImage].needflip = true;
     finfo.image[currentImage].hasalpha = true;
     finfo.images++;
@@ -237,26 +231,17 @@ s32 fmt_codec::fmt_next()
 	"RGB",
 	bytes);
 */
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << ((pal_entr) ? "Color indexed":"RGB") << "\n"
-        << "-\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
+    finfo.image[currentImage].compression = "-";
+    finfo.image[currentImage].colorspace = ((pal_entr) ? "Color indexed":"RGB");
 
     pixel = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
     
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -274,7 +259,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	    for(i = 0;i < j;i++)
 	    {
-		if(!frs.readK(&bt, 1)) return SQERR_BADFILE;
+		if(!frs.readK(&bt, 1)) return SQE_R_BADFILE;
 
 //		printf("*** Read byte %d\n", bt);
 
@@ -298,7 +283,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    j = 0;
 	    do
 	    {
-		if(!frs.readK(&bt, 1)) return SQERR_BADFILE;
+		if(!frs.readK(&bt, 1)) return SQE_R_BADFILE;
 
 		ind = bt >> 4;
 		memcpy(scan+j, pal+ind, sizeof(RGB));
@@ -317,7 +302,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	case 8:
 	    for(i = 0;i < finfo.image[currentImage].w;i++)
 	    {
-		if(!frs.readK(&bt, 1)) return SQERR_BADFILE;
+		if(!frs.readK(&bt, 1)) return SQE_R_BADFILE;
 
 		memcpy(scan+i, pal+bt, sizeof(RGB));
 //		(scan+i)->a = (bAND[pixel]) ? 0 : 255;
@@ -331,7 +316,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    
 	    for(i = 0;i < finfo.image[currentImage].w;i++)
 	    {
-		if(!frs.readK(&rgb, sizeof(RGB))) return SQERR_BADFILE;
+		if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
 		(scan+i)->r = rgb.b;
 		(scan+i)->g = rgb.g;
@@ -347,7 +332,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    
 	    for(i = 0;i < finfo.image[currentImage].w;i++)
 	    {
-		if(!frs.readK(&rgba, sizeof(RGBA))) return SQERR_BADFILE;
+		if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
 		(scan+i)->r = rgba.b;
 		(scan+i)->g = rgba.g;
@@ -359,243 +344,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	break;
     }
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    ICO_HEADER		m_ifh;
-    ICO_DIRENTRY	m_ide;
-    BITMAPINFO_HEADER	m_bih;
-    s32			m_pixel = 0;
-    RGB 		m_pal[256];
-    s32 		m_pal_entr;
-    fstream::pos_type	pos;
-    RGBA		rgba;
-    s32 		m_bytes, r, count, count2, count3;
-    jmp_buf		jmp;
-    s32 		w, h, bpp;
-
-    ifstreamK           m_frs;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-            return SQERR_NOFILE;
-
-    if(setjmp(jmp))
-    {
-	m_frs.close();
-
-	return SQERR_BADFILE;
-    }
-
-    if(!m_frs.readK(&m_ifh, sizeof(ICO_HEADER))) longjmp(jmp, 1);
-
-    if(m_ifh.idType != 1 && m_ifh.idType != 2)
-	longjmp(jmp, 1);
-
-    if(!m_frs.readK(&m_ide, sizeof(ICO_DIRENTRY))) longjmp(jmp, 1);
-
-    w = m_ide.bWidth;
-    h = m_ide.bHeight;
-
-    m_frs.seekg(m_ide.dwImageOffset, ios::beg);
-    if(!m_frs.readK(&m_bih, sizeof(BITMAPINFO_HEADER))) longjmp(jmp, 1);
-
-    bpp = m_bih.BitCount;
-
-    if(bpp < 16)
-    {
-	m_pal_entr = 1 << bpp;
-
-	for(s32 i = 0;i < m_pal_entr;i++)
-	{
-		if(!m_frs.readK(&rgba, sizeof(RGBA))) longjmp(jmp, 1);
-
-		m_pal[i].r = rgba.b;
-		m_pal[i].g = rgba.g;
-		m_pal[i].b = rgba.r;
-	}
-    }
-    else
-    {
-	m_pal_entr = 0;
-    }
-
-    pos = m_frs.tellg();
-
-    count = w * h;
-//    s32 count2 = count / (8 / bpp);
-    count2 = (bpp < 16) ? (count / (8 / bpp)) : (count * (bpp / 8));
-
-    count3 = count / 8;
-
-    m_frs.seekg(count2, ios::cur);
-
-    u8 m_bAND[count];
-
-    if(!m_bAND)
-        longjmp(jmp, 1);
-
-    u8 realAND[count3];
-
-    if(!m_frs.readK(realAND, count3)) longjmp(jmp, 1);
-
-    r = 0;
-    for(s32 i = 0;i < count3;i++)
-    {
-	for(s32 z = 0,f = 128;z < 8;z++,f >>= 1)
-	{
-	    m_bAND[r] = (realAND[i] & f) ? 1 : 0;
-	    r++;
-	}
-    }
-
-    m_frs.seekg(pos);
-
-    m_bytes = w * h * sizeof(RGBA);
-/*
-    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
-	fmt_quickinfo(),
-	w,
-	h,
-	bpp,
-	"RGB",
-	m_ifh.idCount,
-	m_bytes);
-*/
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << ((m_pal_entr)?"Color indexed":"RGB") << "\n"
-        << "-" << "\n"
-        << m_ifh.idCount << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-    	longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA 	*scan = *image + h2 * w;
-
-        s32 i, j, count;
-	u8 bt, ind;
-
-	switch(bpp)
-	{
-    	    case 1:
-		j = w / 8;
-		count = 0;
-
-		for(i = 0;i < j;i++)
-		{
-		    if(!m_frs.readK(&bt, 1)) longjmp(jmp, 1);
-
-//			printf("*** Read byte %d\n", bt);
-
-		    for(s32 z = 0, f = 128;z < 8;z++,f >>= 1)
-		    {
-			ind = (bt & f) ? 1 : 0;
-//		    	printf("ind: %d, %d\n", ind, (bt & f));
-
-			memcpy(scan+count, m_pal+ind, sizeof(RGB));
-
-//		    	(scan+count)->a = (m_bAND[m_pixel]) ? 0 : 255;
-			count++;
-			m_pixel++;
-		    }
-		}
-	    break;
-
-	    case 4:
-		j = 0;
-		do
-		{
-		    if(!m_frs.readK(&bt, 1)) longjmp(jmp, 1);
-
-		    ind = bt >> 4;
-		    memcpy(scan+j, m_pal+ind, sizeof(RGB));
-//			(scan+j)->a = (m_bAND[m_pixel]) ? 0 : 255;
-		    j++;
-		    m_pixel++;
-		    ind = bt&15;
-		    memcpy(scan+j, m_pal+ind, sizeof(RGB));
-//			(scan+j)->a = (m_bAND[m_pixel]) ? 0 : 255;
-		    j++;
-		    m_pixel++;
-		}while(j < w);
-	    break;
-
-	    case 8:
-		for(i = 0;i < w;i++)
-		{
-		    if(!m_frs.readK(&bt, 1)) longjmp(jmp, 1);
-
-		    memcpy(scan+i, m_pal+bt, sizeof(RGB));
-//			(scan+i)->a = (m_bAND[m_pixel]) ? 0 : 255;
-		    m_pixel++;
-		}
-	    break;
-
-	    case 24:
-	    {
-		RGB rgb;
-
-		for(i = 0;i < w;i++)
-		{
-		    if(!m_frs.readK(&rgb, sizeof(RGB))) longjmp(jmp, 1);
-
-		    (scan+i)->r = rgb.b;
-		    (scan+i)->g = rgb.g;
-		    (scan+i)->b = rgb.r;
-		    m_pixel++;
-		}
-	    }
-	    break;
-
-	    case 32:
-	    {
-		RGBA rgba;
-
-		for(i = 0;i < w;i++)
-		{
-		    if(!m_frs.readK(&rgba, sizeof(RGBA))) longjmp(jmp, 1);
-
-		    (scan+i)->r = rgba.b;
-		    (scan+i)->g = rgba.g;
-		    (scan+i)->b = rgba.r;
-		    (scan+i)->a = rgba.a;
-		    m_pixel++;
-		}
-	    }
-	    break;
-	}
-    }
-
-    m_frs.close();
-
-    fmt_utils::flip((s8*)*image, w * sizeof(RGBA), h);
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     frs.close();
 
@@ -613,15 +365,52 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = true;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string , RGBA *, s32 , s32 , const fmt_writeoptions &)
-//s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_OK;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
 {
     return false;
+}
+
+bool fmt_codec::fmt_readable() const
+{
+    return true;
 }

@@ -19,18 +19,14 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <csetjmp>
-#include <sstream>
 #include <iostream>
 
 #include "fmt_types.h"
-#include "fmt_codec_tga_defs.h"
-#include "fmt_codec_tga.h"
-
+#include "fileio.h"
 #include "error.h"
 
-#define SQ_HAVE_FMT_UTILS
-#include "fmt_utils.h"
+#include "fmt_codec_tga_defs.h"
+#include "fmt_codec_tga.h"
 
 /*
  *
@@ -54,7 +50,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.7.1");
+    return std::string("0.7.2");
 }
     
 std::string fmt_codec::fmt_quickinfo()
@@ -74,15 +70,15 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,0,128,128,4,4,4,181,151,89,64,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,80,73,68,65,84,120,218,61,142,193,13,192,48,8,3,89,129,7,11,88,108,208,76,224,50,64,251,200,254,171,52,1,210,123,157,44,97,35,34,115,35,139,87,85,45,5,128,205,150,21,93,141,140,72,110,25,112,122,248,18,134,7,89,226,71,72,164,176,146,115,245,247,84,51,172,71,115,53,223,120,62,131,188,24,11,124,78,54,7,0,0,0,0,73,69,78,68,174,66,96,130,130");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,0,128,128,76,76,76,122,6,193,82,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,89,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,161,145,83,67,167,134,2,25,83,103,70,206,156,58,21,194,8,133,49,166,66,165,166,66,68,96,186,224,230,128,44,5,155,204,5,118,199,2,6,0,118,194,58,182,15,252,196,205,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_init(std::string file)
+s32 fmt_codec::fmt_read_init(std::string file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
-	return SQERR_NOFILE;
+	return SQE_R_NOFILE;
 
     currentImage = -1;
     pal_entr = 0;
@@ -90,21 +86,21 @@ s32 fmt_codec::fmt_init(std::string file)
     finfo.animated = false;
     finfo.images = 0;
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next()
+s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
     if(currentImage)
-	return SQERR_NOTOK;
+	return SQE_NOTOK;
 
     finfo.image.push_back(fmt_image());	    
 
     finfo.image[currentImage].passes = 1;
 
-    if(!frs.readK(&tfh, sizeof(TGA_FILEHEADER))) return SQERR_BADFILE;
+    if(!frs.readK(&tfh, sizeof(TGA_FILEHEADER))) return SQE_R_BADFILE;
 
     finfo.image[currentImage].w = tfh.ImageSpecW;
     finfo.image[currentImage].h = tfh.ImageSpecH;
@@ -119,7 +115,7 @@ s32 fmt_codec::fmt_next()
 	
 	s8 data[tfh.IDlength];
 	
-	if(!frs.readK(data, tfh.IDlength)) return SQERR_BADFILE;
+	if(!frs.readK(data, tfh.IDlength)) return SQE_R_BADFILE;
 
 	finfo.meta[0].data = data;
     }
@@ -129,7 +125,7 @@ s32 fmt_codec::fmt_next()
 	pal_entr = tfh.ColorMapSpecLength;
 
 //	if((pal = (RGB*)calloc(pal_entr, sizeof(RGB))) == 0)
-//		return SQERR_NOMEMORY;
+//		return SQE_R_NOMEMORY;
 
 //	s8 sz = tfh.ColorMapSpecEntrySize;
 	s32  i;
@@ -137,7 +133,7 @@ s32 fmt_codec::fmt_next()
   
 	for(i = 0;i < pal_entr;i++)
 	{
-		/*if(sz==24)*/ if(!frs.readK(pal+i, sizeof(RGB))) return SQERR_BADFILE;
+		/*if(sz==24)*/ if(!frs.readK(pal+i, sizeof(RGB))) return SQE_R_BADFILE;
 /* alpha ingored  *//*else if(sz==32) { fread(finfo.pal+i, sizeof(RGB), 1, fptr); fgetc(fptr); }
 		else if(sz==16)
 		{
@@ -153,69 +149,59 @@ s32 fmt_codec::fmt_next()
 //	pal = 0;
 
     if(tfh.ImageType == 0)
-	return SQERR_BADFILE;
+	return SQE_R_BADFILE;
 
-    stringstream comp, type;
+    std::string comp, type;
 
-    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
-
-    finfo.image[currentImage].needflip = true;
+    fliph = (bool)(tfh.ImageSpecDescriptor & 0x10);
+    finfo.image[currentImage].needflip = !(bool)(tfh.ImageSpecDescriptor & 0x20);
     finfo.images++;
     finfo.image[currentImage].hasalpha = (finfo.image[currentImage].bpp == 32);
 
     switch(tfh.ImageType)
     {
 	case 1:
-	    comp << "-";
-	    type << "Color indexed";
+	    comp = "-";
+	    type = "Color indexed";
 	break;
 
 	case 2:
-	    comp << "-";
-	    type << ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
+	    comp = "-";
+	    type = ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
 	break;
 
 	case 3:
-	    comp << "-";
-	    type << "Monochrome";
+	    comp = "-";
+	    type = "Monochrome";
 	break;
 
 	case 9:
-	    comp << "RLE";
-	    type << "Color indexed";
+	    comp = "RLE";
+	    type = "Color indexed";
 	break;
 
 	case 10:
-	    comp << "RLE";
-	    type << ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
+	    comp = "RLE";
+	    type = ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
 	break;
 
 	case 11:
-	    comp << "RLE";
-	    type << "Monochrome";
+	    comp = "RLE";
+	    type = "Monochrome";
 	break;
     }
 
-    stringstream s;
-    
-    s   << fmt_quickinfo() << "\n"
-        << finfo.image[currentImage].w << "x"
-        << finfo.image[currentImage].h << "\n"
-        << finfo.image[currentImage].bpp << "\n"
-        << type.str() << "\n"
-        << comp.str() << "\n"
-        << bytes;
-
-    finfo.image[currentImage].dump = s.str();
+    finfo.image[currentImage].compression = comp;
+    finfo.image[currentImage].colorspace = type;
 
 //    printf("tfh.ImageType: %d, pal_len: %d\n", tfh.ImageType, tfh.ColorMapSpecLength);
 
-    return SQERR_OK;
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_next_pass()
+s32 fmt_codec::fmt_read_next_pass()
 {
-    return SQERR_OK;
+    return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
@@ -242,7 +228,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    {
 		for(j = 0;j < finfo.image[currentImage].w;j++)
 		{
-		    if(!frs.readK(&rgb, sizeof(RGB))) return SQERR_BADFILE;
+		    if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
 		    (scan+counter)->r = rgb.b;
 		    (scan+counter)->g = rgb.g;
@@ -254,7 +240,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    {
 		for(j = 0;j < finfo.image[currentImage].w;j++)
 		{
-		    if(!frs.readK(&rgba, sizeof(RGBA))) return SQERR_BADFILE;
+		    if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
 		    (scan+counter)->r = rgba.b;
 		    (scan+counter)->g = rgba.g;
@@ -268,7 +254,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 		for(j = 0;j < finfo.image[currentImage].w;j++)
 		{
-		    if(!frs.readK(&word, 2)) return SQERR_BADFILE;
+		    if(!frs.readK(&word, 2)) return SQE_R_BADFILE;
 
 		    scan[counter].b = (word&0x1f) << 3;
 		    scan[counter].g = ((word&0x3e0) >> 5) << 3;
@@ -294,7 +280,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    
 	    for(;;)
 	    {
-		if(!frs.readK(&bt, 1)) return SQERR_BADFILE;
+		if(!frs.readK(&bt, 1)) return SQE_R_BADFILE;
 
 		count = (bt&127) + 1;
 
@@ -304,7 +290,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		    switch(finfo.image[currentImage].bpp)
 		    {
 			case 16:
-    			    if(!frs.readK(&word, 2)) return SQERR_BADFILE;
+    			    if(!frs.readK(&word, 2)) return SQE_R_BADFILE;
 
 			    rgb.b = (word&0x1f) << 3;
 			    rgb.g = ((word&0x3e0) >> 5) << 3;
@@ -318,7 +304,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 			break;
 
 			case 24:
-    			    if(!frs.readK(&rgb, sizeof(RGB))) return SQERR_BADFILE;
+    			    if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
 			    for(j = 0;j < count;j++)
 			    {
@@ -332,7 +318,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 			break;
 
 			case 32:
-    			    if(!frs.readK(&rgba, sizeof(RGBA))) return SQERR_BADFILE;
+    			    if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
 			    for(j = 0;j < count;j++)
 			    {
@@ -354,7 +340,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 			    for(j = 0;j < count;j++)
 			    {
-    				if(!frs.readK(&word, 2)) return SQERR_BADFILE;
+    				if(!frs.readK(&word, 2)) return SQE_R_BADFILE;
 
 				rgb.b = (word&0x1f) << 3;
 				rgb.g = ((word&0x3e0) >> 5) << 3;
@@ -368,7 +354,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 			case 24:
 			    for(j = 0;j < count;j++)
 			    {
-				if(!frs.readK(&rgb, sizeof(RGB))) return SQERR_BADFILE;
+				if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
 				(scan+counter)->r = rgb.b;
     				(scan+counter)->g = rgb.g;
@@ -382,7 +368,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 			case 32:
 			    for(j = 0;j < count;j++)
 			    {
-				if(!frs.readK(&rgba, sizeof(RGBA))) return SQERR_BADFILE;
+				if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
 				(scan+counter)->r = rgba.b;
     				(scan+counter)->g = rgba.g;
@@ -402,322 +388,24 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	case 11:
 	break;
     }
+    
+    if(fliph)
+    {
+	RGBA t;
+	s32 ww = finfo.image[currentImage].w;
 
-    return SQERR_OK;
+	for(j = 0;j < ww / 2;j++)
+	{
+	    t = *(scan+j);
+	    *(scan+j) = *(scan+ww-j-1);
+	    *(scan+ww-j-1) = t;
+	}
+    }
+
+    return SQE_OK;
 }
 
-s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
-{
-    s32 		w, h, bpp;
-    TGA_FILEHEADER 	m_tfh;
-    RGB 		m_pal[256];
-    s32 		m_pal_entr;
-    RGB 		rgb;
-    RGBA 		rgba;
-    s32 		m_bytes;
-    jmp_buf		jmp;
-    ifstreamK		m_frs;
-
-    m_frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!m_frs.good())
-        return SQERR_NOFILE;
-
-    if(setjmp(jmp))
-    {
-        m_frs.close();
-        return SQERR_BADFILE;
-    }
-
-    if(!m_frs.readK(&m_tfh, sizeof(TGA_FILEHEADER))) longjmp(jmp, 1);
-
-    w = m_tfh.ImageSpecW;
-    h = m_tfh.ImageSpecH;
-    bpp = m_tfh.ImageSpecDepth;
-    m_pal_entr = 0;
-
-    if(m_tfh.ColorMapType)
-    {
-	m_pal_entr = m_tfh.ColorMapSpecLength;
-
-//	if((m_pal = (RGB*)calloc(m_pal_entr, sizeof(RGB))) == 0)
-//		return SQERR_NOMEMORY;
-
-//	s8 sz = m_tfh.ColorMapSpecEntrySize;
-	s32  i;
-//	u16 word;
-  
-	for(i = 0;i < m_pal_entr;i++)
-	{
-		/*if(sz==24)*/ if(!m_frs.readK(m_pal+i, sizeof(RGB))) longjmp(jmp, 1);
-/* alpha ingored  *//*else if(sz==32) { fread(finfo.m_pal+i, sizeof(RGB), 1, m_fptr); fgetc(m_fptr); }
-		else if(sz==16)
-		{
-		    fread(&word, 2, 1, m_fptr);
-		    (finfo.m_pal)[i].b = (word&0x1f) << 3;
-		    (finfo.m_pal)[i].g = ((word&0x3e0) >> 5) << 3;
-		    (finfo.m_pal)[i].r = ((word&0x7c00)>>10) << 3;
-		}*/
-		
-	}
-    }
-//    else
-//	m_pal = 0;
-
-    if(m_tfh.ImageType == 0)
-	return SQERR_BADFILE;
-
-    m_bytes = w * h * sizeof(RGBA);
-
-    stringstream comp, type;
-
-    switch(m_tfh.ImageType)
-    {
-	case 1:
-	    comp << "-";
-	    type << "Color indexed";
-	break;
-
-	case 2:
-	    comp << "-";
-	    type << ((bpp == 32) ? "RGBA":"RGB");
-	break;
-
-	case 3:
-	    comp << "-";
-	    type << "Monochrome";
-	break;
-
-	case 9:
-	    comp << "RLE";
-	    type << "Color indexed";
-	break;
-
-	case 10:
-	    comp << "RLE";
-	    type << ((bpp == 32) ? "RGBA":"RGB");
-	break;
-
-	case 11:
-	    comp << "RLE";
-	    type << "Monochrome";
-	break;
-    }
-
-    stringstream s;
-
-    s   << fmt_quickinfo() << "\n"
-        << w << "\n"
-        << h << "\n"
-        << bpp << "\n"
-        << type.str() << "\n"
-        << comp.str() << "\n"
-        << 1 << "\n"
-        << m_bytes;
-
-    dump = s.str();
-
-    *image = (RGBA*)realloc(*image, m_bytes);
-
-    if(!*image)
-    {
-	longjmp(jmp, 1);
-    }
-
-    memset(*image, 255, m_bytes);
-
-    /*  reading ... */
-
-    for(s32 h2 = 0;h2 < h;h2++)
-    {
-        RGBA 	*scan = *image + h2 * w;
-
-    s32 j, counter = 0;
-
-    switch(m_tfh.ImageType)
-    {
-    	case 0:
-	break;
-
-	case 1:
-	break;
-
-	case 2:
-	{
-	    if(m_tfh.ImageSpecDepth==24)
-	    {
-		for(j = 0;j < w;j++)
-		{
-		    if(!m_frs.readK(&rgb, sizeof(RGB))) longjmp(jmp, 1);
-
-		    (scan+counter)->r = rgb.b;
-		    (scan+counter)->g = rgb.g;
-		    (scan+counter)->b = rgb.r;
-		    counter++;
-		}
-	    }
-	    else if(m_tfh.ImageSpecDepth==32)
-	    {
-		for(j = 0;j < w;j++)
-		{
-		    if(!m_frs.readK(&rgba, sizeof(RGBA))) longjmp(jmp, 1);
-
-		    (scan+counter)->r = rgba.b;
-		    (scan+counter)->g = rgba.g;
-		    (scan+counter)->b = rgba.r;
-		    counter++;
-		}
-	    }
-	    else if(m_tfh.ImageSpecDepth==16)
-	    {
-		u16 word;
-
-		for(j = 0;j < w;j++)
-		{
-		    if(!m_frs.readK(&word, sizeof(u16))) longjmp(jmp, 1);
-
-		    scan[counter].b = (word&0x1f) << 3;
-		    scan[counter].g = ((word&0x3e0) >> 5) << 3;
-		    scan[counter++].r = ((word&0x7c00)>>10) << 3;
-		}
-	    }
-	}
-	break;
-
-	case 3:
-	break;
-
-	// RLE + color mapped
-	case 9:
-	break;
-
-	// RLE + true color
-	case 10:
-	{
-	    u8	bt, count;
-	    ushort	counter = 0, word;
-	    
-	    for(;;)
-	    {
-		if(!m_frs.readK(&bt, 1)) longjmp(jmp, 1);
-		count = (bt & 127) + 1;
-		
-    	        // RLE packet
-    		if(bt >= 128)
-		{
-		    switch(bpp)
-		    {
-			case 16:
-    			    if(!m_frs.readK(&word, 2)) longjmp(jmp, 1);
-
-			    rgb.b = (word&0x1f) << 3;
-			    rgb.g = ((word&0x3e0) >> 5) << 3;
-			    rgb.r = ((word&0x7c00)>>10) << 3;
-
-			    for(j = 0;j < count;j++)
-			    {
-				memcpy(scan+(counter++), &rgb, sizeof(RGB));
-				if(counter >= w-1) goto lts;
-			    }
-			break;
-
-			case 24:
-    			    if(!m_frs.readK(&rgb, sizeof(RGB))) longjmp(jmp, 1);
-
-			    for(j = 0;j < count;j++)
-			    {
-				(scan+counter)->r = rgb.b;
-				(scan+counter)->g = rgb.g;
-				(scan+counter)->b = rgb.r;
-				counter++;
-
-				if(counter >= w-1) goto lts;
-			    }
-			break;
-
-			case 32:
-    			    if(!m_frs.readK(&rgba, sizeof(RGBA))) longjmp(jmp, 1);
-
-			    for(j = 0;j < count;j++)
-			    {
-				(scan+counter)->r = rgba.b;
-				(scan+counter)->g = rgba.g;
-				(scan+counter)->b = rgba.r;
-				counter++;
-
-				if(counter >= w-1) goto lts;
-			    }
-			break;
-		    }
-		}
-		else // Raw packet
-		{
-		    switch(bpp)
-		    {
-			case 16:
-
-			    for(j = 0;j < count;j++)
-			    {
-    				if(!m_frs.readK(&word, 2)) longjmp(jmp, 1);
-
-				rgb.b = (word&0x1f) << 3;
-				rgb.g = ((word&0x3e0) >> 5) << 3;
-				rgb.r = ((word&0x7c00)>>10) << 3;
-
-				memcpy(scan+(counter++), &rgb, sizeof(RGB));
-				if(counter >= w-1) goto lts;
-			    }
-			break;
-
-			case 24:
-			    for(j = 0;j < count;j++)
-			    {
-				if(!m_frs.readK(&rgb, sizeof(RGB))) longjmp(jmp, 1);
-
-				(scan+counter)->r = rgb.b;
-				(scan+counter)->g = rgb.g;
-				(scan+counter)->b = rgb.r;
-				counter++;
-
-				if(counter >= w-1) goto lts;
-			    }
-			break;
-
-			case 32:
-			    for(j = 0;j < count;j++)
-			    {
-				if(!m_frs.readK(&rgba, sizeof(RGBA))) longjmp(jmp, 1);
-
-				(scan+counter)->r = rgba.b;
-				(scan+counter)->g = rgba.g;
-				(scan+counter)->b = rgba.r;
-				counter++;
-
-				if(counter >= w-1) goto lts;
-			    }
-			break;
-		    }
-		}
-	    }
-	}
-	lts:
-	break;
-
-	// RLE + B&W
-	case 11:
-	break;
-
-    }
-    }
-
-    fmt_utils::flip((s8*)*image, w * sizeof(RGBA), h);
-
-    m_frs.close();
-
-    return SQERR_OK;
-}
-
-void fmt_codec::fmt_close()
+void fmt_codec::fmt_read_close()
 {
     frs.close();
 
@@ -732,14 +420,52 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = true;
 }
 
-s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &)
+s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
 {
-    return SQERR_OK;
+    if(!image.w || !image.h || file.empty())
+	return SQE_W_WRONGPARAMS;
+
+    writeimage = image;
+    writeopt = opt;
+
+    fws.open(file.c_str(), ios::binary | ios::out);
+
+    if(!fws.good())
+	return SQE_W_NOFILE;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+{
+    return SQE_OK;
+}
+
+void fmt_codec::fmt_write_close()
+{
+    fws.close();
 }
 
 bool fmt_codec::fmt_writable() const
 {
     return false;
+}
+
+bool fmt_codec::fmt_readable() const
+{
+    return true;
 }

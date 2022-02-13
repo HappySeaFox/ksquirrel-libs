@@ -2,7 +2,7 @@ INCLUDES = -I.. -I../include
 
 lib_LTLIBRARIES = libSQ_codec_camera.la
 
-libSQ_codec_camera_la_SOURCES = fmt_codec_camera.cpp fmt_codec_camera_defs.h dcraw.c dcraw.h
+libSQ_codec_camera_la_SOURCES = fmt_codec_camera.cpp fmt_codec_camera_defs.h dcraw.c dcraw.h ../fileio.cpp ../fmt_utils.cpp
 
 libSQ_codec_camera_la_LDFLAGS = -release 0.9.0
 

@@ -8,4 +8,4 @@ INCLUDEPATH += ../../kernel
 
 # Input
 HEADERS += myqt.h
-SOURCES += main.cpp myqt.cpp
+SOURCES += main.cpp myqt.cpp ../../kernel/fmt_utils.cpp

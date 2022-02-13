@@ -6,11 +6,6 @@
 
 #include "myqgl.h"
 
-// this example uses local headers.
-// you can include <ksquirrel-libs/fmt_utils.h>
-// instead
-
-#define SQ_HAVE_FMT_UTILS
 #include "fmt_utils.h"
 #include "error.h"
 
@@ -67,7 +62,7 @@ void MyQGL::paintGL()
 void MyQGL::loadImage()
 {
 	// try to load BMP library
-	QLibrary lib("/usr/lib/ksquirrel-libs/libSQ_read_bmp.so");
+	QLibrary lib("/usr/lib/ksquirrel-libs/libSQ_codec_bmp.so");
 	lib.load();
 
 	// no such library
@@ -108,23 +103,23 @@ void MyQGL::loadImage()
 	codeK = fmt_codec_create();
 
 	// init library
-	i = codeK->fmt_init(s);
+	i = codeK->fmt_read_init(s);
 
-	if(i != SQERR_OK)
+	if(i != SQE_OK)
 	{
-	    codeK->fmt_close();
+	    codeK->fmt_read_close();
 	    return;
 	}
 
 	// move to the next image
-	i = codeK->fmt_next();
+	i = codeK->fmt_read_next();
 	
 	// save retrieved information
 	finfo = codeK->information();
 
-	if(i != SQERR_OK)
+	if(i != SQE_OK)
 	{
-	    codeK->fmt_close();
+	    codeK->fmt_read_close();
 	    return;
 	}
 
@@ -132,7 +127,7 @@ void MyQGL::loadImage()
 
 	if(!image)
 	{
-	    codeK->fmt_close();
+	    codeK->fmt_read_close();
 	    return;
 	}
 
@@ -143,7 +138,7 @@ void MyQGL::loadImage()
 	// OK, let's decode the image line-by-line, pass-by-pass
 	for(int pass = 0;pass < finfo.image[current].passes;pass++)
 	{
-		codeK->fmt_next_pass();
+		codeK->fmt_read_next_pass();
 
 		for(int j = 0;j < finfo.image[current].h;j++)
 		{
@@ -154,10 +149,10 @@ void MyQGL::loadImage()
 
 	// flip, if neccessary (BMP requires flipping)
 	if(finfo.image[current].needflip)
-	    fmt_utils::flip((char*)image, finfo.image[current].w * sizeof(RGBA), finfo.image[current].h);
+	    fmt_utils::flipv((char*)image, finfo.image[current].w * sizeof(RGBA), finfo.image[current].h);
 
 	// close library
-	codeK->fmt_close();
+	codeK->fmt_read_close();
 
 	w = finfo.image[current].w;
 	h = finfo.image[current].h;

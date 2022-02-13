@@ -3,7 +3,10 @@
 
 #include <qlabel.h>
 
-#define SQ_FIO_NO_IMPLEMENT
+#include <csetjmp>
+
+#include "fmt_types.h"
+#include "fileio.h"
 #include "fmt_codec_base.h"
 
 class MyQT : public QLabel

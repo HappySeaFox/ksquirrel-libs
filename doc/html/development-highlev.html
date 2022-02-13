@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>KSquirrel: development</title>
+
+    <meta name='Author' content='Baryshev Dmitry/Krasu'>
+    <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'>
+
+    <link rel='stylesheet' href='styles.css' type='text/css'>
+</head>
+
+<body>
+
+When SQ_LibraryHandler loaded all found libraries, KSquirrel obtains the ability to decode any supported image format.
+Here is a sample code to decode some image with library. Error handling is turned <b>off</b>. You can find real examples in
+source distribution of ksquirrel-libs.
+
+<p><b><u>Sample</u></b>
+<table cellpadding="2" cellspacing="2" width="70%" align="center">
+<tbody>
+<tr>
+<td valign="top" bgcolor="#CCCCCC">
+<pre>
+	int            i, j, current = 0;
+	fmt_info       finfo;
+	RGBA           *image = NULL, *scan;
+	fmt_codec_base *codeK;
+
+	QString file = "/home/krasu/animation1.gif";
+
+	<b>Determine the library and codec</b>
+	codeK = SQ_LibraryHandler::instance()->libraryForFile(file)->codec;
+
+	<b>Init: open file, etc.</b>
+	codeK->fmt_read_init(file.ascii());
+
+	while(true)
+	{
+		i = codeK->fmt_read_next();
+		
+		<b>Break, if we've decoded all available images in file</b>
+		if(i == SQE_NOTOK)
+			break;
+
+		<b>Obtain the latest information (current image dimensions, etc.)</b>
+		finfo = codeK->information();
+
+		<b>realloc memory for new image</b>
+		image = (RGBA *)realloc(image, finfo.image[current].w * finfo.image[current].h * sizeof(RGBA));
+		
+		<b>fill with white color (RGBA(255,255,255,255))</b>
+		memset(image, 255, finfo.image[current].w * finfo.image[current].h * sizeof(RGBA));
+
+		for(int pass = 0;pass &#60; finfo.image[current].passes;pass++)
+		{
+			codeK->fmt_read_next_pass();
+
+			for(j = 0;j &#60; finfo.image[current].h;j++)
+			{
+				scan = image + j * finfo.image[current].w;
+				codeK->fmt_read_scanline(scan);
+			}
+		}
+
+		<b>Do something with decoded image here.
+		...</b>
+
+		current++;
+	}
+
+	codeK->fmt_read_close();
+
+	free(image);
+
+</pre>
+</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>
