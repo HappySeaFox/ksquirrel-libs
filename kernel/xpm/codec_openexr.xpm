@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_openexr[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #020202",
+". c #170100",
+"X c #464646",
+"o c #4E4E4E",
+"O c #FEB602",
+"+ c #AEAEAE",
+"@ c #B2B2B2",
+"# c #CACACA",
+"$ c gray87",
+"% c gray95",
+"& c #FEFEFE",
+"* c None",
+/* pixels */
+"oooooooooo@*****",
+"o########o$+****",
+"o#&&&&&&#o%$@***",
+"o#&&&&&&#oooo***",
+"o#&&&&&&####o***",
+"oXXXXXXXXXXXXXXX",
+"oOOOOOOOOOOOOOOX",
+"oO    O O O   OX",
+" O OOOO O O O OX",
+" O   OOO OO   OX",
+" O OOOO O O O OX",
+" O    O O O O OX",
+"oOOOOOOOOOOOOOOX",
+"oXXXXXXXXXXXXXXX",
+"o###########o***",
+"*oooooooooooo***"
+};

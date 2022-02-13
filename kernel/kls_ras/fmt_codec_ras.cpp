@@ -21,12 +21,15 @@
 
 #include <iostream>
 
-#include "fmt_types.h"
-#include "fileio.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/error.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include "fmt_codec_ras_defs.h"
 #include "fmt_codec_ras.h"
+
+#include "../xpm/codec_ras.xpm"
 
 /*
  *
@@ -47,32 +50,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("0.6.3");
-}
-    
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("SUN Raster");
-}
-	
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.ras ");
-}
-	    
-std::string fmt_codec::fmt_mime()
-{
-    return std::string("\x0059\x00A6\x006A\x0095");
+    o->version = "0.6.3";
+    o->name = "SUN Raster";
+    o->filter = "*.ras ";
+    o->config = "";
+    o->mime = "\x0059\x00A6\x006A\x0095";
+    o->pixmap = codec_ras;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,78,78,78,174,174,174,202,202,202,70,70,70,254,254,254,178,178,178,102,254,206,242,242,242,222,222,222,2,2,2,116,218,129,101,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,102,73,68,65,84,120,218,99,16,4,129,4,6,6,6,97,99,99,99,195,73,32,70,104,104,168,73,39,80,200,25,200,48,20,20,128,136,24,27,3,25,46,80,192,32,94,14,6,37,12,82,171,202,171,150,151,175,90,194,32,85,190,188,106,121,21,68,4,72,175,42,1,137,172,90,85,94,14,150,90,94,85,5,20,129,235,130,155,3,178,212,216,216,129,129,129,5,196,117,20,96,0,0,147,141,40,240,190,118,236,206,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -89,7 +82,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
     
@@ -206,17 +199,16 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
     
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     u32 i;
     fmt_image *im = image(currentImage);
-
-    memset(scan, 255, im->w * sizeof(RGBA));
+    fmt_utils::fillAlpha(scan, im->w);
 
     switch(im->bpp)
     {
@@ -308,7 +300,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     frs.close();
 
@@ -319,7 +311,7 @@ void fmt_codec::fmt_read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->compression_scheme = CompressionInternal;
@@ -331,7 +323,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -347,31 +339,25 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     fws.close();
 }
-
-bool fmt_codec::fmt_writable() const
-{
-    return false;
-}
-
 
 bool fmt_readdata(ifstreamK &ff, u8 *_buf, u32 length, bool rle)
 {
@@ -416,14 +402,9 @@ bool fmt_readdata(ifstreamK &ff, u8 *_buf, u32 length, bool rle)
     return true;
 }
 
-bool fmt_codec::fmt_readable() const
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
-{
-    return std::string("");
+    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

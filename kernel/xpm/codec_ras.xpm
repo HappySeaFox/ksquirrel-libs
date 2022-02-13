@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_ras[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #020202",
+". c #464646",
+"X c #4E4E4E",
+"o c #66FECE",
+"O c #CF0008",
+"+ c #AEAEAE",
+"@ c #B2B2B2",
+"# c #CACACA",
+"$ c gray87",
+"% c gray95",
+"& c #FEFEFE",
+"* c None",
+/* pixels */
+"XXXXXXXXXX@*****",
+"X########X$+****",
+"X#&&&&&&#.%$@***",
+".#&&&&&&#XXXX***",
+"X#&&&&&&####X***",
+"................",
+"Xoooooooooooooo.",
+"X   ooo  ooo   .",
+"X oo oo  oo ooo.",
+"X   oo oo oo  o.",
+"X oo o    oooo .",
+"X oo o oo o   o.",
+"Xoooooooooooooo.",
+"................",
+"X###########.***",
+"*..........XX***"
+};

@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_mtv[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #020202",
+". c #464646",
+"X c #4E4E4E",
+"o c #CF0008",
+"O c #FEE202",
+"+ c #AEAEAE",
+"@ c #B2B2B2",
+"# c #CACACA",
+"$ c gray87",
+"% c gray95",
+"& c #FEFEFE",
+"* c None",
+/* pixels */
+"XXXXXXXXXX@*****",
+"X########X$+****",
+"X#&&&&&&#X%$@***",
+"X#&&&&&&#XXXX***",
+"X#&&&&&&####X***",
+"X...............",
+"XOOOOOOOOOOOOOO.",
+"XO OO O   O O O.",
+"XO    OO OO O O.",
+"XO OO OO OO O O.",
+"XO OO OO OO O O.",
+"XO OO OO OOO OO.",
+"XOOOOOOOOOOOOOO.",
+"X...............",
+"X###########X***",
+"*XXXXXXXXXXXX***"
+};

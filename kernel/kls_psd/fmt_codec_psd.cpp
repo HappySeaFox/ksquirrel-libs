@@ -21,12 +21,15 @@
 
 #include <iostream>
 
-#include "fmt_types.h"
-#include "fileio.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/error.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include "fmt_codec_psd_defs.h"
 #include "fmt_codec_psd.h"
+
+#include "../xpm/codec_psd.xpm"
 
 /*
  *
@@ -45,32 +48,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("0.8.1");
+    o->version = "0.8.1";
+    o->name = "Adobe Photoshop PSD";
+    o->filter = "*.psd ";
+    o->config = "";
+    o->mime = "\x0038\x0042\x0050\x0053\x0001";
+    o->pixmap = codec_psd;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("Adobe Photoshop PSD");
-}
-
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.psd ");
-}
-
-std::string fmt_codec::fmt_mime()
-{
-    return std::string("\x0038\x0042\x0050\x0053\x0001");
-}
-
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,254,254,2,202,202,202,178,178,178,254,254,254,174,174,174,90,90,90,242,242,242,78,78,78,222,222,222,70,70,70,241,50,95,84,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,105,73,68,65,84,120,218,99,232,0,1,3,6,6,134,69,74,74,74,90,83,65,12,23,23,23,173,74,3,8,67,163,99,1,132,161,164,212,192,192,208,181,10,2,24,22,10,130,129,20,67,91,154,160,88,154,88,154,20,195,50,193,196,68,65,49,193,44,176,72,34,152,1,84,32,6,98,44,19,20,76,75,4,169,105,132,233,90,5,51,167,73,9,4,128,86,112,172,234,90,177,170,171,129,1,0,249,243,39,139,216,187,115,145,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -104,9 +97,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     if(!frs.be_getshort(&channels))
 	return SQE_R_BADFILE;
 
-    if(channels != 3 && channels != 4 && channels != 1)
-	return SQE_R_NOTSUPPORTED;
-
     if(!frs.be_getlong(&height))
 	return SQE_R_BADFILE;
 
@@ -125,7 +115,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     if(mode != PSD_RGB && mode != PSD_CMYK && mode != PSD_INDEXED && mode != PSD_GRAYSCALE)
 	return SQE_R_NOTSUPPORTED;
 
-    if(mode == PSD_RGB && (channels != 3 && channels != 4))
+    if(mode == PSD_RGB && channels != 3 && channels != 4)
 	return SQE_R_NOTSUPPORTED;
 
     if(mode == PSD_CMYK && channels != 4 && channels != 5)
@@ -171,7 +161,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
     
@@ -254,7 +244,7 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     layer++;
     line = -1;
@@ -262,11 +252,12 @@ s32 fmt_codec::fmt_read_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     u8 c, value, *p;
     s32 count = 0;
     fmt_image *im = image(currentImage);
+    fmt_utils::fillAlpha(scan, im->w);
     
     line++;
 
@@ -374,7 +365,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     frs.close();
 
@@ -396,7 +387,7 @@ void fmt_codec::fmt_read_close()
 	free(L);
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->compression_scheme = CompressionNo; // maybe set to CompressionRLE ?
@@ -408,7 +399,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -424,39 +415,29 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     fws.close();
 }
 
-bool fmt_codec::fmt_writable() const
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
-    return false;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
-{
-    return std::string("");
+    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

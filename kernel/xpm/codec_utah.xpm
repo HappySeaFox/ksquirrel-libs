@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_utah[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #020202",
+". c #464646",
+"X c #4E4E4E",
+"o c #CF0008",
+"O c #AAC25A",
+"+ c #AEAEAE",
+"@ c #B2B2B2",
+"# c #CACACA",
+"$ c gray87",
+"% c gray95",
+"& c #FEFEFE",
+"* c None",
+/* pixels */
+"XXXXXXXXXX@*****",
+"X########X$+****",
+"X#&&&&&&#.%$@***",
+".#&&&&&&#XXXX***",
+"X#&&&&&&####X***",
+"................",
+"XOOOOOOOOOOOOOO.",
+".O   OO OOO   O.",
+"XO OO O OOO OOO.",
+"XO   OO OOO  OO.",
+"XO OO O OOO OOO.",
+"XO OO O   O   O.",
+"XOOOOOOOOOOOOOO.",
+"................",
+"X###########.***",
+"*..........XX***"
+};

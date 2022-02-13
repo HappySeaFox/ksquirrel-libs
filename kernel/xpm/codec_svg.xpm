@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_svg[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #000028",
+". c gray27",
+"X c #4C4C4C",
+"o c #D86800",
+"O c #AEAEAE",
+"+ c gray69",
+"@ c #B1B1B1",
+"# c #C8C8C8",
+"$ c #DDDDDD",
+"% c #F3F3F3",
+"& c gray100",
+"* c None",
+/* pixels */
+"XXXXXXXXXX+*****",
+"X########X$O****",
+"X#&&&&&&#X%$+***",
+"X#&&&&&&#XXXX***",
+"X#&&&&&&####X***",
+"X...............",
+"Xoooooooooooooo.",
+"Xo&&&o&o&o&&&oo.",
+"Xo&ooo&o&o&oooo.",
+"Xo&&&o&o&o&o&&o.",
+"Xooo&o&&&o&oo&o.",
+"Xo&&&oo&oo&&&&o.",
+"Xoooooooooooooo.",
+"X...............",
+"X###########X***",
+"*XXXXXXXXXXXX***"
+};

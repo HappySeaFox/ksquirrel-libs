@@ -31,8 +31,6 @@ extern "C" {
 #endif
 }
 
-#include <jpeglib.h>
-
 struct my_error_mgr
 {
     struct jpeg_error_mgr pub;

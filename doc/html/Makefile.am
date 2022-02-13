@@ -1,4 +1,4 @@
-EXTRA_DIST = belka_bkgr.gif how_to_build_c++.png ksquirrel-libs-olibs1.html bits.html index.html ksquirrel-libs-olibs2.html Makefile.am development-highlev.html ksquirrel-libs-about.html ksquirrel-libs-olibs2.html how_to_build_arrow.png ksquirrel-libs-fio.html ksquirrel-libs-olibs3.html simplelib.html how_to_build_codec.png ksquirrel-libs-olibs.html styles.css how_to_build_c.png ksquirrel-libs-metainfo.html ksquirrel-libs-struct.html
+EXTRA_DIST = belka_bkgr.gif how_to_build_c++.png ksquirrel-libs-olibs1.html bits.html index.html ksquirrel-libs-olibs2.html Makefile.am development-highlev.html ksquirrel-libs-about.html ksquirrel-libs-olibs2.html how_to_build_arrow.png ksquirrel-libs-fio.html ksquirrel-libs-olibs3.html how_to_build_codec.png ksquirrel-libs-olibs.html styles.css how_to_build_c.png ksquirrel-libs-metainfo.html ksquirrel-libs-struct.html
 
 
 install-data-local:
@@ -14,7 +14,6 @@ install-data-local:
 	$(INSTALL_DATA)  ksquirrel-libs-olibs1.html   $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/ksquirrel-libs-olibs1.html
 	$(INSTALL_DATA)  ksquirrel-libs-olibs2.html   $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/ksquirrel-libs-olibs2.html
 	$(INSTALL_DATA)  ksquirrel-libs-olibs3.html   $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/ksquirrel-libs-olibs3.html
-	$(INSTALL_DATA)  simplelib.html               $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/simplelib.html
 	$(INSTALL_DATA)  styles.css                   $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/styles.css
 	$(INSTALL_DATA)  belka_bkgr.gif               $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/belka_bkgr.gif
 	$(INSTALL_DATA)  how_to_build_c.png           $(DESTDIR)$(datadir)/doc/ksquirrel-libs/$(PACKAGE_VERSION)/how_to_build_c.png

@@ -4,9 +4,9 @@
 
 TEMPLATE = app
 INCLUDEPATH += .
-INCLUDEPATH += ../../kernel
+INCLUDEPATH += ../../kernel/include
 
 # Input
 HEADERS += myqgl.h
-SOURCES += main.cpp myqgl.cpp ../../kernel/fmt_utils.cpp
+SOURCES += main.cpp myqgl.cpp ../../kernel/ksquirrel-libs/fmt_utils.cpp
 LIBS    += -lGL -lGLU

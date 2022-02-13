@@ -21,16 +21,19 @@
 
 #include <iostream>
 
-#include "fmt_types.h"
-#include "fileio.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/error.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include "fmt_codec_bmp_defs.h"
 #include "fmt_codec_bmp.h"
 
+#include "../xpm/codec_bmp.xpm"
+
 /*
  *
- * This library works with the graphics-file formats used by the Microsoft Windows
+ * This library works with the graphics-file formats used by the Microsoft Windows(tm)
  * operating system. 
  *
  */
@@ -41,32 +44,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("1.1.2");
+    o->version = "1.1.2";
+    o->name = "Windows Bitmap";
+    o->filter = "*.bmp *.dib ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_bmp;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = true;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("Windows Bitmap");
-}
-
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.bmp *.dib ");
-}
-
-std::string fmt_codec::fmt_mime()
-{
-    return std::string(); // "BM" is too common to be a regexp :-)
-}
-
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,63,63,186,76,76,76,130,43,243,42,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,86,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,161,145,145,83,167,134,2,25,145,145,161,161,83,167,162,138,0,25,112,53,32,6,76,23,220,28,144,165,96,147,185,192,238,88,192,0,0,4,186,56,198,86,105,90,109,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
     
@@ -94,7 +87,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
 
@@ -120,9 +113,9 @@ s32 fmt_codec::fmt_read_next()
     {
 	case 1:
 	{
-	    s32 tmp = scanShouldBe;
+	    s32 _tmp = scanShouldBe;
 	    scanShouldBe /= 8;
-	    scanShouldBe = scanShouldBe + ((tmp%8)?1:0);
+	    scanShouldBe = scanShouldBe + ((_tmp%8)?1:0);
 	}
 	break;
 	
@@ -169,18 +162,17 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     u16 remain, scanShouldBe, j, counter = 0;
     u8 bt, dummy;
     fmt_image *im = image(currentImage);
-
-    memset(scan, 255, im->w * sizeof(RGBA));
+    fmt_utils::fillAlpha(scan, im->w);
 
     switch(im->bpp)
     {
@@ -190,9 +182,9 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		remain=((im->w)<=8)?(0):((im->w)%8);
 		scanShouldBe = im->w;
 
-		s32 tmp = scanShouldBe;
+		s32 _tmp = scanShouldBe;
 		scanShouldBe /= 8;
-		scanShouldBe = scanShouldBe + ((tmp%8)?1:0);
+		scanShouldBe = scanShouldBe + ((_tmp%8)?1:0);
  
 		// @todo get rid of miltiple 'if'
 		for(j = 0;j < scanShouldBe;j++)
@@ -341,7 +333,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     frs.close();
 
@@ -349,7 +341,7 @@ void fmt_codec::fmt_read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->compression_scheme = CompressionNo;
@@ -361,7 +353,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -379,7 +371,7 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     m_bfh.Type = BMP_IDENTIFIER;
     m_bfh.Size = 0;
@@ -407,12 +399,12 @@ s32 fmt_codec::fmt_write_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
     s8 fillchar = '0';
     RGB rgb;
@@ -436,22 +428,12 @@ s32 fmt_codec::fmt_write_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     fws.close();
 }
 
-bool fmt_codec::fmt_writable() const
-{
-    return true;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
     return std::string("bmp");
 }

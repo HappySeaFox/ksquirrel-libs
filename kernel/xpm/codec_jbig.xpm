@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_jbig[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c black",
+". c gray27",
+"X c #4C4C4C",
+"o c #6D6969",
+"O c #AEAEAE",
+"+ c gray69",
+"@ c #B1B1B1",
+"# c #C8C8C8",
+"$ c #DDDDDD",
+"% c #F3F3F3",
+"& c gray100",
+"* c None",
+/* pixels */
+"XXXXXXXXXX+*****",
+"X########X$O****",
+"X#&&&&&&#X%$+***",
+"X#&&&&&&#XXXX***",
+"X#&&&&&&####X***",
+"X...............",
+"Xoooooooooooooo.",
+"Xo&&&o&&&o&&&&o.",
+"Xooo&o&o&o&oooo.",
+"Xooo&o&&&o&o&&o.",
+"Xooo&o&o&o&oo&o.",
+"Xo&&&o&&&o&&&&o.",
+"Xoooooooooooooo.",
+"X...............",
+"X###########X***",
+"*XXXXXXXXXXXX***"
+};

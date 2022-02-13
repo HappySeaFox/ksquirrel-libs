@@ -32,11 +32,11 @@ source distribution of ksquirrel-libs.
 	codeK = SQ_LibraryHandler::instance()->libraryForFile(file)->codec;
 
 	<b>Init: open file, etc.</b>
-	codeK->fmt_read_init(file.ascii());
+	codeK->read_init(file.ascii());
 
 	while(true)
 	{
-		i = codeK->fmt_read_next();
+		i = codeK->read_next();
 		
 		<b>Break, if we've decoded all available images in file</b>
 		if(i == SQE_NOTOK)
@@ -53,12 +53,12 @@ source distribution of ksquirrel-libs.
 
 		for(int pass = 0;pass &#60; finfo.image[current].passes;pass++)
 		{
-			codeK->fmt_read_next_pass();
+			codeK->read_next_pass();
 
 			for(j = 0;j &#60; finfo.image[current].h;j++)
 			{
 				scan = image + j * finfo.image[current].w;
-				codeK->fmt_read_scanline(scan);
+				codeK->read_scanline(scan);
 			}
 		}
 
@@ -68,7 +68,7 @@ source distribution of ksquirrel-libs.
 		current++;
 	}
 
-	codeK->fmt_read_close();
+	codeK->read_close();
 
 	free(image);
 

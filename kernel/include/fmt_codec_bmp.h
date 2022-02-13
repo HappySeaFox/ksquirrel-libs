@@ -22,46 +22,23 @@
 #ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_BMP_H
 #define KSQUIRREL_LIBS_CLASS_DEFINITION_BMP_H
 
-#include "fmt_codec_base.h"
+#include "ksquirrel-libs/fmt_codec_base.h"
 
 class fmt_codec : public fmt_codec_base
 {
     public:
 
-	fmt_codec();
-	~fmt_codec();
-
-	virtual std::string	fmt_version();
-	virtual std::string	fmt_quickinfo();
-	virtual std::string	fmt_filter();
-	virtual std::string	fmt_mime();
-	virtual std::string	fmt_pixmap();
-	virtual std::string	fmt_extension(const s32 bpp);
-
-	virtual bool 	fmt_readable() const;
-	virtual s32	fmt_read_init(const std::string &file);
-	virtual s32	fmt_read_next();
-	virtual s32	fmt_read_next_pass();
-	virtual s32	fmt_read_scanline(RGBA *scan);
-	virtual void	fmt_read_close();
-
-	virtual bool	fmt_writable() const;
-	virtual void	fmt_getwriteoptions(fmt_writeoptionsabs *);
-        virtual s32     fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt);
-        virtual s32     fmt_write_next();
-        virtual s32     fmt_write_next_pass();
-        virtual s32     fmt_write_scanline(RGBA *scan);
-        virtual void    fmt_write_close();
+        BASE_CODEC_DECLARATIONS
 
     private:
-	RGB			pal[256];
-	s32			pal_entr;
-	u16			filler;
-	BITMAPFILE_HEADER       bfh;
-	BITMAPINFO_HEADER       bih;
-        s32                 	m_FILLER;
-        BITMAPFILE_HEADER   	m_bfh;
-        BITMAPINFO_HEADER  	m_bih;
+        RGB            pal[256];
+        s32            pal_entr;
+        u16            filler;
+        BITMAPFILE_HEADER       bfh;
+        BITMAPINFO_HEADER       bih;
+        s32                     m_FILLER;
+        BITMAPFILE_HEADER       m_bfh;
+        BITMAPINFO_HEADER      m_bih;
 };
 
 #endif

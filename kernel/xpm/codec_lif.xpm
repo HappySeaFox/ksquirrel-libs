@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_lif[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c black",
+". c gray27",
+"X c #4C4C4C",
+"o c #0AD38D",
+"O c #AEAEAE",
+"+ c gray69",
+"@ c #B1B1B1",
+"# c #C8C8C8",
+"$ c #DDDDDD",
+"% c #F3F3F3",
+"& c gray100",
+"* c None",
+/* pixels */
+"XXXXXXXXXX+*****",
+"X########X$O****",
+"X#&&&&&&#X%$+***",
+"X#&&&&&&#XXXX***",
+"X#&&&&&&####X***",
+"X...............",
+"Xoooooooooooooo.",
+"Xo.ooo...o....o.",
+"Xo.oooo.oo.oo.o.",
+"Xo.oooo.oo..ooo.",
+"Xo.oooo.oo.oooo.",
+"Xo...o...o.oooo.",
+"Xoooooooooooooo.",
+"X...............",
+"X###########X***",
+"*XXXXXXXXXXXX***"
+};

@@ -47,7 +47,7 @@
 #define MIN(a, b)     (((a) < (b)) ? (a) : (b))
 #endif
 
-svg_cairo_status_t render_to_mem(FILE *svg_file, unsigned char **buf, int *w, int *h)
+svg_cairo_status_t render_to_mem(FILE *svg_file, unsigned char **buf, int *w, int *h, double scale)
 {
     unsigned int svg_width, svg_height;
 
@@ -73,11 +73,14 @@ svg_cairo_status_t render_to_mem(FILE *svg_file, unsigned char **buf, int *w, in
 
     svg_cairo_get_size(svgc, &svg_width, &svg_height);
 
-    width = svg_width;
-    height = svg_height;
+    width = (unsigned int)(scale * svg_width + 0.5);
+    height = (unsigned int)(scale * svg_height + 0.5);
 
-    *w = (int)width;
-    *h = (int)height;
+    if(!width) width = 1;
+    if(!height) height = 1;
+
+    *w = int(width);
+    *h = int(height);
 
     *buf = (unsigned char *)malloc(width * height * 4);
     
@@ -94,6 +97,7 @@ svg_cairo_status_t render_to_mem(FILE *svg_file, unsigned char **buf, int *w, in
     cairo_restore(cr);
 
     cairo_translate(cr, dx, dy);
+    cairo_scale(cr, scale, scale);
 
     /* XXX: This probably doesn't need to be here (eventually) */
     cairo_set_source_rgb(cr, 1, 1, 1);

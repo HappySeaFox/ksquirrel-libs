@@ -4,8 +4,8 @@
 
 TEMPLATE = app
 INCLUDEPATH += .
-INCLUDEPATH += ../../kernel
+INCLUDEPATH += ../../kernel/include
 
 # Input
 HEADERS += myqt.h
-SOURCES += main.cpp myqt.cpp ../../kernel/fmt_utils.cpp
+SOURCES += main.cpp myqt.cpp ../../kernel/ksquirrel-libs/fmt_utils.cpp

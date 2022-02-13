@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "jbig.h"
 
 double koeff = 1.0;
@@ -69,8 +70,7 @@ int read_file(unsigned char **buf, size_t *buflen, size_t *len, FILE *f)
   return 1;
 }
 
-
-int call (char **argv)
+int jbig2mem (char *argv[])
 {
   FILE *fin = stdin, *fout = stdout;
   const char *fnin = NULL, *fnout = NULL;
@@ -81,10 +81,11 @@ int call (char **argv)
   unsigned long xmax = 4294967295UL, ymax = 4294967295UL, max;
   int plane = -1, use_graycode = 1, multi = 0;
 
+printf("+JBIG %s, %s\n", argv[0], argv[1]);
+
   buflen = 8000;
   buffer = (unsigned char *) malloc(buflen);
   if (!buffer) {
-    printf("Sorry, not enough memory available!\n");
     return 1;
   }
 
@@ -93,16 +94,15 @@ fnout = argv[1];
 
     fin = fopen(fnin, "rb");
     if (!fin) {
-      fprintf(stderr, "Can't open input file '%s", fnin);
-      perror("'");
-      exit(1);
+    free(buffer);
+     return 1;
     }
 
     fout = fopen(fnout, "wb");
     if (!fout) {
-      fprintf(stderr, "Can't open input file '%s", fnout);
-      perror("'");
-      exit(1);
+    fclose(fin);
+    free(buffer);
+     return 1;
     }
 
   /* send input file to decoder */
@@ -113,6 +113,7 @@ fnout = argv[1];
 
   if(len < 20)
   {
+    fclose(fin);
     fclose(fout);
     remove(fnout);
     return 1;
@@ -122,7 +123,12 @@ fnout = argv[1];
     /* VLENGTH = 1 => we might encounter a NEWLEN, therefore read entire
      * input file into memory and run two passes over it */
     if(!read_file(&buffer, &buflen, &len, fin))
+    {
+    fclose(fin);
+    fclose(fout);
+    remove(fnout);
         return 1;
+    }
     /* scan for NEWLEN marker segments and update BIE header accordingly */
     result = jbg_newlen(buffer, len);
     /* feed data to decoder */
@@ -154,8 +160,7 @@ fnout = argv[1];
     } while (len > 0);
 
     if (ferror(fin)) {
-      fprintf(stderr, "Problem while reading input file '%s", fnin);
-      perror("'");
+        fclose(fin);
         fclose(fout);
 	remove(fnout);
       return 1;

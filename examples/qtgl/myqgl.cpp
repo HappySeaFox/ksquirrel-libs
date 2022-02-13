@@ -6,8 +6,8 @@
 
 #include "myqgl.h"
 
-#include "fmt_utils.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_utils.h"
+#include "ksquirrel-libs/error.h"
 
 MyQGL::MyQGL(QWidget *parent, const char *name) : QGLWidget(parent, name), bits(0), w(0), h(0)
 {}
@@ -78,11 +78,11 @@ void MyQGL::loadImage()
 	int 		current = 0;
 
 	// resolve neccessary functions
-	fmt_codec_create = (fmt_codec_base*(*)())lib.resolve("fmt_codec_create");
-	fmt_codec_destroy = (void (*)(fmt_codec_base*))lib.resolve("fmt_codec_destroy");
+	codec_create = (fmt_codec_base*(*)())lib.resolve("codec_create");
+	codec_destroy = (void (*)(fmt_codec_base*))lib.resolve("codec_destroy");
 
 	// library corrupted!
-	if(!fmt_codec_create || !fmt_codec_destroy)
+	if(!codec_create || !codec_destroy)
 	{
 	    qWarning("Library corrupted.");
 	    lib.unload();
@@ -100,26 +100,26 @@ void MyQGL::loadImage()
 	}
 	
 	// OK, create decoder
-	codeK = fmt_codec_create();
+	codeK = codec_create();
 
 	// init library
-	i = codeK->fmt_read_init(s);
+	i = codeK->read_init(s);
 
 	if(i != SQE_OK)
 	{
-	    codeK->fmt_read_close();
+	    codeK->read_close();
 	    return;
 	}
 
 	// move to the next image
-	i = codeK->fmt_read_next();
+	i = codeK->read_next();
 	
 	// save retrieved information
 	finfo = codeK->information();
 
 	if(i != SQE_OK)
 	{
-	    codeK->fmt_read_close();
+	    codeK->read_close();
 	    return;
 	}
 
@@ -127,7 +127,7 @@ void MyQGL::loadImage()
 
 	if(!image)
 	{
-	    codeK->fmt_read_close();
+	    codeK->read_close();
 	    return;
 	}
 
@@ -138,12 +138,12 @@ void MyQGL::loadImage()
 	// OK, let's decode the image line-by-line, pass-by-pass
 	for(int pass = 0;pass < finfo.image[current].passes;pass++)
 	{
-		codeK->fmt_read_next_pass();
+		codeK->read_next_pass();
 
 		for(int j = 0;j < finfo.image[current].h;j++)
 		{
 			scan = image + j * finfo.image[current].w;
-			codeK->fmt_read_scanline(scan);
+			codeK->read_scanline(scan);
 		}
 	}
 
@@ -152,7 +152,7 @@ void MyQGL::loadImage()
 	    fmt_utils::flipv((char*)image, finfo.image[current].w * sizeof(RGBA), finfo.image[current].h);
 
 	// close library
-	codeK->fmt_read_close();
+	codeK->read_close();
 
 	w = finfo.image[current].w;
 	h = finfo.image[current].h;

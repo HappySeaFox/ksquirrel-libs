@@ -21,13 +21,15 @@
 
 #include <iostream>
 
-#include "fmt_types.h"
-#include "fmt_utils.h"
-#include "fileio.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fmt_utils.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/error.h"
 
 #include "fmt_codec_sgi_defs.h"
 #include "fmt_codec_sgi.h"
+
+#include "../xpm/codec_sgi.xpm"
 
 /*
  *
@@ -45,32 +47,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("0.9.4");
-}
-    
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("SGI Format");
-}
-	
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.rgb *.rgba *.bw");
-}
-	    
-std::string fmt_codec::fmt_mime()
-{
-    return std::string("\001\332.[\001\002]");
+    o->version = "0.9.4";
+    o->name = "SGI Format";
+    o->filter = "*.rgb *.rgba *.bw";
+    o->config = "";
+    o->mime = "\001\332.[\001\002]";
+    o->pixmap = codec_sgi;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,255,0,255,76,76,76,28,120,106,198,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,95,73,68,65,84,120,218,61,142,177,17,128,48,8,69,169,173,156,129,50,181,171,80,80,187,128,99,184,0,119,254,46,103,101,50,165,64,162,239,40,222,113,240,129,122,176,18,209,205,204,101,11,17,145,178,31,83,122,29,194,236,242,156,3,106,72,46,106,38,16,21,23,133,1,22,29,53,47,23,152,33,69,116,206,124,91,127,78,28,205,228,37,255,168,244,2,95,50,58,10,146,58,39,129,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -87,7 +79,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
     
@@ -158,9 +150,11 @@ s32 fmt_codec::fmt_read_next()
     if(strlen(sfh.name))
     {
 	fmt_metaentry mt;
-	mt.group = "SGI Image Name";
+
+	mt.group = "Image Name";
 	mt.data = sfh.name;
-	finfo.meta.push_back(mt);
+
+	addmeta(mt);
     }
 
     image.needflip = true;
@@ -172,20 +166,19 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     const s32 sz = sfh.x;
     s32 i = 0, j = 0;
     s32 len;
     fstream::pos_type pos;
     fmt_image *im = image(currentImage);
-
-    memset(scan, 255, im->w * sizeof(RGBA));
+    fmt_utils::fillAlpha(scan, im->w);
 
     s8	bt;
 
@@ -322,7 +315,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     frs.close();
 
@@ -342,7 +335,7 @@ void fmt_codec::fmt_read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->compression_scheme = CompressionInternal;
@@ -354,7 +347,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -370,39 +363,29 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
+s32 fmt_codec::write_scanline(RGBA * /*scan*/)
 {
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     fws.close();
 }
 
-bool fmt_codec::fmt_writable() const
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
-    return false;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
-{
-    return std::string("");
+    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

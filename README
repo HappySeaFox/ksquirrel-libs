@@ -9,6 +9,8 @@ Important
 * TTF library requires libfreetype >= 2.1.9
 * All this packages plus -devel packages
 
+* DJVU library requires "ddjvu" installed
+
 About
 -----
 * ksquirrel-libs is a set of image codecs.
@@ -32,4 +34,5 @@ Current version: see VERSION
 
 Copyrights
 ----------
-JBIG library uses jbig-kit by (C) Markus Kuhn
+
+see COPYING

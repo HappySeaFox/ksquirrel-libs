@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_sun[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #464646",
+". c #4E4E4E",
+"X c #727272",
+"o c #CF0008",
+"O c #AEAEAE",
+"+ c #B2B2B2",
+"@ c #96FEAA",
+"# c #CACACA",
+"$ c gray87",
+"% c gray95",
+"& c #FEFEFE",
+"* c None",
+/* pixels */
+"..........+*****",
+" ######## $O****",
+" #&&&&&&# %$+***",
+" #&&&&&&#... ***",
+" #&&&&&&####.***",
+".               ",
+" XXXXXXXXXXXXXX ",
+" X@@@X@XX@X@XX@ ",
+" @XXXX@XX@X@@X@ ",
+" X@@XX@XX@X@X@@ ",
+" XXX@X@XX@X@XX@ ",
+" @@@XXX@@XX@XX@ ",
+" XXXXXXXXXXXXXX ",
+"                ",
+" ##+#+#+##+# ***",
+"*  . ..   .  ***"
+};

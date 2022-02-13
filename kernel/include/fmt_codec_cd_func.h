@@ -22,12 +22,12 @@
 #ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_create_destroy_H
 #define KSQUIRREL_LIBS_CLASS_DEFINITION_create_destroy_H
 
-extern "C" fmt_codec_base* fmt_codec_create()
+extern "C" fmt_codec_base* codec_create()
 {
     return (new fmt_codec);
 }
 
-extern "C" void fmt_codec_destroy(fmt_codec_base *p)
+extern "C" void codec_destroy(fmt_codec_base *p)
 {
     delete p;
 }

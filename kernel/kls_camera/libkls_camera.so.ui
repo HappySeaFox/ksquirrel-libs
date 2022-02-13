@@ -1,0 +1,1016 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>Form1</class>
+<widget class="QWidget">
+    <property name="name">
+        <cstring>Form1</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>502</width>
+            <height>449</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Form1</string>
+    </property>
+    <grid>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>0</number>
+        </property>
+        <widget class="QCheckBox" row="1" column="0">
+            <property name="name">
+                <cstring>camera_white</cstring>
+            </property>
+            <property name="text">
+                <string>Use camera white balance, if possible</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox" row="4" column="0">
+            <property name="name">
+                <cstring>interpolate_rggb</cstring>
+            </property>
+            <property name="text">
+                <string>Interpolate RGGB as four colors</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox" row="6" column="0">
+            <property name="name">
+                <cstring>dontstretch</cstring>
+            </property>
+            <property name="text">
+                <string>Don't stretch or rotate raw pixels</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox" row="5" column="0">
+            <property name="name">
+                <cstring>camera_date</cstring>
+            </property>
+            <property name="text">
+                <string>Change file dates to camera timestamp</string>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget" row="8" column="0" rowspan="2" colspan="1">
+            <property name="name">
+                <cstring>layout10</cstring>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="spacing">
+                    <number>0</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel2_3_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Apply camera ICC profile from file&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+                <widget class="KURLRequester">
+                    <property name="name">
+                        <cstring>icc_file</cstring>
+                    </property>
+                    <property name="filter">
+                        <string>*.icc *.icm</string>
+                    </property>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QButtonGroup" row="10" column="0" rowspan="2" colspan="1">
+            <property name="name">
+                <cstring>quick</cstring>
+            </property>
+            <property name="title">
+                <string>Interpolation</string>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>9</number>
+                </property>
+                <property name="spacing">
+                    <number>1</number>
+                </property>
+                <widget class="QRadioButton" row="0" column="0">
+                    <property name="name">
+                        <cstring>radioButton1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>No interpolation</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="1" column="0">
+                    <property name="name">
+                        <cstring>radioButton2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Low-quality bilinear interpolation</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>1</number>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="2" column="0">
+                    <property name="name">
+                        <cstring>radioButton3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Variable Number of Gradients interpolation</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="3" column="0">
+                    <property name="name">
+                        <cstring>radioButton4</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Adaptive Homogeneity-Directed interpolation</string>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QCheckBox" row="7" column="0">
+            <property name="name">
+                <cstring>icc_cam</cstring>
+            </property>
+            <property name="text">
+                <string>Try to use the ICC profile embedded in the photo</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox" row="3" column="0">
+            <property name="name">
+                <cstring>half_size</cstring>
+            </property>
+            <property name="text">
+                <string>Half-size color image</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox" row="0" column="0">
+            <property name="name">
+                <cstring>automatic_white</cstring>
+            </property>
+            <property name="text">
+                <string>Use automatic white balance</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox" row="2" column="0">
+            <property name="name">
+                <cstring>document_mode</cstring>
+            </property>
+            <property name="text">
+                <string>Document mode (no color, no interpolation)</string>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget" row="0" column="1" rowspan="3" colspan="1">
+            <property name="name">
+                <cstring>layout7</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="Line" row="1" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>line1_4</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>HLine</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QSpinBox" row="2" column="1">
+                    <property name="name">
+                        <cstring>no_black</cstring>
+                    </property>
+                    <property name="specialValueText">
+                        <string>no</string>
+                    </property>
+                    <property name="maxValue">
+                        <number>255</number>
+                    </property>
+                    <property name="minValue">
+                        <number>-1</number>
+                    </property>
+                    <property name="value">
+                        <number>-1</number>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel2_5</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Set black point&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+                <widget class="QSlider" row="2" column="0">
+                    <property name="name">
+                        <cstring>black</cstring>
+                    </property>
+                    <property name="minValue">
+                        <number>-1</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>255</number>
+                    </property>
+                    <property name="value">
+                        <number>-1</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="tickmarks">
+                        <enum>Below</enum>
+                    </property>
+                    <property name="tickInterval">
+                        <number>10</number>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QLayoutWidget" row="3" column="1" rowspan="3" colspan="1">
+            <property name="name">
+                <cstring>layout6</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="KDoubleSpinBox" row="2" column="1">
+                    <property name="name">
+                        <cstring>brightness</cstring>
+                    </property>
+                    <property name="maxValue">
+                        <number>255</number>
+                    </property>
+                    <property name="minValue">
+                        <number>0.1</number>
+                    </property>
+                    <property name="value">
+                        <number>1</number>
+                    </property>
+                </widget>
+                <widget class="QSlider" row="2" column="0">
+                    <property name="name">
+                        <cstring>no_brightness</cstring>
+                    </property>
+                    <property name="minValue">
+                        <number>0</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>2550</number>
+                    </property>
+                    <property name="value">
+                        <number>10</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="tickmarks">
+                        <enum>Below</enum>
+                    </property>
+                    <property name="tickInterval">
+                        <number>150</number>
+                    </property>
+                </widget>
+                <widget class="Line" row="1" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>line1_2</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>HLine</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel2_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Adjust brightness&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QLayoutWidget" row="6" column="1" rowspan="3" colspan="1">
+            <property name="name">
+                <cstring>layout5</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QSpinBox" row="2" column="1">
+                    <property name="name">
+                        <cstring>no_different</cstring>
+                    </property>
+                    <property name="prefix">
+                        <string>#</string>
+                    </property>
+                    <property name="maxValue">
+                        <number>99</number>
+                    </property>
+                    <property name="minValue">
+                        <number>0</number>
+                    </property>
+                    <property name="value">
+                        <number>0</number>
+                    </property>
+                </widget>
+                <widget class="Line" row="1" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>line1_3</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>HLine</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QSlider" row="2" column="0">
+                    <property name="name">
+                        <cstring>different</cstring>
+                    </property>
+                    <property name="minValue">
+                        <number>0</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>99</number>
+                    </property>
+                    <property name="value">
+                        <number>0</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="tickmarks">
+                        <enum>Below</enum>
+                    </property>
+                    <property name="tickInterval">
+                        <number>5</number>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel2_4</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Select a different raw image from the same file&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QLayoutWidget" row="9" column="1" rowspan="2" colspan="1">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QSlider" row="2" column="0">
+                    <property name="name">
+                        <cstring>threshold</cstring>
+                    </property>
+                    <property name="minValue">
+                        <number>99</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>1000</number>
+                    </property>
+                    <property name="value">
+                        <number>99</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="tickmarks">
+                        <enum>Below</enum>
+                    </property>
+                    <property name="tickInterval">
+                        <number>75</number>
+                    </property>
+                </widget>
+                <widget class="QSpinBox" row="2" column="1">
+                    <property name="name">
+                        <cstring>no_threshold</cstring>
+                    </property>
+                    <property name="specialValueText">
+                        <string>no</string>
+                    </property>
+                    <property name="maxValue">
+                        <number>1000</number>
+                    </property>
+                    <property name="minValue">
+                        <number>99</number>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel2_2_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Threshold for wavelet denoising&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+                <widget class="Line" row="1" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>line1_2_2</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>HLine</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QLayoutWidget" row="11" column="1" rowspan="2" colspan="1">
+            <property name="name">
+                <cstring>layout3</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QSlider" row="2" column="0">
+                    <property name="name">
+                        <cstring>highlights</cstring>
+                    </property>
+                    <property name="minValue">
+                        <number>0</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>9</number>
+                    </property>
+                    <property name="value">
+                        <number>0</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="tickmarks">
+                        <enum>Below</enum>
+                    </property>
+                    <property name="tickInterval">
+                        <number>1</number>
+                    </property>
+                </widget>
+                <widget class="QSpinBox" row="2" column="1">
+                    <property name="name">
+                        <cstring>no_highlights</cstring>
+                    </property>
+                    <property name="maxValue">
+                        <number>9</number>
+                    </property>
+                    <property name="minValue">
+                        <number>0</number>
+                    </property>
+                    <property name="value">
+                        <number>0</number>
+                    </property>
+                </widget>
+                <widget class="Line" row="1" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>line1_2_2_2</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>HLine</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QWidgetStack" row="3" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>no_widgetStack</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>5</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>0</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel1</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Clip all highlights to solid white</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>1</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel2</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Leave highlights unclipped in various shades of pink</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>2</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel3</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;favor whites 1&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignLeft</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>3</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel3_2</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;&lt;font color="magenta"&gt;favor whites 2&lt;/font&gt;&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignLeft</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>4</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel3_3</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;&lt;font color="red"&gt;favor whites 3&lt;/font&gt;&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignLeft</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>5</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel3_4</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>&lt;b&gt;compromise&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>WordBreak|AlignCenter</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>6</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel4</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;favor colors 1&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignRight</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>7</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel4_2</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;&lt;font color="green"&gt;favor colors 2&lt;/font&gt;&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignRight</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>8</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel4_3</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;&lt;font color="magenta"&gt;favor colors 3&lt;/font&gt;&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignRight</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <widget class="QWidget">
+                        <property name="name">
+                            <cstring>WStackPage</cstring>
+                        </property>
+                        <attribute name="id">
+                            <number>9</number>
+                        </attribute>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>0</number>
+                            </property>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>textLabel4_4</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reconstruct highlights: &lt;b&gt;&lt;font color="red"&gt;favor colors 4&lt;/font&gt;&lt;/b&gt;</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>AlignVCenter|AlignRight</set>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                </widget>
+                <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel2_2_2_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Highlights&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <spacer row="13" column="1">
+            <property name="name">
+                <cstring>spacer5</cstring>
+            </property>
+            <property name="orientation">
+                <enum>Vertical</enum>
+            </property>
+            <property name="sizeType">
+                <enum>Expanding</enum>
+            </property>
+            <property name="sizeHint">
+                <size>
+                    <width>16</width>
+                    <height>60</height>
+                </size>
+            </property>
+        </spacer>
+        <widget class="QButtonGroup" row="12" column="0" rowspan="2" colspan="1">
+            <property name="name">
+                <cstring>flipping</cstring>
+            </property>
+            <property name="title">
+                <string>Flipping</string>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>9</number>
+                </property>
+                <property name="spacing">
+                    <number>1</number>
+                </property>
+                <widget class="QRadioButton" row="3" column="0">
+                    <property name="name">
+                        <cstring>radioButton7</cstring>
+                    </property>
+                    <property name="text">
+                        <string>90CCW</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>5</number>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="2" column="0">
+                    <property name="name">
+                        <cstring>radioButton6</cstring>
+                    </property>
+                    <property name="text">
+                        <string>180</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>3</number>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="1" column="0">
+                    <property name="name">
+                        <cstring>radioButton5</cstring>
+                    </property>
+                    <property name="text">
+                        <string>None</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>1</number>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="0" column="0">
+                    <property name="name">
+                        <cstring>radioButton9</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Camera settings</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>0</number>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="4" column="0">
+                    <property name="name">
+                        <cstring>radioButton8</cstring>
+                    </property>
+                    <property name="text">
+                        <string>90CW</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>6</number>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+    </grid>
+</widget>
+<customwidgets>
+</customwidgets>
+<connections>
+    <connection>
+        <sender>no_brightness</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>brightness</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>brightness</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>no_brightness</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>different</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>no_different</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>no_different</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>different</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>black</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>no_black</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>no_black</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>black</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>threshold</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>no_threshold</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>no_threshold</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>threshold</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>highlights</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>no_highlights</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>no_highlights</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>highlights</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>highlights</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>no_widgetStack</receiver>
+        <slot>raiseWidget(int)</slot>
+    </connection>
+    <connection>
+        <sender>icc_cam</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>icc_file</receiver>
+        <slot>setDisabled(bool)</slot>
+    </connection>
+</connections>
+<tabstops>
+    <tabstop>automatic_white</tabstop>
+    <tabstop>camera_white</tabstop>
+    <tabstop>document_mode</tabstop>
+    <tabstop>half_size</tabstop>
+    <tabstop>interpolate_rggb</tabstop>
+    <tabstop>camera_date</tabstop>
+    <tabstop>dontstretch</tabstop>
+    <tabstop>black</tabstop>
+    <tabstop>no_black</tabstop>
+    <tabstop>threshold</tabstop>
+    <tabstop>no_brightness</tabstop>
+    <tabstop>brightness</tabstop>
+    <tabstop>different</tabstop>
+    <tabstop>no_different</tabstop>
+</tabstops>
+<layoutdefaults spacing="6" margin="11"/>
+<includehints>
+    <includehint>kurlrequester.h</includehint>
+    <includehint>klineedit.h</includehint>
+    <includehint>kpushbutton.h</includehint>
+    <includehint>knuminput.h</includehint>
+</includehints>
+</UI>

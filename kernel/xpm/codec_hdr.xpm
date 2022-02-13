@@ -1,0 +1,34 @@
+/* XPM */
+static const char *codec_hdr[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 12 1",
+"  c #020202",
+". c #170100",
+"X c #464646",
+"o c #4E4E4E",
+"O c #AEAEAE",
+"+ c #B2B2B2",
+"@ c #FEE6A2",
+"# c #CACACA",
+"$ c gray87",
+"% c gray95",
+"& c #FEFEFE",
+"* c None",
+/* pixels */
+"oooooooooo+*****",
+"o########o$O****",
+"o#&&&&&&#o%$+***",
+"o#&&&&&&#oooo***",
+"o#&&&&&&####o***",
+"oXXXXXXXXXXXXXXX",
+"o@@@@@@@@@@@@@@X",
+"o@ @ @   @@   @X",
+"o@ @ @ @  @ @ @X",
+"o@   @ @@ @   @X",
+"o@ @ @ @  @ @ @X",
+"o@ @ @   @@ @ @X",
+"o@@@@@@@@@@@@@@X",
+"oXXXXXXXXXXXXXXX",
+"o###########o***",
+"*oooooooooooo***"
+};

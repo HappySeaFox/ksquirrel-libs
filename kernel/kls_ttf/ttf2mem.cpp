@@ -1,3 +1,7 @@
+/*
+ *  (C) Baryshev Dmitry, ksquirrel-libs project.
+ */
+
 /****************************************************************************/
 /*                                                                          */
 /*  The FreeType project -- a free and portable quality TrueType renderer.  */
@@ -20,6 +24,8 @@
 
 #include <cmath>
 #include <string>
+#include <cstdio>
+#include <cstdlib>
 
 /****************************************************************************/
 /*                                                                          */
@@ -33,7 +39,6 @@
 /*                                                                          */
 /****************************************************************************/
 
-
 #include <ft2build.h>
 
 #include <freetype/freetype.h>
@@ -41,10 +46,6 @@
 #include <freetype/ftstroke.h>
 #include <freetype/ftsynth.h>
 #include <freetype/ftbitmap.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
   /* forward declarations */
   void  PanicZ( const char*  message );
@@ -174,7 +175,7 @@
   int     max_fonts = 0;
 
   int
-  install_font_file(char *filename)
+  install_font_file(const char *filename)
   {
     int           i, num_faces;
 
@@ -730,6 +731,10 @@
 gg:
 
     FILE *f = fopen(raw, "wb");
+
+    if(!f)
+        return 1;
+
     int bb = 24;
 
     fwrite(&bit.width, sizeof(int), 1, f);
@@ -751,7 +756,7 @@ gg:
   /*************************************************************************/
   /*************************************************************************/
 
-  int call( char *arg, const char *rawrgb )
+  int call(const char *arg, const char *rawrgb)
   {
     int          old_ptsize, orig_ptsize, font_index;
     int          first_index = 0;

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# create symlinks from all codecs (bmp/.libs/libSQ_codec_bmp.so, ...)
+# create symlinks from all codecs (bmp/.libs/libkls_bmp.so, ...)
 # to /usr/lib/ksquirrel-libs/
 #
 # Can be used by developers
@@ -16,8 +16,8 @@ rm -f $KSQUIRREL_LIBS/*
 
 mkdir $KSQUIRREL_LIBS > /dev/null 2>&1
 
-for i in avs bmp camera cut fli gif hdr ico iff jbig jpeg jpeg2000 koala lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd;
+for i in avs bmp camera cut fli gif hdr ico iff jbig jpeg jpeg2000 koala lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd djvu dxf xcf;
 do echo "Linking libkls_$i.so ..." && ln -s `pwd`/kls_$i/.libs/libkls_$i.so $KSQUIRREL_LIBS;
 done
 
-ln -s `pwd`/kls_lib/.libs/libksquirrel-libs.so $KSQUIRREL_LIBS
+ln -s `pwd`/kls_lib/.libs/libksquirrel-libs.so /usr/lib

@@ -21,12 +21,15 @@
 
 #include <iostream>
 
-#include "fmt_types.h"
-#include "fileio.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/error.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include "fmt_codec_rawrgb_defs.h"
 #include "fmt_codec_rawrgb.h"
+
+#include "../xpm/codec_rawrgb.xpm"
 
 /*
  *
@@ -52,32 +55,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("1.0.0");
+    o->version = "1.0.0";
+    o->name = "Raw uncompressed RGB image";
+    o->filter = "*.rawrgb ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_rawrgb;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = true;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("Raw uncompressed RGB image");
-}
-
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.rawrgb ");
-}
-
-std::string fmt_codec::fmt_mime()
-{
-    return std::string();
-}
-
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,242,242,242,202,202,202,86,106,142,178,178,178,174,174,174,254,254,254,78,78,78,222,222,222,238,238,254,70,70,70,147,120,168,25,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,109,73,68,65,84,120,218,53,141,33,14,133,48,16,68,71,115,2,244,26,18,236,26,90,197,105,170,9,8,2,150,32,208,163,138,34,255,11,2,167,164,75,195,83,111,51,153,89,140,70,11,224,39,34,245,106,18,66,168,203,54,75,53,30,89,68,58,96,190,51,248,235,139,199,20,53,146,186,227,82,46,36,119,76,155,50,105,18,101,164,107,188,69,164,115,30,195,215,186,191,157,94,140,244,162,176,243,236,240,0,144,145,50,150,72,18,227,15,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -91,7 +84,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
 
@@ -119,18 +112,17 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     RGB rgb;
     RGBA rgba;
     fmt_image *im = image(currentImage);
-
-    memset(scan, 255, im->w * sizeof(RGBA));
+    fmt_utils::fillAlpha(scan, im->w);
 
     if(im->bpp == 32)
 	for(s32 i = 0;i < im->w;i++)
@@ -148,7 +140,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     frs.close();
 
@@ -156,7 +148,7 @@ void fmt_codec::fmt_read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->compression_scheme = CompressionNo;
@@ -168,7 +160,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -184,7 +176,7 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     s32 bpp = 32;
 
@@ -195,12 +187,12 @@ s32 fmt_codec::fmt_write_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
     u8 *p, a;
 
@@ -220,22 +212,12 @@ s32 fmt_codec::fmt_write_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     fws.close();
 }
 
-bool fmt_codec::fmt_writable() const
-{
-    return true;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
     return std::string("rawrgb");
 }

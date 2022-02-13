@@ -21,14 +21,17 @@
 
 #include <iostream>
 
-#include "fmt_types.h"
-#include "fileio.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include "fmt_codec_svg_defs.h"
 #include "fmt_codec_svg.h"
 
 #include "svg2mem.h"
-#include "error.h"
+#include "ksquirrel-libs/error.h"
+
+#include "../xpm/codec_svg.xpm"
 
 /*
  *
@@ -46,32 +49,33 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::fill_default_settings()
 {
-    return std::string("0.1.2");
+    settings_value val;
+
+    // scale factor in percents
+    val.type = settings_value::v_int;
+    val.iVal = 100;
+
+    m_settings["scale"] = val;
 }
 
-std::string fmt_codec::fmt_quickinfo()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("Scalable Vector Graphics");
+    o->version = "0.1.2";
+    o->name = "Scalable Vector Graphics";
+    o->filter = "*.svg *.svgz ";
+    o->config = std::string(SVG_UI); // SVG_UI comes from Makefile.am
+    o->mime = "";
+    o->pixmap = codec_svg;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.svg *.svgz ");
-}
-
-std::string fmt_codec::fmt_mime()
-{
-    return std::string();
-}
-
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,0,0,40,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,216,104,0,76,76,76,176,176,176,200,200,200,194,127,201,12,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,93,73,68,65,84,120,218,99,232,0,129,9,12,12,12,93,171,86,173,90,33,4,98,24,27,27,175,112,12,128,50,58,26,32,140,85,171,128,140,182,52,8,96,104,47,7,131,50,134,118,99,115,115,115,99,115,32,195,188,28,200,130,137,152,27,3,25,229,64,9,243,98,176,72,113,185,49,88,4,170,11,110,14,200,82,176,201,28,96,119,52,48,0,0,112,70,49,22,48,158,177,236,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     fin = fopen(file.c_str(), "r");
 
@@ -86,7 +90,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
 
@@ -95,7 +99,13 @@ s32 fmt_codec::fmt_read_next()
 
     fmt_image image;
 
-    if(render_to_mem(fin, &buf, &image.w, &image.h))
+    fmt_settings::iterator it = m_settings.find("scale");
+
+    // percents / 100
+    double scale = (it == m_settings.end() || (*it).second.type != settings_value::v_int)
+             ? 1.0 : (double)((*it).second.iVal) / 100.0;
+
+    if(render_to_mem(fin, &buf, &image.w, &image.h, scale))
 	return SQE_R_BADFILE;
 
     image.bpp = 32;
@@ -111,15 +121,16 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     line++;
     fmt_image *im = image(currentImage);
+    fmt_utils::fillAlpha(scan, im->w);
 
     RGBA *nbuf = (RGBA *)(buf + line * im->w * sizeof(RGBA));
 
@@ -134,7 +145,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     if(fin)
 	fclose(fin);
@@ -146,7 +157,7 @@ void fmt_codec::fmt_read_close()
 	free(buf);
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->passes = 1;
@@ -158,7 +169,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
         return SQE_W_WRONGPARAMS;
@@ -174,40 +185,30 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
 
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     fws.close();
 }
 
-bool fmt_codec::fmt_writable() const
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
-    return false;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
-{
-    return std::string("");
+    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

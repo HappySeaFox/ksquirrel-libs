@@ -17,14 +17,14 @@
    Boston, MA 02111-1307, USA.  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
+#include <cmath>
 
-#include "fmt_types.h"
-#include "fmt_defs.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fmt_defs.h"
 
 #include <libwmf/fund.h>
 #include <libwmf/types.h>
@@ -144,7 +144,6 @@ int wmf2gd_draw (PlotData* pdata, unsigned char **buf, int *www, int *hhh)
 
 	if ((wmf_width <= 0) || (wmf_height <= 0))
 	{
-		fputs ("Bad image size - but this error shouldn't occur...\n",stderr);
 		status = 1;
 		wmf_api_destroy (API);
 		return (status);

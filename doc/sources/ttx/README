@@ -1,2 +1,3 @@
 this example should be compiled in ksquirrel-libs' tree.
-Put it in ksquirrel-libs/kernel.
+Put this directory in ksquirrel-libs/kernel, then cd to "ttx" and
+run ./compile-c++

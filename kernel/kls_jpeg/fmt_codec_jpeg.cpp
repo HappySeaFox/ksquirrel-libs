@@ -23,12 +23,15 @@
 #include <iostream>
 #include <cstdio>
 
-#include "fmt_types.h"
-#include "fileio.h"
-#include "error.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/error.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include "fmt_codec_jpeg_defs.h"
 #include "fmt_codec_jpeg.h"
+
+#include "../xpm/codec_jpeg.xpm"
 
 /*
  *
@@ -64,32 +67,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("1.3.4.1");
+    o->version = "1.3.4.1";
+    o->name = "JPEG compressed";
+    o->filter = "*.jpg *.jpeg *.jpe ";
+    o->config = "";
+    o->mime = "\x00FF\x00D8\x00FF";
+    o->pixmap = codec_jpeg;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = true;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("JPEG compressed");
-}
-
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.jpg *.jpeg *.jpe ");
-}
-
-std::string fmt_codec::fmt_mime()
-{
-    return std::string("\x00FF\x00D8\x00FF");
-}
-
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,128,128,0,76,76,76,137,239,99,177,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,93,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,83,167,134,206,156,26,10,102,204,140,140,132,137,68,2,69,150,2,69,102,70,78,5,50,34,129,12,176,26,152,46,184,57,32,75,193,38,115,129,221,177,128,1,0,131,30,58,190,241,2,42,229,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::read_init(const std::string &file)
 {
     fptr = fopen(file.c_str(), "rb");
 
@@ -103,7 +96,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
     
@@ -168,7 +161,7 @@ s32 fmt_codec::fmt_read_next()
 	{
             fmt_metaentry mt;
 
-	    mt.group = "JPEG \"COM\" marker";
+	    mt.group = "Comment";
 
 	    s8 data[it->data_length+1];
 	    memcpy(data, it->data, it->data_length);
@@ -176,7 +169,7 @@ s32 fmt_codec::fmt_read_next()
 //	    memcpy(data, it->data, it->data_length);
 	    mt.data = data;
 
-	    finfo.meta.push_back(mt);
+	    addmeta(mt);
 
     	    break;
 	}
@@ -189,16 +182,15 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
 	
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     fmt_image *im = image(currentImage);
-
-    memset(scan, 255, im->w * sizeof(RGBA));
+    fmt_utils::fillAlpha(scan, im->w);
 
     (void)jpeg_read_scanlines(&cinfo, buffer, 1);
 
@@ -208,7 +200,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     jpeg_abort_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
@@ -219,7 +211,7 @@ void fmt_codec::fmt_read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->compression_scheme = CompressionInternal;
@@ -231,7 +223,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -264,17 +256,17 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
     RGB sr[writeimage.w];
 
@@ -290,7 +282,7 @@ s32 fmt_codec::fmt_write_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     jpeg_finish_compress(&m_cinfo);
 
@@ -299,17 +291,7 @@ void fmt_codec::fmt_write_close()
     jpeg_destroy_compress(&m_cinfo);
 }
 
-bool fmt_codec::fmt_writable() const
-{
-    return true;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
-}
-
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
     return std::string("jpeg");
 }

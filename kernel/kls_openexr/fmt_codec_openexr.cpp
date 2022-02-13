@@ -22,8 +22,9 @@
 #include <iostream>
 #include <exception>
 
-#include "fmt_types.h"
-#include "fileio.h"
+#include "ksquirrel-libs/fmt_types.h"
+#include "ksquirrel-libs/fileio.h"
+#include "ksquirrel-libs/fmt_utils.h"
 
 #include <ImfStandardAttributes.h>
 #include <ImathBox.h>
@@ -41,7 +42,9 @@
 #include "fmt_codec_openexr_defs.h"
 #include "fmt_codec_openexr.h"
 
-#include "error.h"
+#include "ksquirrel-libs/error.h"
+
+#include "../xpm/codec_openexr.xpm"
 
 RGBA RgbaToRGBA(struct Rgba);
 
@@ -58,32 +61,22 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 fmt_codec::~fmt_codec()
 {}
 
-std::string fmt_codec::fmt_version()
+void fmt_codec::options(codec_options *o)
 {
-    return std::string("0.2.1");
+    o->version = "0.2.1";
+    o->name = "OpenEXR";
+    o->filter = "*.exr ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_openexr;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = false;
 }
 
-std::string fmt_codec::fmt_quickinfo()
-{
-    return std::string("OpenEXR");
-}
-
-std::string fmt_codec::fmt_filter()
-{
-    return std::string("*.exr ");
-}
-
-std::string fmt_codec::fmt_mime()
-{
-    return std::string();
-}
-
-std::string fmt_codec::fmt_pixmap()
-{
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,23,1,0,78,78,78,254,182,2,202,202,202,70,70,70,254,254,254,178,178,178,174,174,174,242,242,242,222,222,222,2,2,2,216,221,231,174,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,88,73,68,65,84,120,218,99,16,4,129,4,6,6,6,97,99,99,99,195,233,32,70,104,104,168,97,103,2,148,33,40,0,97,24,27,3,25,34,46,16,192,32,164,4,6,42,12,66,171,86,105,105,105,173,82,97,88,180,72,9,200,208,2,50,86,45,82,90,132,38,178,10,194,128,235,130,155,3,178,20,108,50,35,216,29,2,12,0,240,94,28,48,28,222,87,31,0,0,0,0,73,69,78,68,174,66,96,130");
-}
-
-s32 fmt_codec::fmt_read_init(const std::string &fl)
+s32 fmt_codec::read_init(const std::string &fl)
 {
     frs.open(fl.c_str(), ios::binary | ios::in);
 
@@ -95,7 +88,7 @@ s32 fmt_codec::fmt_read_init(const std::string &fl)
     currentImage = -1;
     read_error = false;
 
-    pixels = NULL;
+    pixels = 0;
     file = fl;
 
     finfo.animated = false;
@@ -103,7 +96,7 @@ s32 fmt_codec::fmt_read_init(const std::string &fl)
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next()
+s32 fmt_codec::read_next()
 {
     currentImage++;
 
@@ -190,19 +183,18 @@ s32 fmt_codec::fmt_read_next()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_next_pass()
+s32 fmt_codec::read_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_read_scanline(RGBA *scan)
+s32 fmt_codec::read_scanline(RGBA *scan)
 {
     RGBA rgba;
     fmt_image *im = image(currentImage);
-    
-    line++;
+    fmt_utils::fillAlpha(scan, im->w);
 
-    memset(scan, 255, im->w * sizeof(RGBA));
+    line++;
 
     for(s32 x = 0; x < im->w; x++)
     {
@@ -213,16 +205,16 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_read_close()
+void fmt_codec::read_close()
 {
     finfo.meta.clear();
     finfo.image.clear();
 
     delete pixels;
-    pixels = NULL;
+    pixels = 0;
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
     opt->passes = 1;
@@ -234,7 +226,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->palette_flags = 0 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
         return SQE_W_WRONGPARAMS;
@@ -249,8 +241,8 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
 
     fws.close();
 
-    out = NULL;
-    hs = NULL;
+    out = 0;
+    hs = 0;
 
     out = new RgbaOutputFile(file.c_str(), image.w, image.h, WRITE_RGBA);
 
@@ -265,17 +257,17 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next()
+s32 fmt_codec::write_next()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_next_pass()
+s32 fmt_codec::write_next_pass()
 {
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::write_scanline(RGBA *scan)
 {
     for(s32 i = 0;i < writeimage.w;i++)
     {
@@ -292,23 +284,13 @@ s32 fmt_codec::fmt_write_scanline(RGBA *scan)
     return SQE_OK;
 }
 
-void fmt_codec::fmt_write_close()
+void fmt_codec::write_close()
 {
     delete out;
-    out = NULL;
+    out = 0;
 
     delete hs;
-    hs = NULL;
-}
-
-bool fmt_codec::fmt_writable() const
-{
-    return false;
-}
-
-bool fmt_codec::fmt_readable() const
-{
-    return true;
+    hs = 0;
 }
 
 /* 
@@ -381,7 +363,7 @@ RGBA RgbaToRGBA(struct Rgba imagePixel)
 				  s8 (Imath::clamp ( a * 84.66f, 0.f, 255.f ) ) );
 }
 
-std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+std::string fmt_codec::extension(const s32 /*bpp*/)
 {
     return std::string("exr");
 }
