@@ -96,17 +96,20 @@ mng_bool mymngopenstream(mng_handle mng)
 mng_bool mymngprocesstext(mng_handle mng, mng_uint8 /*iType*/, mng_pchar  zKeyword, mng_pchar  zText,
                             mng_pchar /*zLanguage*/, mng_pchar /*zTranslation*/)
 {
-    mngstuff*mymng;
+    mngstuff *mymng;
 
     /* look up our stream struct */
-    mymng = (mngstuff*)mng_get_userdata(mng);
+    mymng = (mngstuff *)mng_get_userdata(mng);
 
-    fmt_metaentry mt;
+    if(zKeyword && zText)
+    {
+        fmt_metaentry mt;
 
-    mt.group = zKeyword;
-    mt.data = zText;
+        mt.group = zKeyword;
+        mt.data = zText;
 
-    mymng->codec->addmeta(mt);
+        mymng->codec->addmeta(mt);
+    }
 
     return MNG_TRUE;
 }
@@ -206,13 +209,14 @@ void fmt_codec::options(codec_options *o)
 
 #ifdef MNG_INCLUDE_JNG
     o->filter = "*.mng *.jng ";
+    o->mimetype = "video/x-mng;image/x-jng";
 #else
     o->filter = "*.mng ";
+    o->mimetype = "video/x-mng";
 #endif
 
     o->config = "";
     o->mime = "";
-    o->mimetype = "video/x-mng;image/x-jng";
     o->pixmap = codec_mng;
     o->readable = true;
     o->canbemultiple = true;
@@ -282,7 +286,6 @@ s32 fmt_codec::read_next()
     if(!currentImage)
     {
         myretcode = mng_read(mng);
-
         if(myretcode != MNG_NOERROR)
             return SQE_R_BADFILE;
 
@@ -360,59 +363,6 @@ void fmt_codec::read_close()
 
     delete [] priv.frame;
     priv.frame = NULL;
-}
-
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->passes = 1;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-        return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-        return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA * /*scan*/)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

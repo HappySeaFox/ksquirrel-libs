@@ -1,0 +1,3 @@
+#!/bin/sh
+
+@MEDCON@ --without-prefix -f "$1" -e 0:0 -c - png > "$2"

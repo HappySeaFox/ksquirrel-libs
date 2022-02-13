@@ -110,8 +110,6 @@ s32 fmt_codec::read_next()
     if(!bytes)
 	return SQE_R_NOMEMORY;
 
-    printf("\n");
-	
     if(version == 2)
     {
         u16 map_entry;
@@ -123,13 +121,9 @@ s32 fmt_codec::read_next()
 	    if(!frs.readK(&map_entry, sizeof(u16)))
 		return SQE_R_BADFILE;
 
-	    printf("%d,", map_entry);
-
 	    scanmap.push_back(map_entry);
 	}
     }
-
-    printf("\n");
 
     image.w = msp.width;
     image.h = msp.height;
@@ -164,8 +158,6 @@ s32 fmt_codec::read_scanline(RGBA *scan)
     
     memset(bytes, 0, im->w);
 
-    printf("LINE %d, SZ %d --------------------------\n", line, sz);
-
     while(i < sz)
     {
 	if(!frs.readK(&c, sizeof(u8)))
@@ -180,8 +172,6 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 
 	    i += 2;
 
-	    printf("!C %d,%d\n", count, value);
-
 	    if(count)
 	    {
 		for(s32 s = 0;s < (s32)count;s++)
@@ -194,8 +184,6 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 	{
 	    if(!frs.readK(bytes+k, sizeof(u8) * c)) return SQE_R_BADFILE;
 
-	    printf("C\n");
-
 	    i++;
 	    k += c;
 	}
@@ -205,14 +193,11 @@ s32 fmt_codec::read_scanline(RGBA *scan)
     for(s32 k = 0;k <= line;k++)
     aa += scanmap[k];
     
-    printf("calc seek: %d, orig seek: %d", aa, (int)frs.tellg());
-
     s32 ind = 0;
 
     for(i = 0;i < sz;i++)
     {
 	fmt_utils::expandMono1Byte(bytes[i], byte);
-	printf("*** %d => %d,%d,%d,%d,%d,%d,%d,%d\n", bytes[i], byte[0], byte[1], byte[2], byte[3], byte[4], byte[5], byte[6], byte[7]);
 
 	for(s32 j = 0;j < 8 || ind < im->w;j++)
 	{
@@ -235,59 +220,6 @@ void fmt_codec::read_close()
 
     delete [] bytes;
     bytes = NULL;
-}
-
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->passes = 1;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-        return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-        return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA * /*scan*/)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

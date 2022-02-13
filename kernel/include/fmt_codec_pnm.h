@@ -34,6 +34,10 @@ class fmt_codec : public fmt_codec_base
         virtual void fill_default_settings();
 #endif
 
+#ifdef CODEC_PNM
+        WRITE_CODEC_DECLARATIONS
+#endif
+
     private:
 	s32       pnm;
 	FILE      *fptr;

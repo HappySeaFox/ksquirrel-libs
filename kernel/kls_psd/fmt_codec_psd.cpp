@@ -55,7 +55,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.psd ";
     o->config = "";
     o->mime = "\x0038\x0042\x0050\x0053\x0001";
-    o->mimetype = "image/psd";
+    o->mimetype = "image/psd;image/x-vnd.adobe.photoshop";
     o->pixmap = codec_psd;
     o->readable = true;
     o->canbemultiple = false;
@@ -386,59 +386,6 @@ void fmt_codec::read_close()
 
     if(L)
 	free(L);
-}
-
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->compression_scheme = CompressionNo; // maybe set to CompressionRLE ?
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

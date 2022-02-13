@@ -1,4 +1,4 @@
-SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcf kls_xcur kls_xpm
+SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcf kls_xcur kls_xpm kls_png
 
 EXTRA_DIST = generate link include/*.h include/ksquirrel-libs/*.h xpm/*.xpm
 
@@ -8,10 +8,6 @@ endif
 
 if SQ_HAVE_JPEG
 SUBDIRS += kls_jpeg
-endif
-
-if SQ_HAVE_PNG
-SUBDIRS += kls_png
 endif
 
 if SQ_HAVE_TIFF
@@ -100,6 +96,10 @@ endif
 
 if SQ_HAVE_LJPEG
 SUBDIRS += kls_ljpeg
+endif
+
+if SQ_HAVE_DICOM
+SUBDIRS += kls_dicom
 endif
 
 # unstable/buggy codecs - for developers only

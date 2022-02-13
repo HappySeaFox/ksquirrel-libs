@@ -108,6 +108,8 @@ static const int iindex[8][3] = {
   { -1, -1, -1 }  /* SEQ + SMID + ILEAVE -> illegal combination */
 };
 
+unsigned char *jbg_next_pscdms(unsigned char *p, size_t len);
+
 
 /*
  * Array [language][message] with text string error messages that correspond

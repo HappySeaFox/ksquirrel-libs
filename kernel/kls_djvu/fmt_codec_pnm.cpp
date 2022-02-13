@@ -28,6 +28,7 @@
         || defined CODEC_XCF    \
         || defined CODEC_TTF    \
         || defined CODEC_FIG    \
+        || defined CODEC_LJPEG  \
         || defined CODEC_NETPBM
 #include <sys/types.h>
 #include <unistd.h>
@@ -53,8 +54,6 @@
 #include "../xpm/codec_dxf.xpm"
 #elif defined CODEC_NEO
 #include "../xpm/codec_neo.xpm"
-#elif defined CODEC_FITS
-#include "../xpm/codec_fits.xpm"
 #elif defined CODEC_LEAF
 #include "../xpm/codec_leaf.xpm"
 #elif defined CODEC_PI1
@@ -75,6 +74,8 @@
 #include "../xpm/codec_ttf.xpm"
 #elif defined CODEC_FIG
 #include "../xpm/codec_fig.xpm"
+#elif defined CODEC_LJPEG
+#include "../xpm/codec_ljpeg.xpm"
 #else
 #include "../xpm/codec_pnm.xpm"
 #endif
@@ -124,7 +125,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.djvu *.djv *.iw4 *.iw44 ";
     o->config = std::string(DJVU_UI);
     o->mime = "";
-    o->mimetype = "image/x-djvu";
+    o->mimetype = "image/x-djvu;image/x.djvu";
     o->pixmap = codec_djvu;
     o->readable = true;
     o->canbemultiple = false;
@@ -165,19 +166,6 @@ void fmt_codec::options(codec_options *o)
     o->mime = "";
     o->mimetype = "image/x-neo";
     o->pixmap = codec_neo;
-    o->readable = true;
-    o->canbemultiple = false;
-    o->writestatic = false;
-    o->writeanimated = false;
-    o->needtempfile = true;
-#elif defined CODEC_FITS
-    o->version = "1.0.0";
-    o->name = "FITS";
-    o->filter = "*.fits ";
-    o->config = "";
-    o->mime = "";
-    o->mimetype = "image/fits";
-    o->pixmap = codec_fits;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -308,6 +296,19 @@ void fmt_codec::options(codec_options *o)
     o->mime = "";
     o->mimetype = "application/x-font-ttf;application/x-font-ttc;application/x-font-otf;application/x-font-type1";
     o->pixmap = codec_ttf;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_LJPEG
+    o->version = "0.1.0";
+    o->name = "Lossless JPEG";
+    o->filter = "*.ljpg *.ljpeg ";
+    o->config = "";
+    o->mime = "";
+    o->mimetype = "image/ljpeg";
+    o->pixmap = codec_ljpeg;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -623,9 +624,6 @@ s32 fmt_codec::read_init(const std::string &file)
     argv[argc-2] = tmp.c_str();
     argv[argc-1] = (char *)0;
 
-//    for(int i = 0;i < argc;i++)
-//        printf("CAMERA %s\n", argv[i]);
-
     pid_t pid = fork();
 
     if(!pid)
@@ -701,7 +699,6 @@ s32 fmt_codec::read_init(const std::string &file)
 #elif defined CODEC_DXF
 
     std::string tmmp = tmp + ".ppm";
-//    printf("TMP: %s\n", tmmp.c_str());
     fmt_settings::iterator it = m_settings.find("width");
 
     // get aspect
@@ -840,6 +837,31 @@ s32 fmt_codec::read_init(const std::string &file)
     if(!pid)
     {
         execlp(NETPBM_S, NETPBM_S, file.c_str(), tmp.c_str(), (char *)0);
+        exit(1);
+    }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
+
+    ::wait(&status);
+
+    if(WIFEXITED(status))
+        if(WEXITSTATUS(status))
+            return SQE_R_BADFILE;
+        else;
+    else
+        return SQE_R_BADFILE;
+
+    fptr = fopen(tmp.c_str(), "rb");
+
+#elif defined CODEC_LJPEG
+
+    int status;
+
+    pid_t pid = fork();
+
+    if(!pid)
+    {
+        execlp(LJPEG2PPM_S, LJPEG2PPM_S, "--input", file.c_str(), "--binary", LJPEG2PPM, "--output", tmp.c_str(), (char *)0);
         exit(1);
     }
     else if(pid == -1)
@@ -1010,8 +1032,6 @@ s32 fmt_codec::read_next()
 	koeff = 1.0;
     }
     
-//    printf("maxcolor: %d, format: %s, koeff: %.1f\n\n", maxcolor, format, koeff);
-
     image.compression = "-";
     image.colorspace = ((pnm == 1 || pnm == 4) ? "Monochrome":"Color indexed");
 
@@ -1182,6 +1202,8 @@ bool skip_flood(FILE *f)
     return true;
 }
 
+#ifdef CODEC_PNM
+
 void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
@@ -1242,5 +1264,7 @@ std::string fmt_codec::extension(const s32 /*bpp*/)
 {
     return std::string("pnm");
 }
+
+#endif // CODEC_PNM
 
 #include "fmt_codec_cd_func.h"

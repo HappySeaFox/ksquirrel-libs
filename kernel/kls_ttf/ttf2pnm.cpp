@@ -67,13 +67,10 @@ grBitmap *bit;
   Render_All( int  num_indices,
               int  first_index )
   {
-    printf("RENDER_BEGIN\n");
-
     int         start_x, start_y, step_x, step_y, x, y;
     int         i;
     FT_Size     size;
 
-    printf("RENDER_GET_SIZE\n");
     error = FTDemo_Get_Size(handle, &size);
 
     if ( error )
@@ -82,16 +79,9 @@ grBitmap *bit;
       return error;
     }
 
-    printf("RENDER_INIT_SIZE\n");
     INIT_SIZE( size, start_x, start_y, step_x, step_y, x, y );
 
-    printf("START: %d %d, %d %d, %d %d\n", start_x, start_y, step_x, step_y, x, y);
-
     i = first_index;
-
-printf("WHILE for %d - %d\n", i, num_indices);
-
-    printf("DRAW_INDEX ");
 
     while ( i < num_indices )
     {
@@ -101,8 +91,6 @@ printf("WHILE for %d - %d\n", i, num_indices);
         gindex = i;
       else
         gindex = FTDemo_Get_Index( handle, i );
-
-        printf("%d [%d %d]\n ", gindex, x, y);
 
       error = FTDemo_Draw_Index( handle, bit, gindex, &x, &y );
 
@@ -119,8 +107,6 @@ printf("WHILE for %d - %d\n", i, num_indices);
 
       i++;
     }
-
-    printf("DONE\n");
 
     return FT_Err_Ok;
   }
@@ -148,12 +134,8 @@ printf("WHILE for %d - %d\n", i, num_indices);
 
     num_indices = handle->current_font->num_indices;
 
-    printf("NUM_IND %d %d\n", num_indices, status.Num);
-
     if(status.Num >= num_indices)
       status.Num = num_indices - 1;
-
-    printf("S.NUM %d\n", status.Num);
   }
 
 
@@ -164,11 +146,9 @@ printf("WHILE for %d - %d\n", i, num_indices);
     if(argc != 3)
         exit(1);
 
-    printf("NEW\n");
     /* Initialize engine */
     handle = FTDemo_New(status.encoding);
 
-    printf("INST\n");
     FTDemo_Install_Font(handle, argv[1]);
 
     if(handle->num_fonts == 0)
@@ -181,19 +161,13 @@ printf("WHILE for %d - %d\n", i, num_indices);
 
     status.Fail = 0;
 
-    printf("FONT_CHAN\n");
     event_font_change();
 
-    printf("UPDATE_FLAGS\n");
     FTDemo_Update_Current_Flags(handle);
 
-    printf("CLEAR\n");
     FTDemo_Display_Clear(bit);
 
-    printf("RENDER\n");
     Render_All(handle->current_font->num_indices, status.Num);
-
-    printf("RENDER_WRITE\n");
 
     FILE *f = fopen(argv[2], "wb");
 
@@ -202,15 +176,8 @@ printf("WHILE for %d - %d\n", i, num_indices);
 
     fclose(f);
 
-    printf("Execution completed successfully.\n");
-    printf("Fails = %d\n", status.Fail);
-
-    printf("DONE\n");
     FTDemo_Display_Done(bit);
     FTDemo_Done(handle);
-/*
-    free(bit->buffer);
-    free(bit);
-*/
+
     return 0;
   }

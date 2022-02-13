@@ -35,29 +35,29 @@ host_triplet = @host@
 target_triplet = @target@
 @SQ_HAVE_CAMERA_TRUE@am__append_1 = kls_camera
 @SQ_HAVE_JPEG_TRUE@am__append_2 = kls_jpeg
-@SQ_HAVE_PNG_TRUE@am__append_3 = kls_png
-@SQ_HAVE_TIFF_TRUE@am__append_4 = kls_tiff
-@SQ_HAVE_XWD_TRUE@am__append_5 = kls_xwd
-@SQ_HAVE_WMF_TRUE@am__append_6 = kls_wmf
-@SQ_HAVE_SVG_TRUE@am__append_7 = kls_svg
-@SQ_HAVE_GIF_TRUE@am__append_8 = kls_gif
-@SQ_HAVE_OPENEXR_TRUE@am__append_9 = kls_openexr
-@SQ_HAVE_JPEG2000_TRUE@am__append_10 = kls_jpeg2000
-@SQ_HAVE_TTF_TRUE@am__append_11 = kls_ttf
-@SQ_HAVE_MNG_TRUE@am__append_12 = kls_mng
-@SQ_HAVE_DJVU_TRUE@am__append_13 = kls_djvu
-@SQ_HAVE_DXF_TRUE@am__append_14 = kls_dxf
-@SQ_HAVE_NEO_TRUE@am__append_15 = kls_neo
-@SQ_HAVE_LEAF_TRUE@am__append_16 = kls_leaf
-@SQ_HAVE_PI1_TRUE@am__append_17 = kls_pi1
-@SQ_HAVE_PI3_TRUE@am__append_18 = kls_pi3
-@SQ_HAVE_XIM_TRUE@am__append_19 = kls_xim
-@SQ_HAVE_UTAH_TRUE@am__append_20 = kls_utah
-@SQ_HAVE_PICT_TRUE@am__append_21 = kls_pict
-@SQ_HAVE_MAC_TRUE@am__append_22 = kls_mac
-@SQ_HAVE_IFF_TRUE@am__append_23 = kls_iff
-@SQ_HAVE_FIG_TRUE@am__append_24 = kls_fig
-@SQ_HAVE_LJPEG_TRUE@am__append_25 = kls_ljpeg
+@SQ_HAVE_TIFF_TRUE@am__append_3 = kls_tiff
+@SQ_HAVE_XWD_TRUE@am__append_4 = kls_xwd
+@SQ_HAVE_WMF_TRUE@am__append_5 = kls_wmf
+@SQ_HAVE_SVG_TRUE@am__append_6 = kls_svg
+@SQ_HAVE_GIF_TRUE@am__append_7 = kls_gif
+@SQ_HAVE_OPENEXR_TRUE@am__append_8 = kls_openexr
+@SQ_HAVE_JPEG2000_TRUE@am__append_9 = kls_jpeg2000
+@SQ_HAVE_TTF_TRUE@am__append_10 = kls_ttf
+@SQ_HAVE_MNG_TRUE@am__append_11 = kls_mng
+@SQ_HAVE_DJVU_TRUE@am__append_12 = kls_djvu
+@SQ_HAVE_DXF_TRUE@am__append_13 = kls_dxf
+@SQ_HAVE_NEO_TRUE@am__append_14 = kls_neo
+@SQ_HAVE_LEAF_TRUE@am__append_15 = kls_leaf
+@SQ_HAVE_PI1_TRUE@am__append_16 = kls_pi1
+@SQ_HAVE_PI3_TRUE@am__append_17 = kls_pi3
+@SQ_HAVE_XIM_TRUE@am__append_18 = kls_xim
+@SQ_HAVE_UTAH_TRUE@am__append_19 = kls_utah
+@SQ_HAVE_PICT_TRUE@am__append_20 = kls_pict
+@SQ_HAVE_MAC_TRUE@am__append_21 = kls_mac
+@SQ_HAVE_IFF_TRUE@am__append_22 = kls_iff
+@SQ_HAVE_FIG_TRUE@am__append_23 = kls_fig
+@SQ_HAVE_LJPEG_TRUE@am__append_24 = kls_ljpeg
+@SQ_HAVE_DICOM_TRUE@am__append_25 = kls_dicom
 
 # unstable/buggy codecs - for developers only
 @SQ_DEVEL_TRUE@am__append_26 = kls_msp
@@ -95,11 +95,11 @@ DIST_SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr \
 	kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx \
 	kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct \
 	kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcf \
-	kls_xcur kls_xpm kls_camera kls_jpeg kls_png kls_tiff kls_xwd \
+	kls_xcur kls_xpm kls_png kls_camera kls_jpeg kls_tiff kls_xwd \
 	kls_wmf kls_svg kls_gif kls_openexr kls_jpeg2000 kls_ttf \
 	kls_mng kls_djvu kls_dxf kls_neo kls_leaf kls_pi1 kls_pi3 \
 	kls_xim kls_utah kls_pict kls_mac kls_iff kls_fig kls_ljpeg \
-	kls_msp
+	kls_dicom kls_msp
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -163,6 +163,7 @@ LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MACTOPBM = @MACTOPBM@
 MAKEINFO = @MAKEINFO@
+MEDCON = @MEDCON@
 MKDIR_P = @MKDIR_P@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
@@ -186,6 +187,7 @@ PICTTOPPM = @PICTTOPPM@
 PKG_CONFIG = @PKG_CONFIG@
 POSUB = @POSUB@
 RANLIB = @RANLIB@
+RSVG = @RSVG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
@@ -195,8 +197,6 @@ SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
 SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
-SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
-SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
 SQ_WMF_LDFLAGS = @SQ_WMF_LDFLAGS@
 STRIP = @STRIP@
@@ -231,8 +231,6 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
-cairo_CFLAGS = @cairo_CFLAGS@
-cairo_LIBS = @cairo_LIBS@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -251,12 +249,6 @@ lcms_CFLAGS = @lcms_CFLAGS@
 lcms_LIBS = @lcms_LIBS@
 libdir = @libdir@
 libexecdir = @libexecdir@
-libpixman_CFLAGS = @libpixman_CFLAGS@
-libpixman_LIBS = @libpixman_LIBS@
-libsvg_CFLAGS = @libsvg_CFLAGS@
-libsvg_LIBS = @libsvg_LIBS@
-libsvg_cairo_CFLAGS = @libsvg_cairo_CFLAGS@
-libsvg_cairo_LIBS = @libsvg_cairo_LIBS@
 localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -281,7 +273,7 @@ SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr \
 	kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx \
 	kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct \
 	kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcf \
-	kls_xcur kls_xpm $(am__append_1) $(am__append_2) \
+	kls_xcur kls_xpm kls_png $(am__append_1) $(am__append_2) \
 	$(am__append_3) $(am__append_4) $(am__append_5) \
 	$(am__append_6) $(am__append_7) $(am__append_8) \
 	$(am__append_9) $(am__append_10) $(am__append_11) \

@@ -159,7 +159,6 @@ s32 fmt_codec::read_next_pass()
 
 s32 fmt_codec::read_scanline(RGBA *scan)
 {
-//    printf("%ld ",lscan);return 1;
     fmt_image *im = image(currentImage);
     fmt_utils::fillAlpha(scan, im->w);
 
@@ -194,54 +193,6 @@ void fmt_codec::read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
 /*  skip a single line C-like comment  */
 bool skip_comments(FILE *fp)
 {
@@ -260,11 +211,6 @@ bool skip_comments(FILE *fp)
     fsetpos(fp, (fpos_t*)&pos);
     
     return true;
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

@@ -30,6 +30,8 @@ class fmt_codec : public fmt_codec_base
 
         BASE_CODEC_DECLARATIONS
 
+        WRITE_CODEC_DECLARATIONS
+
     private:
         RGB            pal[256];
         s32            pal_entr;

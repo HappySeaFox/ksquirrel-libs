@@ -24,16 +24,23 @@
 
 #include "ksquirrel-libs/fmt_codec_base.h"
 
+#include <map>
+
 class fmt_codec : public fmt_codec_base
 {
     public:
 
         BASE_CODEC_DECLARATIONS
 
+        WRITE_CODEC_DECLARATIONS
+
+        void fill_default_settings();
+
     private:
 	TIFF    	*ftiff, *out;
 	TIFFRGBAImage	img;
-	s32 		dircount, line;
+	s32 		dircount, line, pages;
+        std::map<s32, std::string> compr;
 };
 
 #endif

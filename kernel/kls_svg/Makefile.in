@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -35,32 +36,30 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = kernel/kls_svg
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/ksquirrel-libs-svg2png.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/admin/mkinstalldirs
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = ksquirrel-libs-svg2png
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(pkglibdir)"
+am__installdirs = "$(DESTDIR)$(pkglibdir)" "$(DESTDIR)$(bindir)"
 pkglibLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(pkglib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libkls_svg_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_libkls_svg_la_OBJECTS = fmt_codec_svg.lo svg2mem.lo
+am_libkls_svg_la_OBJECTS = fmt_codec_png.lo
 #>- libkls_svg_la_OBJECTS = $(am_libkls_svg_la_OBJECTS)
-#>+ 4
-libkls_svg_la_final_OBJECTS = libkls_svg_la.all_cpp.lo 
-libkls_svg_la_nofinal_OBJECTS = fmt_codec_svg.lo svg2mem.lo
-@KDE_USE_FINAL_FALSE@libkls_svg_la_OBJECTS = $(libkls_svg_la_nofinal_OBJECTS)
-@KDE_USE_FINAL_TRUE@libkls_svg_la_OBJECTS = $(libkls_svg_la_final_OBJECTS)
+#>+ 1
+libkls_svg_la_OBJECTS = fmt_codec_png.lo
 #>- libkls_svg_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 #>- 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 #>- 	$(CXXFLAGS) $(libkls_svg_la_LDFLAGS) $(LDFLAGS) -o $@
@@ -68,6 +67,8 @@ libkls_svg_la_nofinal_OBJECTS = fmt_codec_svg.lo svg2mem.lo
 libkls_svg_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(KDE_CXXFLAGS) $(libkls_svg_la_LDFLAGS) $(LDFLAGS) -o $@
+binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
+SCRIPTS = $(bin_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/admin/depcomp
 am__depfiles_maybe = depfiles
@@ -167,6 +168,7 @@ LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MACTOPBM = @MACTOPBM@
 MAKEINFO = @MAKEINFO@
+MEDCON = @MEDCON@
 MKDIR_P = @MKDIR_P@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
@@ -190,6 +192,7 @@ PICTTOPPM = @PICTTOPPM@
 PKG_CONFIG = @PKG_CONFIG@
 POSUB = @POSUB@
 RANLIB = @RANLIB@
+RSVG = @RSVG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
@@ -199,8 +202,6 @@ SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
 SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
-SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
-SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
 SQ_WMF_LDFLAGS = @SQ_WMF_LDFLAGS@
 STRIP = @STRIP@
@@ -235,8 +236,6 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
-cairo_CFLAGS = @cairo_CFLAGS@
-cairo_LIBS = @cairo_LIBS@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -255,12 +254,6 @@ lcms_CFLAGS = @lcms_CFLAGS@
 lcms_LIBS = @lcms_LIBS@
 libdir = @libdir@
 libexecdir = @libexecdir@
-libpixman_CFLAGS = @libpixman_CFLAGS@
-libpixman_LIBS = @libpixman_LIBS@
-libsvg_CFLAGS = @libsvg_CFLAGS@
-libsvg_LIBS = @libsvg_LIBS@
-libsvg_cairo_CFLAGS = @libsvg_cairo_CFLAGS@
-libsvg_cairo_LIBS = @libsvg_cairo_LIBS@
 localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -281,13 +274,14 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I../include @SQ_SVG_CFLAGS@
+INCLUDES = -I../include -I../kls_png
+bin_SCRIPTS = ksquirrel-libs-svg2png
 pkglib_LTLIBRARIES = libkls_svg.la
-libkls_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h svg2mem.cpp svg2mem.h
+libkls_svg_la_SOURCES = fmt_codec_png.cpp fmt_codec_png_defs.h
 libkls_svg_la_LDFLAGS = ${SQ_RELEASE}
-libkls_svg_la_LIBADD = @SQ_SVG_LDFLAGS@  ${SQ_LOCAL_RPATH}
-AM_CXXFLAGS = -DSVG_UI=\"${pkgdatadir}/libkls_svg.so.ui\"
-EXTRA_DIST = libkls_svg.so.ui
+libkls_svg_la_LIBADD = ${SQ_LOCAL_RPATH} -L../kls_png/ksquirrel-libs-png -lksquirrel-libs-png
+AM_CXXFLAGS = -DCODEC_SVG -DCODEC_ANOTHER -DSVG_UI=\"${pkgdatadir}/libkls_svg.so.ui\" -DRSVG=\"${RSVG}\" -DSVG2PNG=\"${bindir}/ksquirrel-libs-svg2png\"
+EXTRA_DIST = libkls_svg.so.ui ksquirrel-libs-svg2png.in
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -336,6 +330,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+ksquirrel-libs-svg2png: $(top_builddir)/config.status $(srcdir)/ksquirrel-libs-svg2png.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(pkglibdir)" || $(MKDIR_P) "$(DESTDIR)$(pkglibdir)"
@@ -365,6 +361,25 @@ clean-pkglibLTLIBRARIES:
 	done
 libkls_svg.la: $(libkls_svg_la_OBJECTS) $(libkls_svg_la_DEPENDENCIES) 
 	$(libkls_svg_la_LINK) -rpath $(pkglibdir) $(libkls_svg_la_OBJECTS) $(libkls_svg_la_LIBADD) $(LIBS)
+install-binSCRIPTS: $(bin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f $$d$$p; then \
+	    f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	    echo " $(binSCRIPT_INSTALL) '$$d$$p' '$(DESTDIR)$(bindir)/$$f'"; \
+	    $(binSCRIPT_INSTALL) "$$d$$p" "$(DESTDIR)$(bindir)/$$f"; \
+	  else :; fi; \
+	done
+
+uninstall-binSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	done
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -372,8 +387,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_codec_svg.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svg2mem.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_codec_png.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -478,9 +492,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
 installdirs:
-	for dir in "$(DESTDIR)$(pkglibdir)"; do \
+	for dir in "$(DESTDIR)$(pkglibdir)" "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -514,7 +528,7 @@ clean: kde-rpo-clean  clean-am
 #>- clean-am: clean-generic clean-libtool clean-pkglibLTLIBRARIES \
 #>- 	mostlyclean-am
 #>+ 2
-clean-am: clean-bcheck clean-final  clean-generic clean-libtool clean-pkglibLTLIBRARIES \
+clean-am: clean-bcheck  clean-generic clean-libtool clean-pkglibLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -535,7 +549,7 @@ info-am:
 
 install-dvi: install-dvi-am
 
-install-exec-am: install-pkglibLTLIBRARIES
+install-exec-am: install-binSCRIPTS install-pkglibLTLIBRARIES
 
 install-html: install-html-am
 
@@ -567,7 +581,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-pkglibLTLIBRARIES
+uninstall-am: uninstall-binSCRIPTS uninstall-pkglibLTLIBRARIES
 
 .MAKE: install-am install-strip
 
@@ -575,15 +589,16 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 	clean-libtool clean-pkglibLTLIBRARIES ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-pkglibLTLIBRARIES \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-pkglibLTLIBRARIES
+	install install-am install-binSCRIPTS install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-pkglibLTLIBRARIES install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-binSCRIPTS uninstall-pkglibLTLIBRARIES
 
 
 install-data-am:
@@ -595,7 +610,7 @@ install-data-am:
 
 
 #>+ 2
-KDE_DIST=Makefile.in Makefile.am 
+KDE_DIST=Makefile.in ksquirrel-libs-svg2png Makefile.am 
 
 #>+ 2
 docs-am:
@@ -638,37 +653,21 @@ bcheck-am:
 	done
 
 
-#>+ 11
-libkls_svg_la.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fmt_codec_svg.cpp $(srcdir)/svg2mem.cpp 
-	@echo 'creating libkls_svg_la.all_cpp.cpp ...'; \
-	rm -f libkls_svg_la.all_cpp.files libkls_svg_la.all_cpp.final; \
-	echo "#define KDE_USE_FINAL 1" >> libkls_svg_la.all_cpp.final; \
-	for file in fmt_codec_svg.cpp svg2mem.cpp ; do \
-	  echo "#include \"$$file\"" >> libkls_svg_la.all_cpp.files; \
-	  test ! -f $(srcdir)/$$file || egrep '^#pragma +implementation' $(srcdir)/$$file >> libkls_svg_la.all_cpp.final; \
-	done; \
-	cat libkls_svg_la.all_cpp.final libkls_svg_la.all_cpp.files > libkls_svg_la.all_cpp.cpp; \
-	rm -f libkls_svg_la.all_cpp.final libkls_svg_la.all_cpp.files
-
-#>+ 3
-clean-final:
-	-rm -f libkls_svg_la.all_cpp.cpp
-
 #>+ 3
 final:
-	$(MAKE) libkls_svg_la_OBJECTS="$(libkls_svg_la_final_OBJECTS)" all-am
+	$(MAKE) all-am
 
 #>+ 3
 final-install:
-	$(MAKE) libkls_svg_la_OBJECTS="$(libkls_svg_la_final_OBJECTS)" install-am
+	$(MAKE) install-am
 
 #>+ 3
 no-final:
-	$(MAKE) libkls_svg_la_OBJECTS="$(libkls_svg_la_nofinal_OBJECTS)" all-am
+	$(MAKE) all-am
 
 #>+ 3
 no-final-install:
-	$(MAKE) libkls_svg_la_OBJECTS="$(libkls_svg_la_nofinal_OBJECTS)" install-am
+	$(MAKE) install-am
 
 #>+ 3
 cvs-clean:

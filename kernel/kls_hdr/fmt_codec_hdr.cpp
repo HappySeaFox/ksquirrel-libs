@@ -62,6 +62,8 @@ void fmt_codec::options(codec_options *o)
 
 s32 fmt_codec::read_init(const std::string &file)
 {
+    scanline = 0;
+
     frs.open(file.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
@@ -149,55 +151,7 @@ void fmt_codec::read_close()
     finfo.image.clear();
 
     delete [] scanline;
-    scanline = NULL;
-}
-
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->passes = 1;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-        return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-        return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA * /*scan*/)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
+    scanline = 0;
 }
 
 //
@@ -370,11 +324,6 @@ bool fmt_codec::getHdrHead()
 	sscanf(buff, "%s %d %s %d", x, &hdr.width, y, &hdr.height);
 
 	return true;
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string("");
 }
 
 #include "fmt_codec_cd_func.h"

@@ -4,7 +4,7 @@ Important
   please install libpng, libjpeg and libtiff.
 * XWD library requires X11/XWDFile.h.
 * WMF library requires freetype2, libxml2
-* SVG library requires libxml2, freetype2, fontconfig, libsvg, cairo, libsvg-cairo, libpixman
+* SVG library requires rsvg-convert
 * MNG library requires libmng
 * TTF library requires libfreetype >= 2.1.9
 * GIF library requires libungif

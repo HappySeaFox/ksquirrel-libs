@@ -16,7 +16,7 @@ rm -f $KSQUIRREL_LIBS/*
 
 mkdir $KSQUIRREL_LIBS > /dev/null 2>&1
 
-for i in avs bmp camera cut fli gif hdr ico iff fig jbig jpeg jpeg2000 koala ljpeg lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd djvu dxf xcf neo leaf pi1 pi3 xim pict;
+for i in avs bmp camera cut dicom fli gif hdr ico iff fig jbig jpeg jpeg2000 koala ljpeg lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd djvu dxf xcf neo leaf pi1 pi3 xim pict;
 do echo "Linking libkls_$i.so ..." && ln -s `pwd`/kls_$i/.libs/libkls_$i.so $KSQUIRREL_LIBS;
 done
 

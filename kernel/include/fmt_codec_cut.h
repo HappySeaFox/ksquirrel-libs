@@ -29,7 +29,7 @@ class fmt_codec : public fmt_codec_base
     public:
 
         BASE_CODEC_DECLARATIONS
-	
+
     private:
 	RGB	pal[256];
 	u8	*bits;

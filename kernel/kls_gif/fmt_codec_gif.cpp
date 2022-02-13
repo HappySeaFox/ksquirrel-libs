@@ -170,23 +170,19 @@ s32 fmt_codec::read_next()
 
     currentImage++;
 
-	fmt_image image;
+    fmt_image image;
 
     image.interlaced = gif->Image.Interlace;
     image.passes = (gif->Image.Interlace) ? 4 : 1;
-
-//    prs32f("Entering read_next\n\n");
 
     while(true)
     {
         if (DGifGetRecordType(gif, &record) == GIF_ERROR)
 	{
-//	    prs32f("DGifGetRecordType(gif, &record) == GIF_ERROR\n");
 	    PrintGifError();
 	    return SQE_R_BADFILE;
 	}
 
-//	prs32f("record = %d\n", record);
 	switch(record)
 	{
 	    case IMAGE_DESC_RECORD_TYPE:
@@ -231,7 +227,10 @@ s32 fmt_codec::read_next()
 		    PrintGifError();
 		    return SQE_R_BADFILE;
 		}
-		
+
+                if(!Extension)
+                    break;
+
 		if(ExtCode == 249)
 		{
 		    foundExt = true;
@@ -247,30 +246,22 @@ s32 fmt_codec::read_next()
 		      
 		    image.hasalpha = b;
 		}
-		else if(ExtCode == 254)
+		else if(ExtCode == 254 && Extension[0])
 		{
-//		    prs32f("SIZE: %d\n", Extension[0]);
-//		    prs32f("Record EXT 254\n");
-//
-//		    for(s32 s = 0;s < Extension[0];s++)
-//		    prs32f("%c", Extension[1+s]);
-		    if(Extension[0])
-		    {
-				fmt_metaentry mt;
+    		    fmt_metaentry mt;
+    		    s8 d[Extension[0]+1];
 
-			s8 d[Extension[0]+1];
-			memcpy(d, (s8*)Extension+1, Extension[0]);
-			d[Extension[0]] = '\0';
+                    memcpy(d, (s8*)Extension+1, Extension[0]);
+                    d[Extension[0]] = '\0';
 
-			for(s32 s = 0;s < Extension[0];s++)
-			    if(d[s] == '\n')
-				d[s] = ' ';
+                    for(s32 s = 0;s < Extension[0];s++)
+                        if(d[s] == '\n')
+                            d[s] = ' ';
 
-                        mt.group = "Comment";
-			mt.data = d;
+                    mt.group = "Comment";
+                    mt.data = d;
 
-   			addmeta(mt);
-		    }
+                    addmeta(mt);
 		}
 
 		while(Extension)
@@ -282,7 +273,7 @@ s32 fmt_codec::read_next()
 		    }
 		}
 	    break;
-	    
+
 	    case TERMINATE_RECORD_TYPE:
 		return SQE_NOTOK;
 
@@ -517,59 +508,6 @@ void fmt_codec::read_close()
     finfo.image.clear();
 
     if(gif) DGifCloseFile(gif);
-}
-
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = true;
-    opt->compression_scheme = CompressionInternal;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

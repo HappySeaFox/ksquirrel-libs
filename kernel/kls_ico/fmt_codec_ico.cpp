@@ -80,8 +80,6 @@ s32 fmt_codec::read_init(const std::string &file)
     if(ifh.idType != 1 && ifh.idType != 2)
 	return SQE_R_BADFILE;
 	
-//    printf("ICO: count = %d\n", ifh.idCount);
-
     ide = (ICO_DIRENTRY*)calloc(ifh.idCount, sizeof(ICO_DIRENTRY));
 
     if(!ide)
@@ -89,9 +87,6 @@ s32 fmt_codec::read_init(const std::string &file)
 
     if(!frs.readK(ide, sizeof(ICO_DIRENTRY) * ifh.idCount))
 	return SQE_R_BADFILE;
-
-//    for(s32 i = 0;i < ifh.idCount;i++)
-//    printf("colorcount: %d, bitcount: %d, bytes: %d\n", ide[i].bColorCount, ide[i].wBitCount, ide[i].dwBytes);
 
     finfo.animated = false;
 
@@ -111,31 +106,15 @@ s32 fmt_codec::read_next()
     s32		i;
     fstream::pos_type	pos;
 
-//    printf("ressize: %d\n", ide.dwBytes);
-
     image.w = ide[currentImage].bWidth;
     image.h = ide[currentImage].bHeight;
-//    finfo.images = ifh.idCount;
     
-/*
-    if(finfo.image[currentImage].w != 16 && finfo.image[currentImage].w != 32 && finfo.image[currentImage].w != 64)
-	return SQE_R_BADFILE;
-
-    if(finfo.image[currentImage].h != 16 && finfo.image[currentImage].h != 32 && finfo.image[currentImage].h != 64)
-	return SQE_R_BADFILE;
-
-    if(ide.bColorCount != 2 && ide.bColorCount != 8 && ide.bColorCount != 16)
-	return SQE_R_BADFILE;
-*/
-
     frs.seekg(ide[currentImage].dwImageOffset, ios::beg);
 
     if(!frs.readK(&bih, sizeof(BITMAPINFO_HEADER)))
 	return SQE_R_BADFILE;
 
     image.bpp = bih.BitCount;
-//    printf("bitcount #2: %d\n", bih.BitCount);
-//    printf("pal_entr: %d\n", pal_entr);
 
     if(image.bpp < 16)
     {
@@ -157,13 +136,9 @@ s32 fmt_codec::read_next()
 
     pos = frs.tellg();
 
-//    printf("Calculating ...\n");
     s32 count = image.w * image.h;
-//    printf("count: %d\n", count);
     s32 count2 = (image.bpp < 16) ? (count / (8 / image.bpp)) : (count * (image.bpp / 8));
-//    printf("count2: %d\n", count2);
     s32 count3 = count / 8;
-//    printf("count3: %d\n", count3);
 
     frs.seekg(/*ide[currentImage].dwBytes - sizeof(BITMAPINFO_HEADER) - */count2, ios::cur);
 
@@ -176,10 +151,6 @@ s32 fmt_codec::read_next()
 
     if(!frs.readK(realAND, count3)) return SQE_R_BADFILE;
 
-/*    
-    for(i = 0;i < count3;i++)
-	printf("REALAND %d\n", realAND[i]);
-*/
     s32 r = 0;
 
     for(i = 0;i < count3;i++)
@@ -187,40 +158,15 @@ s32 fmt_codec::read_next()
 	for(s32 z = 0,f = 128;z < 8;z++,f >>= 1)
 	{
 	    bAND[r] = (realAND[i] & f) ? 1 : 0;
-	//    printf("%d,", bAND[r]);
 	    r++;
 	}
-	//printf("\n");
-    }//printf("r: %d\n", r);
-/*
-    for(s32 i = 0;i < image.h;i++)
-    {
-	for(s32 j = 0;j < image.w;j++)
-	{
-	    printf("%2d", bAND[i * finfo.image[currentImage].w + j]);
-	}
-	printf("\n");
     }
-*/
-    frs.seekg(pos);
 
-/*
-    for(i = 0;i < pal_entr;i++)
-	printf("%d %d %d\n",(pal)[i].r,(pal)[i].g,(pal)[i].b);
-*/
+    frs.seekg(pos);
 
     image.needflip = true;
     image.hasalpha = true;
 
-/*	
-    snprintf(finfo.image[currentImage].dump, sizeof(finfo.image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
-	fmt_quickinfo(),
-	finfo.image[currentImage].w,
-	finfo.image[currentImage].h,
-	finfo.image[currentImage].bpp,
-	"RGB",
-	bytes);
-*/
     image.compression = "-";
     image.colorspace = ((pal_entr) ? "Color indexed":"RGB");
 
@@ -253,18 +199,12 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 	    {
 		if(!frs.readK(&bt, 1)) return SQE_R_BADFILE;
 
-//		printf("*** Read byte %d\n", bt);
-
 		for(s32 z = 0, f = 128;z < 8;z++,f >>= 1)
 		{
 		    ind = (bt & f) ? 1 : 0;
-//		    printf("ind: %d, %d\n", ind, (bt & f));
 
 		    memcpy(scan+count, pal+ind, sizeof(RGB));
 
-//		    (scan+count)->a = (bAND[pixel]) ? 0 : 255;
-
-//		    printf("pixel: %d\n", pixel);
 		    count++;
 		    pixel++;
 		}
@@ -348,59 +288,6 @@ void fmt_codec::read_close()
 
     finfo.meta.clear();
     finfo.image.clear();
-}
-
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = true;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

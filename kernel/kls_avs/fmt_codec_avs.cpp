@@ -201,5 +201,4 @@ std::string fmt_codec::extension(const s32 /*bpp*/)
     return std::string("x");
 }
 
-
 #include "fmt_codec_cd_func.h"

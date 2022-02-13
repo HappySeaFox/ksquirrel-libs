@@ -1,0 +1,2 @@
+PNG codec uses its own libpng-1.2.20 version
+to support APNG images.

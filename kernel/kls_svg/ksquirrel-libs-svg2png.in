@@ -1,0 +1,20 @@
+#!/bin/sh
+
+kls_svg_i=""
+kls_svg_o=""
+kls_svg_bin=""
+kls_svg_params=""
+
+while [ "$1" ] ; do
+
+    case "$1" in
+        "--input")  kls_svg_i="$2"   shift ;;
+        "--output") kls_svg_o="$2"   shift ;;
+        "--binary") kls_svg_bin="$2" shift ;;
+        *) kls_svg_params="$kls_svg_params $1"     ;;
+    esac
+
+shift
+done
+
+$kls_svg_bin $kls_svg_params "$kls_svg_i" > "$kls_svg_o"

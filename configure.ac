@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.7.1], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.7.2], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.1)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.2)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -45,6 +45,12 @@ AC_CHECK_HEADER([zlib.h], [
     sq_have_zlib_ff="yes"],
     [ AC_MSG_ERROR([zlib library not found])])
 ], [ AC_MSG_ERROR([zlib header files not found])])
+
+AC_CHECK_HEADER([math.h], [
+    AC_CHECK_LIB([m], [pow], [
+    sq_have_zlib_ff="yes"],
+    [ AC_MSG_ERROR([math library not found])])
+], [ AC_MSG_ERROR([<math.h> header files not found])])
 
 sq_dev="no"
 
@@ -88,6 +94,18 @@ AC_ARG_ENABLE(svg,
               [     case "${enableval}" in
                        yes) sq_codec_svg="yes" ;;
                        no)  sq_codec_svg="no" ;;
+                       *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
+                    esac]
+             )
+
+sq_codec_dicom="yes"
+sq_have_dicom="no"
+
+AC_ARG_ENABLE(dicom,
+              [AS_HELP_STRING([--disable-dicom], [don't compile dicom codec  [default=no]])],
+              [     case "${enableval}" in
+                       yes) sq_codec_dicom="yes" ;;
+                       no)  sq_codec_dicom="no" ;;
                        *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
                     esac]
              )
@@ -256,13 +274,6 @@ AC_CHECK_HEADERS([jpeglib.h], [
 		    ],
 		    [sq_have_jpeg="no" missing JPEG libjpeg])
 
-# PNG
-AC_CHECK_HEADER([png.h], [
-		    AC_CHECK_LIB([png], [png_read_rows], [sq_have_png="yes"], [sq_have_png="no" missing PNG libpng], -lz -lm)
-		    ],
-		    [sq_have_png="no" missing PNG libpng])
-
-
 # TIFF
 AC_CHECK_HEADERS([tiff.h], [
 		    AC_CHECK_LIB([tiff], [TIFFOpen], [sq_have_tiff="yes"], [sq_have_tiff="no" missing TIFF libtiff])
@@ -281,69 +292,27 @@ fi
 
 # SVG
 if test $sq_codec_svg = yes; then
-PKG_CHECK_MODULES([libpixman], libpixman,
-[
-    _cppflags=$CPPFLAGS
-    CPPFLAGS="$libpixman_CFLAGS $CPPFLAGS"
 
-    AC_CHECK_HEADERS([pixman.h],
-        [AC_CHECK_LIB([pixman], [pixman_region_create], 
-        [
-            PKG_CHECK_MODULES([libsvg], libsvg,
-            [
-                CPPFLAGS="$_cppflags $libsvg_CFLAGS"
+AC_PATH_PROG(RSVG, rsvg-convert)
 
-                AC_CHECK_HEADERS([svg.h],
-                [
-                    AC_CHECK_LIB([svg], [svg_create],
-                    [
-                        PKG_CHECK_MODULES([cairo], cairo,
-                        [
-                            CPPFLAGS="$_cppflags $cairo_CFLAGS"
+if [ test -n "$RSVG" ]; then
+        sq_have_svg="yes"
+        AC_SUBST(RSVG)
+else missing_prog SVG rsvg-convert
+fi
 
-                            AC_CHECK_HEADERS([cairo.h],
-                            [
-                                AC_CHECK_LIB([cairo], [cairo_create],
-                                [
-                                    PKG_CHECK_MODULES([libsvg_cairo], [libsvg-cairo],
-                                    [
-                                        CPPFLAGS="$_cppflags $libsvg_cairo_CFLAGS"
+fi
 
-                                        AC_CHECK_HEADERS([svg-cairo.h],
-                                        [
-                                            AC_CHECK_LIB([svg-cairo], [svg_cairo_create],
-                                            [
-                                                sq_have_svg="yes"
-                                                SQ_SVG_CFLAGS="$libpixman_CFLAGS $libsvg_CFLAGS $cairo_CFLAGS $libsvg_cairo_CFLAGS"
-                                                SQ_SVG_LDFLAGS="$libpixman_LIBS $libsvg_LIBS $cairo_LIBS $libsvg_cairo_LIBS"
-                                                AC_SUBST(SQ_SVG_CFLAGS)
-                                                AC_SUBST(SQ_SVG_LDFLAGS)
-                                            ], [sq_have_svg="no"], $libsvg_cairo_LIBS)
-                                        ],
-                                        [sq_have_svg="no"])
-                                    ],
-                                    [sq_have_svg="no"])
-                                ],
-                                [sq_have_svg="no"], $cairo_LIBS)
-                            ],
-                            [sq_have_svg="no"])
-                        ],
-                        [sq_have_svg="no"])
-                    ],
-                    [sq_have_svg="no"], $libsvg_LIBS)
-                ],
-                [sq_have_svg="no"])
-            ],
-            [sq_have_svg="no"])
-        ],
-        [sq_have_svg="no"], $libpixman_LIBS)
-    ],
-    [sq_have_svg="no"])
+# DICOM
+if test $sq_codec_dicom = yes; then
 
-CPPFLAGS=$_cppflags
+AC_PATH_PROG(MEDCON, medcon)
 
-],
-[sq_have_svg="no"])
+if [ test -n "$MEDCON" ]; then
+        sq_have_dicom="yes"
+        AC_SUBST(MEDCON)
+else missing_prog DICOM medcon
+fi
 
 fi
 
@@ -466,13 +435,17 @@ if [ test -n "$FREETYPE_CONFIG" ]; then
                     AC_CHECK_LIB([freetype], [FTC_SBitCache_New], [
                         AC_CHECK_LIB([freetype], [FTC_CMapCache_New], [
                             AC_CHECK_LIB([freetype], [FTC_Manager_New], [
+                                AC_CHECK_LIB([freetype], [FT_Get_Kerning], [
+                                    AC_CHECK_LIB([freetype], [FT_Get_Track_Kerning], [
 
-                                SQ_FT_LDFLAGS="$freetype_libs"
-                                SQ_FT_CFLAGS="$freetype_cflags"
-                                sq_have_ttf="yes"
-                                AC_SUBST(SQ_FT_CFLAGS)
-                                AC_SUBST(SQ_FT_LDFLAGS)
+                                        SQ_FT_LDFLAGS="$freetype_libs"
+                                        SQ_FT_CFLAGS="$freetype_cflags"
+                                        sq_have_ttf="yes"
+                                        AC_SUBST(SQ_FT_CFLAGS)
+                                        AC_SUBST(SQ_FT_LDFLAGS)
 
+                                    ],[ sq_have_ttf="no" missing TTF freetype])
+                                ],[ sq_have_ttf="no" missing TTF freetype])
                             ],[ sq_have_ttf="no" missing TTF freetype])
                         ],[ sq_have_ttf="no" missing TTF freetype])
                     ],[ sq_have_ttf="no" missing TTF freetype])
@@ -615,7 +588,7 @@ fi
 
 SQ_LOCAL_RPATH="-L../ksquirrel-libs -lksquirrel-libs"
 AC_SUBST(SQ_LOCAL_RPATH)
-SQ_RELEASE="-version-info 7:1:7"
+SQ_RELEASE="-version-info 7:2:7"
 AC_SUBST(SQ_RELEASE)
 
 ################### for xcf codec ##############
@@ -684,8 +657,12 @@ kernel/kls_lif/Makefile
 kernel/kls_mtv/Makefile
 kernel/kls_avs/Makefile
 kernel/kls_msp/Makefile
+kernel/kls_dicom/Makefile
+kernel/kls_dicom/ksquirrel-libs-dicom2png
 kernel/kls_svg/Makefile
+kernel/kls_svg/ksquirrel-libs-svg2png
 kernel/kls_wmf/Makefile
+kernel/kls_png/ksquirrel-libs-png/Makefile
 kernel/kls_png/Makefile
 kernel/kls_jpeg/Makefile
 kernel/kls_xwd/Makefile
@@ -735,12 +712,12 @@ AM_CONDITIONAL(SQ_DEVEL,        [ test $sq_dev            = yes ])
 AM_CONDITIONAL(CAMERA_NO_CMS,   [ test $sq_have_cms       = no  ])
 AM_CONDITIONAL(CAMERA_NO_JPEG,  [ test $sq_have_jpeg      = no  ])
 AM_CONDITIONAL(SQ_HAVE_JPEG,    [ test $sq_have_jpeg      = yes ])
-AM_CONDITIONAL(SQ_HAVE_PNG,     [ test $sq_have_png       = yes ])
 AM_CONDITIONAL(SQ_HAVE_XWD,     [ test $sq_have_xwd       = yes ])
 AM_CONDITIONAL(SQ_HAVE_TIFF,    [ test $sq_have_tiff      = yes ])
 
 AM_CONDITIONAL(SQ_HAVE_CAMERA,  [ test $sq_codec_camera   = yes ])
 AM_CONDITIONAL(SQ_HAVE_SVG,     [ test $sq_codec_svg      = yes -a $sq_have_svg       = yes ])
+AM_CONDITIONAL(SQ_HAVE_DICOM,   [ test $sq_codec_dicom    = yes -a $sq_have_dicom     = yes ])
 AM_CONDITIONAL(SQ_HAVE_WMF,     [ test $sq_codec_wmf      = yes -a $sq_have_wmf       = yes ])
 AM_CONDITIONAL(SQ_HAVE_JPEG2000,[ test $sq_codec_jpeg2000 = yes -a $sq_have_jpeg2000  = yes ])
 AM_CONDITIONAL(SQ_HAVE_OPENEXR, [ test $sq_codec_openexr  = yes -a $sq_have_openexr   = yes ])
@@ -785,18 +762,18 @@ Libraries:
 sq_enabled=""
 sq_disabled=""
 sq_manual=""
-sq_total="27"
+sq_total="29"
 sq_devel=""
 sq_devel_message=""
 
 if test $sq_have_jpeg = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled jpeg `;   else sq_disabled=`echo -n $sq_disabled jpeg `;  fi
-if test $sq_have_png = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled png `;    else sq_disabled=`echo -n $sq_disabled png `;   fi
 if test $sq_have_xwd = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xwd `;    else sq_disabled=`echo -n $sq_disabled xwd `;   fi
 if test $sq_have_tiff = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled tiff `;   else sq_disabled=`echo -n $sq_disabled tiff `;  fi
 if test $sq_codec_camera = yes; then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled camera `; else sq_disabled=`echo -n $sq_disabled camera `;fi
 if test $sq_codec_camera = yes; then sq_camera_sett="Additional CAMERA settings: [LCMS: $sq_have_cms, JPEG: $sq_have_jpeg]";fi
 if test $sq_have_wmf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled wmf `;    else sq_disabled=`echo -n $sq_disabled wmf `;   fi
 if test $sq_have_svg = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled svg `;    else sq_disabled=`echo -n $sq_disabled svg `;   fi
+if test $sq_have_dicom = yes;  then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled dicom `;  else sq_disabled=`echo -n $sq_disabled dicom `;   fi
 if test $sq_have_openexr = yes;then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled openexr `;else sq_disabled=`echo -n $sq_disabled openexr `;fi
 if test $sq_have_ttf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled ttf `;    else sq_disabled=`echo -n $sq_disabled ttf `;    fi
 if test $sq_have_mng = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled mng `;    else sq_disabled=`echo -n $sq_disabled mng `;    fi
@@ -822,6 +799,7 @@ if test $sq_dev = yes;         then sq_total=`expr $sq_total + 1`; else sq_devel
 if test $sq_codec_camera = no;    then sq_manual=`echo -n $sq_manual camera`;   fi
 if test $sq_codec_gif = no;       then sq_manual=`echo -n $sq_manual gif`;      fi
 if test $sq_codec_svg = no;       then sq_manual=`echo -n $sq_manual svg`;      fi
+if test $sq_codec_dicom = no;     then sq_manual=`echo -n $sq_manual dicom`;    fi
 if test $sq_codec_wmf = no;       then sq_manual=`echo -n $sq_manual wmf`;      fi
 if test $sq_codec_openexr = no;   then sq_manual=`echo -n $sq_manual openexr`;  fi
 if test $sq_codec_jpeg2000 = no;  then sq_manual=`echo -n $sq_manual jpeg2000`; fi

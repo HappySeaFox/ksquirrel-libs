@@ -54,7 +54,34 @@
  */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{}
+{
+    compr[COMPRESSION_NONE] = "None";
+    compr[COMPRESSION_CCITTRLE] = "CCITTRLE";
+    compr[COMPRESSION_CCITTFAX3] = "CCITTFAX3";
+    compr[COMPRESSION_CCITT_T4] = "CCITT_T4";
+    compr[COMPRESSION_CCITTFAX4] = "CCITTFAX4";
+    compr[COMPRESSION_CCITT_T6] = "CCITT_T6";
+    compr[COMPRESSION_LZW] = "LZW";
+    compr[COMPRESSION_OJPEG] = "OJPEG";
+    compr[COMPRESSION_JPEG] = "JPEG";
+    compr[COMPRESSION_NEXT] = "NEXT";
+    compr[COMPRESSION_CCITTRLEW] = "CCITTRLEW";
+    compr[COMPRESSION_PACKBITS] = "PACKBITS";
+    compr[COMPRESSION_THUNDERSCAN] = "THUNDERSCAN";
+    compr[COMPRESSION_IT8CTPAD] = "IT8CTPAD";
+    compr[COMPRESSION_IT8LW] = "IT8LW";
+    compr[COMPRESSION_IT8MP] = "IT8MP";
+    compr[COMPRESSION_IT8BL] = "IT8BL";
+    compr[COMPRESSION_PIXARFILM] = "PIXARFILM";
+    compr[COMPRESSION_PIXARLOG] = "PIXARLOG";
+    compr[COMPRESSION_DEFLATE] = "DEFLATE";
+    compr[COMPRESSION_ADOBE_DEFLATE] = "Adobe DEFLATE";
+    compr[COMPRESSION_DCS] = "DCS";
+    compr[COMPRESSION_JBIG] = "JBIG";
+    compr[COMPRESSION_SGILOG] = "SGILOG";
+    compr[COMPRESSION_SGILOG24] = "SGILOG24";
+    compr[COMPRESSION_JP2000] = "JP2000";
+}
 
 fmt_codec::~fmt_codec()
 {}
@@ -64,7 +91,7 @@ void fmt_codec::options(codec_options *o)
     o->version = "1.0.1";
     o->name = "Tagged Image File Format";
     o->filter = "*.tif *.tiff ";
-    o->config = "";
+    o->config = std::string(TIFF_UI);
     o->mime = "";
     o->mimetype = "image/tiff";
     o->pixmap = codec_tiff;
@@ -73,6 +100,16 @@ void fmt_codec::options(codec_options *o)
     o->writestatic = true;
     o->writeanimated = false;
     o->needtempfile = false;
+}
+
+void fmt_codec::fill_default_settings()
+{
+    settings_value val;
+
+    val.type = settings_value::v_int;
+    val.iVal = 1;
+
+    m_settings["pages"] = val;
 }
 
 s32 fmt_codec::read_init(const std::string &file)
@@ -87,17 +124,20 @@ s32 fmt_codec::read_init(const std::string &file)
 
     finfo.animated = false;
 
+    fmt_settings::iterator it = m_settings.find("pages");
+
+    pages = (it == m_settings.end() || (*it).second.type != settings_value::v_int) ?
+                    1 : (*it).second.iVal;
+
+    if(pages < 1 || pages > 1000)
+        pages = 1;
+
     dircount = 0;
 
     while(TIFFReadDirectory(ftiff))
     {
 	dircount++;
     }
-
-//    printf("dircount: %d\n", dircount);
-
-//    if(dircount > 1)
-//	dircount = 1;
 
     TIFFSetDirectory(ftiff, 0);
 
@@ -107,6 +147,9 @@ s32 fmt_codec::read_init(const std::string &file)
 s32 fmt_codec::read_next()
 {
     currentImage++;
+
+    if(currentImage == pages)
+        return SQE_NOTOK;
 
     if(dircount)
     {
@@ -138,11 +181,13 @@ s32 fmt_codec::read_next()
     bps = img.bitspersample;
     spp = img.samplesperpixel;
 
-//    printf("bps: %d, spp: %d\n", bps, spp);
+    s16 cmp;
+    TIFFGetField(ftiff, TIFFTAG_COMPRESSION, &cmp);
+    std::map<s32, std::string>::iterator it = compr.find(cmp);
 
     image.bpp = bps * spp;
+    image.compression = (it == compr.end() ? "Unknown" : (*it).second);
     image.hasalpha = true;
-    image.compression = "-"; 
     image.colorspace = fmt_utils::colorSpaceByBpp(image.bpp);
 
     finfo.image.push_back(image);

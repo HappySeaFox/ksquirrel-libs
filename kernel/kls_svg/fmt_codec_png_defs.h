@@ -1,6 +1,6 @@
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2004 Dmitry Baryshev <ksquirrel@tut.by>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -14,14 +14,14 @@
     Library General Public License for more details.
 
     You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.  If not, write to
+    as32 with this library; see the file COPYING.  If not, write to
     the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_CODEC_DEFS_svg
-#define KSQUIRREL_CODEC_DEFS_svg
+#ifndef KSQUIRREL_READ_IMAGE_png
+#define KSQUIRREL_READ_IMAGE_png
 
-// define constants here
+// Nothing to define at this moment :)
 
 #endif

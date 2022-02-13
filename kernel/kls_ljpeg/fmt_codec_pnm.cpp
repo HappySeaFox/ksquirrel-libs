@@ -54,8 +54,6 @@
 #include "../xpm/codec_dxf.xpm"
 #elif defined CODEC_NEO
 #include "../xpm/codec_neo.xpm"
-#elif defined CODEC_FITS
-#include "../xpm/codec_fits.xpm"
 #elif defined CODEC_LEAF
 #include "../xpm/codec_leaf.xpm"
 #elif defined CODEC_PI1
@@ -127,7 +125,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.djvu *.djv *.iw4 *.iw44 ";
     o->config = std::string(DJVU_UI);
     o->mime = "";
-    o->mimetype = "image/x-djvu";
+    o->mimetype = "image/x-djvu;image/x.djvu";
     o->pixmap = codec_djvu;
     o->readable = true;
     o->canbemultiple = false;
@@ -168,19 +166,6 @@ void fmt_codec::options(codec_options *o)
     o->mime = "";
     o->mimetype = "image/x-neo";
     o->pixmap = codec_neo;
-    o->readable = true;
-    o->canbemultiple = false;
-    o->writestatic = false;
-    o->writeanimated = false;
-    o->needtempfile = true;
-#elif defined CODEC_FITS
-    o->version = "1.0.0";
-    o->name = "FITS";
-    o->filter = "*.fits ";
-    o->config = "";
-    o->mime = "";
-    o->mimetype = "image/fits";
-    o->pixmap = codec_fits;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -639,9 +624,6 @@ s32 fmt_codec::read_init(const std::string &file)
     argv[argc-2] = tmp.c_str();
     argv[argc-1] = (char *)0;
 
-//    for(int i = 0;i < argc;i++)
-//        printf("CAMERA %s\n", argv[i]);
-
     pid_t pid = fork();
 
     if(!pid)
@@ -717,7 +699,6 @@ s32 fmt_codec::read_init(const std::string &file)
 #elif defined CODEC_DXF
 
     std::string tmmp = tmp + ".ppm";
-//    printf("TMP: %s\n", tmmp.c_str());
     fmt_settings::iterator it = m_settings.find("width");
 
     // get aspect
@@ -1051,8 +1032,6 @@ s32 fmt_codec::read_next()
 	koeff = 1.0;
     }
     
-//    printf("maxcolor: %d, format: %s, koeff: %.1f\n\n", maxcolor, format, koeff);
-
     image.compression = "-";
     image.colorspace = ((pnm == 1 || pnm == 4) ? "Monochrome":"Color indexed");
 
@@ -1223,6 +1202,8 @@ bool skip_flood(FILE *f)
     return true;
 }
 
+#ifdef CODEC_PNM
+
 void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 {
     opt->interlaced = false;
@@ -1283,5 +1264,7 @@ std::string fmt_codec::extension(const s32 /*bpp*/)
 {
     return std::string("pnm");
 }
+
+#endif // CODEC_PNM
 
 #include "fmt_codec_cd_func.h"

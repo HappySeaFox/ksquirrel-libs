@@ -30,9 +30,9 @@
 
   /* PanicZ */
   void
-  PanicZ( const char*  message )
+  PanicZ( const char * )
   {
-    fprintf( stderr, "%s\n  error = 0x%04x\n", message, error );
+    /*fprintf( stderr, "%s\n  error = 0x%04x\n", message, error );*/
     exit( 1 );
   }
 

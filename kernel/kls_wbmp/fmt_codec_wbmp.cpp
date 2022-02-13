@@ -200,54 +200,6 @@ void fmt_codec::read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
 /*
  *
  * These functions were taken from Wbmp program by Johan Van den Brande
@@ -319,37 +271,6 @@ s32 fmt_codec::skipheader(ifstreamK &f)
     }while(i & 0x80);
 
     return 0;
-}
-
-Wbmp* fmt_codec::createwbmp(s32 width, s32 height, s32 color)
-{
-    s32     i;
-
-    Wbmp *_wbmp = new Wbmp;
-
-    if(!_wbmp)
-        return NULL;
-
-    _wbmp->bitmap = new s32 [width * height];
-
-    if(!_wbmp->bitmap)
-    {
-        delete _wbmp;
-        return NULL;
-    }
-
-    _wbmp->width = width;
-    _wbmp->height= height;
-
-    for(i = 0;i < width * height;_wbmp->bitmap[i++] = color)
-    {}
-
-    return _wbmp;
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

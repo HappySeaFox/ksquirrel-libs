@@ -1,6 +1,6 @@
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2004 Dmitry Baryshev <ksquirrel@tut.by>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -14,28 +14,14 @@
     Library General Public License for more details.
 
     You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.  If not, write to
+    as32 with this library; see the file COPYING.  If not, write to
     the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_svg_H
-#define KSQUIRREL_LIBS_CLASS_DEFINITION_svg_H
+#ifndef KSQUIRREL_READ_IMAGE_png
+#define KSQUIRREL_READ_IMAGE_png
 
-#include "ksquirrel-libs/fmt_codec_base.h"
-
-class fmt_codec : public fmt_codec_base
-{
-    public:
-
-        BASE_CODEC_DECLARATIONS
-
-        virtual void fill_default_settings();
-
-    private:
-	FILE 	*fin;
-	u8	*buf;
-	s32	line;
-};
+// Nothing to define at this moment :)
 
 #endif

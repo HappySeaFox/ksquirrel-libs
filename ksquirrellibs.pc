@@ -2,10 +2,10 @@ prefix=/usr
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
-version=0.7.1
+version=0.7.2
 
 Name: ksquirrellibs
 Description: Image codecs for KSquirrel
-Version: 0.7.1
+Version: 0.7.2
 Libs: -L${libdir} -lksquirrel-libs
 Cflags: -I${includedir} -DSQ_KLIBS=\"\\\"${libdir}/ksquirrel-libs\\\"\" -DSQ_KL_VER=\"\\\"${version}\\\"\"

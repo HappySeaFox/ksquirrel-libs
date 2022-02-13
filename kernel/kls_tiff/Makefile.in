@@ -164,6 +164,7 @@ LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MACTOPBM = @MACTOPBM@
 MAKEINFO = @MAKEINFO@
+MEDCON = @MEDCON@
 MKDIR_P = @MKDIR_P@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
@@ -187,6 +188,7 @@ PICTTOPPM = @PICTTOPPM@
 PKG_CONFIG = @PKG_CONFIG@
 POSUB = @POSUB@
 RANLIB = @RANLIB@
+RSVG = @RSVG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
@@ -196,8 +198,6 @@ SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
 SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
-SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
-SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
 SQ_WMF_LDFLAGS = @SQ_WMF_LDFLAGS@
 STRIP = @STRIP@
@@ -232,8 +232,6 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
-cairo_CFLAGS = @cairo_CFLAGS@
-cairo_LIBS = @cairo_LIBS@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -252,12 +250,6 @@ lcms_CFLAGS = @lcms_CFLAGS@
 lcms_LIBS = @lcms_LIBS@
 libdir = @libdir@
 libexecdir = @libexecdir@
-libpixman_CFLAGS = @libpixman_CFLAGS@
-libpixman_LIBS = @libpixman_LIBS@
-libsvg_CFLAGS = @libsvg_CFLAGS@
-libsvg_LIBS = @libsvg_LIBS@
-libsvg_cairo_CFLAGS = @libsvg_cairo_CFLAGS@
-libsvg_cairo_LIBS = @libsvg_cairo_LIBS@
 localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -283,6 +275,8 @@ pkglib_LTLIBRARIES = libkls_tiff.la
 libkls_tiff_la_SOURCES = fmt_codec_tiff.cpp fmt_codec_tiff_defs.h
 libkls_tiff_la_LDFLAGS = ${SQ_RELEASE}
 libkls_tiff_la_LIBADD = ${SQ_LOCAL_RPATH} -ltiff
+EXTRA_DIST = libkls_tiff.so.ui
+AM_CXXFLAGS = -DTIFF_UI=\"${pkgdatadir}/libkls_tiff.so.ui\"
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -527,8 +521,6 @@ info: info-am
 
 info-am:
 
-install-data-am:
-
 install-dvi: install-dvi-am
 
 install-exec-am: install-pkglibLTLIBRARIES
@@ -581,6 +573,10 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-pkglibLTLIBRARIES
 
+
+install-data-am:
+	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)
+	$(INSTALL) --mode=0644 libkls_tiff.so.ui $(DESTDIR)$(pkgdatadir)/libkls_tiff.so.ui
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

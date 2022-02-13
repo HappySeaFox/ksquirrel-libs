@@ -111,7 +111,6 @@ s32 fmt_codec::read_next()
     while(true) { ret = skip_comments(frs); if(ret == 1) continue; else if(!ret) break; else return SQE_R_BADFILE; }
 
     sscanf(str, "\"%d %d %d %d", &image.w, &image.h, &numcolors, (int*)&cpp);
-//    printf("%d %d %d %d\n\n",finfo.image[currentImage].w,finfo.image[currentImage].h,numcolors,cpp);
 
     if(!numcolors)
 	return SQE_R_BADFILE;
@@ -141,31 +140,13 @@ s32 fmt_codec::read_next()
 	found = strstr(color, "\"");
 	if(found) *found = 0;
 
-//	if(!i)printf("%s\n",color);
-
-//	memcpy(Xmap[i].name, name, cpp);
-//	Xmap[i].name[cpp] = 0;
-//	Xmap[i].rgba = hex2rgb(color);
-//	RGBA r = hex2rgb(color);
-//	printf("%s <=> %d,%d,%d,%d\n", name, r.r, r.g, r.b, r.a);
 	file[name] = hex2rgb(color);
     }
 
     if(!numcolors)
 	return SQE_R_BADFILE;
 
-//    cout << "111111111111";
     while(true) { ret = skip_comments(frs); if(ret == 1) continue; else if(!ret) break; else return SQE_R_BADFILE; }
-//    cout << "333333333333333\n";
-
-/*
-    QuickSort(Xmap, 0, numcolors-1);
-
-    for(i = 0;i < numcolors;i++)
-    {
-	printf("\"%s\"  %d %d %d %d\n",Xmap[i].name,Xmap[i].rgba.r,Xmap[i].rgba.g,Xmap[i].rgba.b,Xmap[i].rgba.a);
-    }
-*/
 
     image.bpp = 24;
     image.hasalpha = true;
@@ -192,15 +173,9 @@ s32 fmt_codec::read_scanline(RGBA *scan)
     s32		i, j;
     s8 	line[bpl], key[KEY_LENGTH];
     
-//    printf("bpl: %d\n", bpl);
-
     memset(key, 0, sizeof(key));
     memset(line, 0, sizeof(line));
-/*    
-    static s32 ee = 0;
-    printf("line %d\n", ee);
-    ee++;
-*/
+
     switch(im->bpp)
     {
 	case 24:
@@ -219,7 +194,6 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 		strncpy(key, line+i, cpp);
 		i += cpp;
 
-		//trgba = BinSearch(Xmap, 0, numcolors-1, key);
 		std::map<std::string, RGBA>::const_iterator it = file.find(key);
 
 		f = (it != file.end());
@@ -251,66 +225,18 @@ void fmt_codec::read_close()
     file.clear();
 }
 
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
 void fmt_codec::fillmap()
 {
     s8 	name[80];
-    s32 	r, g, b, a;
+    s32 r, g, b, a;
 
-    ifstream rgb_fstream;
+    std::ifstream rgb_fstream;
 
     rgb_fstream.open(SQ_RGBMAP, ios::in);
 
     if(!rgb_fstream.good())
     {
-	cerr << "libkls_xpm: rgbmap not found" << endl;
+	std::cerr << "libkls_xpm.so: rgbmap not found" << std::endl;
 	return;
     }
 
@@ -324,11 +250,6 @@ void fmt_codec::fillmap()
     }
 
     rgb_fstream.close();
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

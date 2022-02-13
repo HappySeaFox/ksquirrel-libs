@@ -30,13 +30,28 @@ class fmt_codec : public fmt_codec_base
 
         BASE_CODEC_DECLARATIONS
 
+#ifdef CODEC_ANOTHER
+        virtual void fill_default_settings();
+#endif
+
+#ifdef CODEC_PNG
+        WRITE_CODEC_DECLARATIONS
+#endif
+
     private:
 	png_structp     png_ptr;
 	png_infop       info_ptr;
 	png_uint_32     width, height, number_passes;
 	s32             color_type;
-	png_bytep       *rows;
+	png_bytep       *cur, *prev, *frame;
 	FILE		*fptr;
+        s32             bit_depth, interlace_type;
+        s32             frames;
+        fmt_image       img;
+
+        png_uint_32 next_frame_width, next_frame_height, next_frame_x_offset, next_frame_y_offset;
+        png_uint_16 next_frame_delay_num, next_frame_delay_den;
+        png_byte next_frame_dispose_op, next_frame_blend_op;
 
 	FILE        	*m_fptr;
         png_structp 	m_png_ptr;

@@ -15,5 +15,5 @@
 * WMF  library dynamically links against libwmf
 * OPENEXR library dynamically links against OpenEXR libraries
 * JPEG2000 library dynamically links against jasper
-* SVG library dynamically links against libsvg
+* SVG library uses "rsvg-convert" executable (via fork)
 * LJPEG library statically uses ljpg

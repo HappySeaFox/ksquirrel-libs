@@ -80,8 +80,9 @@ s32 fmt_codec::read_next()
     fmt_image image;
 
     s8	str[256];
-    
-    if(!frs.getS(str, sizeof(str))) { printf("GETS ERROR\n"); return SQE_R_BADFILE; }
+
+    if(!frs.getS(str, sizeof(str)))
+        return SQE_R_BADFILE;
 
     std::stringstream ss(str);
 

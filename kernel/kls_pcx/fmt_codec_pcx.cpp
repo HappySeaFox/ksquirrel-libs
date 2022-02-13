@@ -133,16 +133,10 @@ s32 fmt_codec::read_next()
 	    return SQE_R_BADFILE;
 
 	if(!frs.readK(pal, 768)) return SQE_R_BADFILE;
-//	s32 i;
-//	for(i=0;i<256;i++)
-//	printf("%d %d %d\n",(finfo.image[currentImage].pal)[i].r,(finfo.image[currentImage].pal)[i].g,(finfo.image[currentImage].pal)[i].b);
     }
 
     frs.seekg(128, ios::beg);
-/*    
-    printf("ID: %d\nVersion: %d\nEncoding: %d\nbpp: %d\nNPlanes: %d\nBytesPerLine: %d\nPaletteInfo: %d\n",
-    pfh.ID, pfh.Version, pfh.Encoding, pfh.bpp, pfh.NPlanes, pfh.BytesPerLine, pfh.PaletteInfo);
-*/
+
     TotalBytesLine = pfh.NPlanes * pfh.BytesPerLine;
 
     image.compression = "-";
@@ -225,54 +219,6 @@ void fmt_codec::read_close()
     finfo.image.clear();
 }
 
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->compression_scheme = CompressionInternal; // maybe set to CompressionRLE ?
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->passes = 1;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-	return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-	return SQE_W_NOFILE;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    fws.close();
-}
-
 /* helper function */
 bool getrow(ifstreamK &f, u8 *pcxrow, s32 bytesperline)
 {
@@ -303,11 +249,6 @@ bool getrow(ifstreamK &f, u8 *pcxrow, s32 bytesperline)
     }
 
     return true;
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string();
 }
 
 #include "fmt_codec_cd_func.h"

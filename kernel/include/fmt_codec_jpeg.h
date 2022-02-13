@@ -30,6 +30,8 @@ class fmt_codec : public fmt_codec_base
 
         BASE_CODEC_DECLARATIONS
 
+        WRITE_CODEC_DECLARATIONS
+
     private:
 	struct jpeg_decompress_struct	cinfo;
 	struct my_error_mgr		jerr;

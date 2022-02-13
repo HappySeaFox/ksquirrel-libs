@@ -215,85 +215,6 @@ void fmt_codec::read_close()
     pixels = 0;
 }
 
-void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
-{
-    opt->interlaced = false;
-    opt->passes = 1;
-    opt->compression_scheme = CompressionNo;
-    opt->compression_min = 0;
-    opt->compression_max = 0;
-    opt->compression_def = 0;
-    opt->needflip = false;
-    opt->palette_flags = 0 | fmt_image::pure32;
-}
-
-s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
-{
-    if(!image.w || !image.h || file.empty())
-        return SQE_W_WRONGPARAMS;
-
-    writeimage = image;
-    writeopt = opt;
-
-    fws.open(file.c_str(), ios::binary | ios::out);
-
-    if(!fws.good())
-        return SQE_W_NOFILE;
-
-    fws.close();
-
-    out = 0;
-    hs = 0;
-
-    out = new RgbaOutputFile(file.c_str(), image.w, image.h, WRITE_RGBA);
-
-    if(!out)
-	return SQE_W_NOMEMORY;
-
-    hs = new Rgba [image.w];
-
-    if(!hs)
-	return SQE_W_NOMEMORY;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_next_pass()
-{
-    return SQE_OK;
-}
-
-s32 fmt_codec::write_scanline(RGBA *scan)
-{
-    for(s32 i = 0;i < writeimage.w;i++)
-    {
-	hs[i].r = scan[i].r;
-	hs[i].g = scan[i].g;
-	hs[i].b = scan[i].b;
-	hs[i].a = scan[i].a;
-    }
-
-    out->setFrameBuffer(hs, 1, 0);
-
-    out->writePixels(1);
-
-    return SQE_OK;
-}
-
-void fmt_codec::write_close()
-{
-    delete out;
-    out = 0;
-
-    delete hs;
-    hs = 0;
-}
-
 /* 
  * utility function
  *
@@ -362,11 +283,6 @@ RGBA RgbaToRGBA(struct Rgba imagePixel)
 				  s8 (Imath::clamp ( g * 84.66f, 0.f, 255.f ) ),
 				  s8 (Imath::clamp ( b * 84.66f, 0.f, 255.f ) ),
 				  s8 (Imath::clamp ( a * 84.66f, 0.f, 255.f ) ) );
-}
-
-std::string fmt_codec::extension(const s32 /*bpp*/)
-{
-    return std::string("exr");
 }
 
 #include "fmt_codec_cd_func.h"
