@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
 #include "fileio.h"
 
 #include "fmt_codec_pxr_defs.h"
@@ -60,7 +61,7 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,0,0,0,125,26,194,76,76,76,174,174,174,176,176,176,177,177,177,200,200,200,221,221,221,243,243,243,255,255,255,69,69,69,150,187,249,246,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,85,73,68,65,84,8,215,99,80,2,1,7,6,6,6,181,180,180,180,164,98,16,99,230,204,153,73,237,1,80,134,146,2,132,145,150,6,100,104,173,130,0,6,69,65,48,144,98,80,156,57,113,226,196,153,19,129,140,137,96,0,22,145,20,132,136,8,66,69,224,12,152,46,184,57,32,75,193,38,51,129,221,161,192,0,0,212,19,41,243,219,193,102,54,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
 s32 fmt_codec::fmt_read_init(const std::string &file)
@@ -85,16 +86,34 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
+    u16 w, h;
+    u8 bppi;
+
+    frs.seekg(416, ios::beg);
+    if(!frs.readK(&h, sizeof(u16))) return SQE_R_BADFILE;
+    if(!frs.readK(&w, sizeof(u16))) return SQE_R_BADFILE;
+
+    frs.seekg(424, ios::beg);
+    if(!frs.readK(&bppi, sizeof(u8))) return SQE_R_BADFILE;
+
     fmt_image image;
 
-/*
-    image.w = 
-    image.h = 
-    image.bpp = 
-*/
+    image.w = w;
+    image.h = h;
 
-    image.compression = "";
-    image.colorspace = "";
+    if(bppi == 0x08)
+        image.bpp = 1;
+    else if(bppi == 0x0E)
+        image.bpp = 24;
+    else if(bppi == 0x0F)
+        image.bpp = 32;
+    else
+        return SQE_R_BADFILE;
+
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(image.bpp);
+
+    frs.seekg(1024, ios::beg);
 
     finfo.image.push_back(image);
 
@@ -109,10 +128,43 @@ s32 fmt_codec::fmt_read_next_pass()
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
-    RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
+    switch(im->bpp)
+    {
+        case 1:
+        {
+            u8 c;
+
+            for(s32 i = 0;i < im->w;i++)
+            {
+                if(!frs.readK(&c, sizeof(u8))) return SQE_R_BADFILE;
+
+                memset(scan+i, c, sizeof(RGB));
+            }
+        }
+        break;
+
+        case 24:
+        {
+            for(s32 i = 0;i < im->w;i++)
+            {
+                if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
+
+                memcpy(scan+i, &rgb, sizeof(RGB));
+            }
+        }
+        break;
+
+        case 32:
+        {
+            if(!frs.readK(scan, im->w * sizeof(RGBA)))
+                return SQE_R_BADFILE;
+        }
+        break;
+    }
 
     return SQE_OK;
 }
@@ -187,3 +239,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

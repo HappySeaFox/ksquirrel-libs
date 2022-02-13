@@ -164,13 +164,14 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     u16  i, j;
     u8 channel[4][finfo.image[currentImage].w];
     u8 indexes[finfo.image[currentImage].w];
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
     
     for(i = 0;i < 4;i++)
-	memset(channel[i], 255, finfo.image[currentImage].w);
+	memset(channel[i], 255, im->w);
 
-    switch(finfo.image[currentImage].bpp)
+    switch(im->bpp)
     {
     	case 1:
 	{
@@ -186,7 +187,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    if(!getrow(frs, indexes, pfh.BytesPerLine))
 		return SQE_R_BADFILE;
 
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 		memcpy(scan+i, pal+indexes[i], sizeof(RGB));
 	break;
 
@@ -203,7 +204,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		    return SQE_R_BADFILE;
 	    }
 
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
     		scan[i].r = channel[0][i];
     		scan[i].g = channel[1][i];
@@ -325,3 +326,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

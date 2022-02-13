@@ -124,11 +124,21 @@ s32 fmt_codec::fmt_read_next()
     if(sfh.bpc == 2 || sfh.ColormapID > 0)
 	return SQE_R_NOTSUPPORTED;
 
+    channel[0] = channel[1] = channel[2] = channel[3] = NULL;
+
+    for(s32 i = 0;i < 4;i++)
+    {
+        channel[i] = new s8 [sfh.x];
+
+        if(!channel[i])
+            return SQE_R_NOMEMORY;
+    }
+
     if(sfh.StorageFormat == 1)
     {
 	s32 sz = sfh.y * sfh.z, i;
-        lengthtab = (u32*)calloc(sz, sizeof(ulong));
-	starttab = (u32*)calloc(sz, sizeof(ulong));
+        lengthtab = (u32 *)calloc(sz, sizeof(ulong));
+	starttab  = (u32 *)calloc(sz, sizeof(ulong));
     
         if(!lengthtab)
     	    return SQE_R_NOMEMORY;
@@ -180,11 +190,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     s32 i = 0, j = 0;
     s32 len;
     fstream::pos_type pos;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * 4);
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    // channel[0] == channel RED, channel[1] = channel GREEN...
-    s8	channel[4][sz];
     s8	bt;
 
     memset(channel[3], 255, sz);
@@ -253,8 +262,8 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		{
 		    j = 0;
 
-		    frs.seekg(starttab[rle_row + i*finfo.image[currentImage].h], ios::beg);
-		    len = lengthtab[rle_row + i*finfo.image[currentImage].h];
+		    frs.seekg(starttab[rle_row + i*im->h], ios::beg);
+		    len = lengthtab[rle_row + i*im->h];
 
 		    for(;;)
 		    {
@@ -293,13 +302,13 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		if(!frs.readK(channel[0], sz)) return SQE_R_BADFILE;
 
 		pos = frs.tellg();
-		frs.seekg(finfo.image[currentImage].w * (finfo.image[currentImage].h - 1), ios::cur);
+		frs.seekg(im->w * (im->h - 1), ios::cur);
 		if(!frs.readK(channel[1], sz)) return SQE_R_BADFILE;
 
-		frs.seekg(finfo.image[currentImage].w * (finfo.image[currentImage].h - 1), ios::cur);
+		frs.seekg(im->w * (im->h - 1), ios::cur);
 		if(!frs.readK(channel[2], sz)) return SQE_R_BADFILE;
 
-		frs.seekg(finfo.image[currentImage].w * (finfo.image[currentImage].h - 1), ios::cur);
+		frs.seekg(im->w * (im->h - 1), ios::cur);
 		if(!frs.readK(channel[3], sz)) return SQE_R_BADFILE;
 
 		frs.seekg(pos);
@@ -323,12 +332,18 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 void fmt_codec::fmt_read_close()
 {
     frs.close();
-    
+
     if(starttab)
 	free(starttab);
-	
+
     if(lengthtab)
 	free(lengthtab);
+
+    for(s32 i = 0;i < 4;i++)
+    {
+        if(channel[i])
+            delete [] channel[i];
+    }
 
     finfo.meta.clear();
     finfo.image.clear();
@@ -372,7 +387,7 @@ s32 fmt_codec::fmt_write_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
 {
     return SQE_OK;
 }
@@ -396,3 +411,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

@@ -155,6 +155,8 @@ MAKEINFO = @MAKEINFO@
 NOOPT_CFLAGS = @NOOPT_CFLAGS@
 NOOPT_CXXFLAGS = @NOOPT_CXXFLAGS@
 OBJEXT = @OBJEXT@
+OpenEXR_CFLAGS = @OpenEXR_CFLAGS@
+OpenEXR_LIBS = @OpenEXR_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -162,21 +164,24 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
+SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
 SQ_HAVE_CAMERA_FALSE = @SQ_HAVE_CAMERA_FALSE@
 SQ_HAVE_CAMERA_TRUE = @SQ_HAVE_CAMERA_TRUE@
-SQ_HAVE_FREETYPE_FALSE = @SQ_HAVE_FREETYPE_FALSE@
-SQ_HAVE_FREETYPE_TRUE = @SQ_HAVE_FREETYPE_TRUE@
 SQ_HAVE_GIF_FALSE = @SQ_HAVE_GIF_FALSE@
 SQ_HAVE_GIF_TRUE = @SQ_HAVE_GIF_TRUE@
 SQ_HAVE_JPEG2000_FALSE = @SQ_HAVE_JPEG2000_FALSE@
 SQ_HAVE_JPEG2000_TRUE = @SQ_HAVE_JPEG2000_TRUE@
 SQ_HAVE_JPEG_FALSE = @SQ_HAVE_JPEG_FALSE@
 SQ_HAVE_JPEG_TRUE = @SQ_HAVE_JPEG_TRUE@
+SQ_HAVE_MNG_FALSE = @SQ_HAVE_MNG_FALSE@
+SQ_HAVE_MNG_TRUE = @SQ_HAVE_MNG_TRUE@
 SQ_HAVE_OPENEXR_FALSE = @SQ_HAVE_OPENEXR_FALSE@
 SQ_HAVE_OPENEXR_TRUE = @SQ_HAVE_OPENEXR_TRUE@
 SQ_HAVE_PNG_FALSE = @SQ_HAVE_PNG_FALSE@
@@ -185,24 +190,29 @@ SQ_HAVE_SVG_FALSE = @SQ_HAVE_SVG_FALSE@
 SQ_HAVE_SVG_TRUE = @SQ_HAVE_SVG_TRUE@
 SQ_HAVE_TIFF_FALSE = @SQ_HAVE_TIFF_FALSE@
 SQ_HAVE_TIFF_TRUE = @SQ_HAVE_TIFF_TRUE@
+SQ_HAVE_TTF_FALSE = @SQ_HAVE_TTF_FALSE@
+SQ_HAVE_TTF_TRUE = @SQ_HAVE_TTF_TRUE@
 SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
-SQ_XML_CFLAGS = @SQ_XML_CFLAGS@
-SQ_XML_LDFLAGS = @SQ_XML_LDFLAGS@
+SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
+SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
+SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
+SQ_WMF_LDFLAGS = @SQ_WMF_LDFLAGS@
 STRIP = @STRIP@
 USE_EXCEPTIONS = @USE_EXCEPTIONS@
 USE_RTTI = @USE_RTTI@
 VERSION = @VERSION@
+WMF_CONFIG = @WMF_CONFIG@
 WOVERLOADED_VIRTUAL = @WOVERLOADED_VIRTUAL@
-XML_CONFIG = @XML_CONFIG@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -218,6 +228,8 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+cairo_CFLAGS = @cairo_CFLAGS@
+cairo_LIBS = @cairo_LIBS@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
 host = @host@
@@ -230,6 +242,12 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+libpixman_CFLAGS = @libpixman_CFLAGS@
+libpixman_LIBS = @libpixman_LIBS@
+libsvg_CFLAGS = @libsvg_CFLAGS@
+libsvg_LIBS = @libsvg_LIBS@
+libsvg_cairo_CFLAGS = @libsvg_cairo_CFLAGS@
+libsvg_cairo_LIBS = @libsvg_cairo_LIBS@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
@@ -238,18 +256,17 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-INCLUDES = -I.. -I../include -I../../contrib/cairo/src -I../../contrib/libsvg/src -I../../contrib/libsvg-cairo/src @SQ_XML_CFLAGS@ @SQ_FT_CFLAGS@
+INCLUDES = -I.. -I../include @SQ_SVG_CFLAGS@
 lib_LTLIBRARIES = libSQ_codec_svg.la
 libSQ_codec_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h svg2mem.cpp svg2mem.h
 libSQ_codec_svg_la_LDFLAGS = -release 0.1.1
-libSQ_codec_svg_la_LIBADD = @SQ_XML_LDFLAGS@ @SQ_FT_LDFLAGS@ -L../../contrib/libsvg-cairo/src -L../../contrib/libsvg/src -L../../contrib/libpixman/src -L../../contrib/cairo/src -lsvg-cairo -lsvg -lcairo -lpixman ../fileio.lo
+libSQ_codec_svg_la_LIBADD = @SQ_SVG_LDFLAGS@ ../fileio.lo
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -280,7 +297,7 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/svg/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/svg/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/svg/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/svg/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -547,6 +564,7 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
 
+
 #>+ 2
 KDE_DIST=Makefile.in Makefile.am 
 
@@ -566,7 +584,7 @@ force-reedit:
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/svg/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/svg/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/svg/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/svg/Makefile.in
 
 
 #>+ 21

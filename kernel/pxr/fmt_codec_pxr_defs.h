@@ -22,6 +22,4 @@
 #ifndef KSQUIRREL_CODEC_DEFS_pxr
 #define KSQUIRREL_CODEC_DEFS_pxr
 
-// define constants here
-
 #endif

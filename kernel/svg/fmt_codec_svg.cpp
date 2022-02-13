@@ -41,9 +41,7 @@
  */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{
-    cerr << "libSQ_codec_svg: using cairo, libpixman, libsvg and libsgv-cairo from CVS (25.05.2005)" << endl;
-}
+{}
 
 fmt_codec::~fmt_codec()
 {}
@@ -121,10 +119,11 @@ s32 fmt_codec::fmt_read_next_pass()
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     line++;
+    fmt_image *im = image(currentImage);
 
-    RGBA *nbuf = (RGBA *)(buf + line * finfo.image[currentImage].w * sizeof(RGBA));
+    RGBA *nbuf = (RGBA *)(buf + line * im->w * sizeof(RGBA));
 
-    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+    for(s32 i = 0;i < im->w;i++)
     {
 	(scan+i)->r = (nbuf+i)->b;
 	(scan+i)->g = (nbuf+i)->g;
@@ -210,3 +209,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

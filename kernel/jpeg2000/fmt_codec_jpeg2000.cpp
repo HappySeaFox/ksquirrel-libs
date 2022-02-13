@@ -48,7 +48,6 @@
 
 fmt_codec::fmt_codec() : fmt_codec_base()
 {
-    cerr << "libSQ_codec_jpeg2000: using jasper 1.701.0" << endl;
     jas_init();
 }
 
@@ -188,14 +187,15 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     s32 v[3];
     const s32* cmptlut = gs.cmptlut;
+    fmt_image *im = image(currentImage);
 
     line++;
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
     u8 *data = (u8 *)scan;
 
-    for(s32 x = 0; x < finfo.image[currentImage].w;++x)
+    for(s32 x = 0; x < im->w;++x)
     {
 	for(int k = 0; k < 3; ++k)
 	{
@@ -307,3 +307,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

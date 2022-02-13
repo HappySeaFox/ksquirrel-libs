@@ -44,9 +44,7 @@
 extern int call(int, char **, unsigned char **, int *, int *);
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{
-    cerr << "libSQ_codec_wmf: using libwmf 0.2.8.3" << endl;
-}
+{}
 
 fmt_codec::~fmt_codec()
 {}
@@ -134,13 +132,12 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    RGB rgb;
-    RGBA rgba;
+    fmt_image *im = image(currentImage);
     
     line++;
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
-    memcpy(scan, buf + line * finfo.image[currentImage].w * sizeof(RGBA), finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
+    memcpy(scan, buf + line * im->w * sizeof(RGBA), im->w * sizeof(RGBA));
 
     return SQE_OK;
 }
@@ -216,3 +213,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

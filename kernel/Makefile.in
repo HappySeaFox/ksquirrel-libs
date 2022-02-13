@@ -45,6 +45,10 @@ target_triplet = @target@
 @SQ_HAVE_WMF_TRUE@am__append_6 = wmf
 @SQ_HAVE_SVG_TRUE@am__append_7 = svg
 @SQ_HAVE_GIF_TRUE@am__append_8 = gif
+@SQ_HAVE_OPENEXR_TRUE@am__append_9 = openexr
+@SQ_HAVE_JPEG2000_TRUE@am__append_10 = jpeg2000
+@SQ_HAVE_TTF_TRUE@am__append_11 = ttf
+@SQ_HAVE_MNG_TRUE@am__append_12 = mng
 subdir = kernel
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -71,10 +75,10 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	uninstall-recursive nmcheck-recursive bcheck-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = aaa avs bmp cut fli hdr ico iff jpeg2000 koala lif mac \
-	mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun \
-	tga utah wal wbmp xbm xcur xpm xwd camera jpeg png tiff wmf \
-	svg gif
+DIST_SUBDIRS = aaa avs bmp cut fli hdr ico iff jbig koala lif mac mdl \
+	msp mtv pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah \
+	wal wbmp xbm xcur xpm xwd camera jpeg png tiff wmf svg gif \
+	openexr jpeg2000 ttf mng
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -131,6 +135,8 @@ MAKEINFO = @MAKEINFO@
 NOOPT_CFLAGS = @NOOPT_CFLAGS@
 NOOPT_CXXFLAGS = @NOOPT_CXXFLAGS@
 OBJEXT = @OBJEXT@
+OpenEXR_CFLAGS = @OpenEXR_CFLAGS@
+OpenEXR_LIBS = @OpenEXR_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -138,21 +144,24 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
+SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
 SQ_HAVE_CAMERA_FALSE = @SQ_HAVE_CAMERA_FALSE@
 SQ_HAVE_CAMERA_TRUE = @SQ_HAVE_CAMERA_TRUE@
-SQ_HAVE_FREETYPE_FALSE = @SQ_HAVE_FREETYPE_FALSE@
-SQ_HAVE_FREETYPE_TRUE = @SQ_HAVE_FREETYPE_TRUE@
 SQ_HAVE_GIF_FALSE = @SQ_HAVE_GIF_FALSE@
 SQ_HAVE_GIF_TRUE = @SQ_HAVE_GIF_TRUE@
 SQ_HAVE_JPEG2000_FALSE = @SQ_HAVE_JPEG2000_FALSE@
 SQ_HAVE_JPEG2000_TRUE = @SQ_HAVE_JPEG2000_TRUE@
 SQ_HAVE_JPEG_FALSE = @SQ_HAVE_JPEG_FALSE@
 SQ_HAVE_JPEG_TRUE = @SQ_HAVE_JPEG_TRUE@
+SQ_HAVE_MNG_FALSE = @SQ_HAVE_MNG_FALSE@
+SQ_HAVE_MNG_TRUE = @SQ_HAVE_MNG_TRUE@
 SQ_HAVE_OPENEXR_FALSE = @SQ_HAVE_OPENEXR_FALSE@
 SQ_HAVE_OPENEXR_TRUE = @SQ_HAVE_OPENEXR_TRUE@
 SQ_HAVE_PNG_FALSE = @SQ_HAVE_PNG_FALSE@
@@ -161,24 +170,29 @@ SQ_HAVE_SVG_FALSE = @SQ_HAVE_SVG_FALSE@
 SQ_HAVE_SVG_TRUE = @SQ_HAVE_SVG_TRUE@
 SQ_HAVE_TIFF_FALSE = @SQ_HAVE_TIFF_FALSE@
 SQ_HAVE_TIFF_TRUE = @SQ_HAVE_TIFF_TRUE@
+SQ_HAVE_TTF_FALSE = @SQ_HAVE_TTF_FALSE@
+SQ_HAVE_TTF_TRUE = @SQ_HAVE_TTF_TRUE@
 SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
-SQ_XML_CFLAGS = @SQ_XML_CFLAGS@
-SQ_XML_LDFLAGS = @SQ_XML_LDFLAGS@
+SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
+SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
+SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
+SQ_WMF_LDFLAGS = @SQ_WMF_LDFLAGS@
 STRIP = @STRIP@
 USE_EXCEPTIONS = @USE_EXCEPTIONS@
 USE_RTTI = @USE_RTTI@
 VERSION = @VERSION@
+WMF_CONFIG = @WMF_CONFIG@
 WOVERLOADED_VIRTUAL = @WOVERLOADED_VIRTUAL@
-XML_CONFIG = @XML_CONFIG@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -194,6 +208,8 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+cairo_CFLAGS = @cairo_CFLAGS@
+cairo_LIBS = @cairo_LIBS@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
 host = @host@
@@ -206,6 +222,12 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+libpixman_CFLAGS = @libpixman_CFLAGS@
+libpixman_LIBS = @libpixman_LIBS@
+libsvg_CFLAGS = @libsvg_CFLAGS@
+libsvg_LIBS = @libsvg_LIBS@
+libsvg_cairo_CFLAGS = @libsvg_cairo_CFLAGS@
+libsvg_cairo_LIBS = @libsvg_cairo_LIBS@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
@@ -214,19 +236,20 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = aaa avs bmp cut fli hdr ico iff jpeg2000 koala lif mac mdl \
-	msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun tga \
-	utah wal wbmp xbm xcur xpm xwd $(am__append_1) $(am__append_2) \
+SUBDIRS = aaa avs bmp cut fli hdr ico iff jbig koala lif mac mdl msp \
+	mtv pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah wal \
+	wbmp xbm xcur xpm xwd $(am__append_1) $(am__append_2) \
 	$(am__append_3) $(am__append_4) $(am__append_5) \
-	$(am__append_6) $(am__append_7) $(am__append_8)
-EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_filters.h fmt_filters.cpp fmt_types.h generate link fmt_filters_ChangeLog fmt_filters_VERSION fmt_filters_README genfdist
+	$(am__append_6) $(am__append_7) $(am__append_8) \
+	$(am__append_9) $(am__append_10) $(am__append_11) \
+	$(am__append_12)
+EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_types.h generate link
 #>- all: all-recursive
 #>+ 1
 all: docs-am  all-recursive
@@ -256,7 +279,7 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -558,8 +581,9 @@ uninstall-info: uninstall-info-recursive
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
 
+
 #>+ 2
-KDE_DIST=kwrite-am Makefile.in kwrite Makefile.am 
+KDE_DIST=Makefile.in kwrite kwrite-am Makefile.am 
 
 #>+ 2
 docs-am:
@@ -577,7 +601,7 @@ force-reedit:
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/Makefile.in
 
 
 #>+ 21

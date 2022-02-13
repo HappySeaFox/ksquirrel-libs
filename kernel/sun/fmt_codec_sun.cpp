@@ -178,12 +178,13 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     s32 decoded = 0;
     u8  indexes[32];
     bool lasthex;
+    fmt_image *im = image(currentImage);
     
     line++;
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    while(decoded < finfo.image[currentImage].w)
+    while(decoded < im->w)
     {
 	if(!frs.readCHex(var))
 	    return SQE_R_BADFILE;
@@ -195,7 +196,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	decoded += validbits;
 
-	lasthex = (decoded >= finfo.image[currentImage].w && line == finfo.image[currentImage].h-1);
+	lasthex = (decoded >= im->w && line == im->h-1);
 
 	if(!scanForLex(frs, true) && !lasthex)
 	    return SQE_R_BADFILE;
@@ -301,3 +302,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

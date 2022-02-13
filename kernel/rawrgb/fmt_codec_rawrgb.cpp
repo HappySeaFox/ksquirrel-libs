@@ -39,12 +39,15 @@
  * <WIDTH><HEIGHT><BIT_DEPTH>
  * <UNCOMPRESSED IMAGE DATA>
  *
+ * Example:
+ *
+ * [  32][  32][  24]
+ * [RGB][RGB][RGB][RGB]...
+ *
  */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{
-    cerr << "libSQ_codec_rawrgb: reads internal uncompressed raw rgb format with bit depth 24 or 32" << endl;
-}
+{}
 
 fmt_codec::~fmt_codec()
 {}
@@ -125,17 +128,18 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
     RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    if(finfo.image[currentImage].bpp == 32)
-	for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+    if(im->bpp == 32)
+	for(s32 i = 0;i < im->w;i++)
 	{
 	    frs.readK(&rgba, sizeof(RGBA));
 	    memcpy(scan+i, &rgba, sizeof(RGBA));
 	}
     else
-	for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+	for(s32 i = 0;i < im->w;i++)
 	{
 	    frs.readK(&rgb, sizeof(RGB));
 	    memcpy(scan+i, &rgb, sizeof(RGB));
@@ -235,3 +239,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("rawrgb");
 }
+
+#include "fmt_codec_cd_func.h"

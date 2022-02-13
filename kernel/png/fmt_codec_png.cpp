@@ -256,11 +256,12 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
+    fmt_image *im = image(currentImage);
     line++;
 
     png_read_rows(png_ptr, &rows[line], NULL, 1);
 
-    memcpy(scan, rows[line], finfo.image[currentImage].w * sizeof(RGBA));
+    memcpy(scan, rows[line], im->w * sizeof(RGBA));
     
     return SQE_OK;
 }
@@ -416,3 +417,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("png");
 }
+
+#include "fmt_codec_cd_func.h"

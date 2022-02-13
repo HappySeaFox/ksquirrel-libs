@@ -1,10 +1,13 @@
 Important
 ---------
 * if you you want JPEG, PNG and TIFF support,
-  please install libpng, libjpeg and libtiff. You should also install devel packages.
+  please install libpng, libjpeg and libtiff.
 * XWD library requires X11/XWDFile.h.
-* WMF library requires freetype2 and freetype2-devel
-* SVG library requires libxml2, freetype2, freetype2-devel and fontconfig
+* WMF library requires freetype2, libxml2
+* SVG library requires libxml2, freetype2, fontconfig, libsvg, cairo, libsvg-cairo, libpixman
+* MNG library requires libmng
+* TTF library requires libfreetype >= 2.1.9
+* All this packages plus -devel packages
 
 About
 -----
@@ -25,4 +28,8 @@ About
 
 Version
 -------
-Current version: 0.6.0-pre7
+Current version: see VERSION
+
+Copyrights
+----------
+JBIG library uses jbig-kit by (C) Markus Kuhn

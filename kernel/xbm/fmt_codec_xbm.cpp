@@ -168,11 +168,12 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
 //    printf("%ld ",lscan);return 1;
 
+    fmt_image *im = image(currentImage);
     s8 index,  c;
-    s32 counter = 0, remain=((finfo.image[currentImage].w)<=8)?(finfo.image[currentImage].w):((finfo.image[currentImage].w)%8), j;
+    s32 counter = 0, remain = (im->w <= 8) ? im->w : (im->w % 8), j;
     u32 bt;
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
     for(j = 0;j < lscan;j++)
     {
@@ -284,3 +285,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

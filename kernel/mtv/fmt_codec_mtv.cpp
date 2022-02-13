@@ -111,10 +111,11 @@ s32 fmt_codec::fmt_read_next_pass()
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+    for(s32 i = 0;i < im->w;i++)
     {
 	if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
@@ -205,3 +206,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("mtv");
 }
+
+#include "fmt_codec_cd_func.h"

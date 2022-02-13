@@ -74,8 +74,8 @@ libSQ_codec_${name}_la_LDFLAGS = -release 0.1.0
 EOF
 
 if test $HAVE_UTILS = yes ; then
-echo "LIBS = ../fileio.lo ../fmt_utils.lo" >> Makefile.am; else
-echo "LIBS = ../fileio.lo" >> Makefile.am;
+echo "libSQ_codec_${name}_la_LIBADD = ../fileio.lo ../fmt_utils.lo" >> Makefile.am; else
+echo "libSQ_codec_${name}_la_LIBADD = ../fileio.lo" >> Makefile.am;
 fi
 
 cat << EOF > ../include/fmt_codec_${name}.h
@@ -138,16 +138,6 @@ class fmt_codec : public fmt_codec_base
     private:
 	// define variables you need here
 };
-
-extern "C" fmt_codec_base* fmt_codec_create()
-{
-    return (new fmt_codec);
-}
-
-extern "C" void fmt_codec_destroy(fmt_codec_base *p)
-{
-    delete p;
-}
 
 #endif
 EOF
@@ -303,8 +293,9 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
     RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
 
     return SQE_OK;
@@ -380,6 +371,8 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"
 EOF
 
 if test $HAVE_BUILD = yes ; then create_build $name; fi

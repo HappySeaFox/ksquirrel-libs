@@ -53,19 +53,6 @@ class fmt_codec : public fmt_codec_base
 	virtual s32     fmt_write_next_pass();
 	virtual s32     fmt_write_scanline(RGBA *scan);
         virtual void    fmt_write_close();
-
-    private:
-	// define variables you need here
 };
-
-extern "C" fmt_codec_base* fmt_codec_create()
-{
-    return (new fmt_codec);
-}
-
-extern "C" void fmt_codec_destroy(fmt_codec_base *p)
-{
-    delete p;
-}
 
 #endif

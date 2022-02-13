@@ -166,13 +166,14 @@ s32 fmt_codec::fmt_read_next_pass()
     
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    const s32 W = finfo.image[currentImage].w * sizeof(RGBA);
+    fmt_image *im = image(currentImage);
+    const s32 W = im->w * sizeof(RGBA);
 
     uint32 buf[W];
     
     memset(scan, 255, W);
 
-    TIFFRGBAImageGet(&img, buf, finfo.image[currentImage].w, 1);
+    TIFFRGBAImageGet(&img, buf, im->w, 1);
 
     memcpy(scan, buf, W);
 
@@ -269,3 +270,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("tiff");
 }
+
+#include "fmt_codec_cd_func.h"

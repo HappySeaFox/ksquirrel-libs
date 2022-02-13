@@ -163,13 +163,14 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     RGBA rgba;
     s32 i = 0, k = 0;
     u8 c, count, value;
+    fmt_image *im = image(currentImage);
 
     line++;
     
     const u16 sz = scanmap[line];
     
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
-    memset(bytes, 0, finfo.image[currentImage].w);
+    memset(scan, 255, im->w * sizeof(RGBA));
+    memset(bytes, 0, im->w);
 
     printf("LINE %d, SZ %d --------------------------\n", line, sz);
 
@@ -221,7 +222,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	fmt_utils::expandMono1Byte(bytes[i], byte);
 	printf("*** %d => %d,%d,%d,%d,%d,%d,%d,%d\n", bytes[i], byte[0], byte[1], byte[2], byte[3], byte[4], byte[5], byte[6], byte[7]);
 
-	for(s32 j = 0;j < 8 || ind < finfo.image[currentImage].w;j++)
+	for(s32 j = 0;j < 8 || ind < im->w;j++)
 	{
 	    memcpy(scan+ind, palmono+byte[i], sizeof(RGB));
 	    ind++;
@@ -305,3 +306,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

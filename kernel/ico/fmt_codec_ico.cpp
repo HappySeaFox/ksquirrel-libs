@@ -247,13 +247,14 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     s32 i, j, count;
     u8 bt, ind;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    switch(finfo.image[currentImage].bpp)
+    switch(im->bpp)
     {
     	case 1:
-	    j = finfo.image[currentImage].w / 8;
+	    j = im->w / 8;
 	    count = 0;
 
 	    for(i = 0;i < j;i++)
@@ -294,12 +295,12 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 //		(scan+j)->a = (bAND[pixel]) ? 0 : 255;
 		j++;
 		pixel++;
-	    }while(j < finfo.image[currentImage].w);
+	    }while(j < im->w);
 
 	break;
 
 	case 8:
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
 		if(!frs.readK(&bt, 1)) return SQE_R_BADFILE;
 
@@ -313,7 +314,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 	    RGB rgb;
 	    
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
 		if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
@@ -329,7 +330,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 	    RGBA rgba;
 	    
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
 		if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
@@ -419,3 +420,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

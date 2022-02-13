@@ -224,7 +224,7 @@ std::string fmt_codec::fmt_quickinfo()
 
 std::string fmt_codec::fmt_filter()
 {
-    return std::string("*.crw *.kdc ");
+    return std::string("*.ay *.bmq *.cr2 *.crw *.cs1 *.dc2 *.dcr *.dng *.erf *.fff *.k25 *.kdc *.mdc *.mos *.mrw *.nef *.orf *.pef *.pxn *.raf *.raw *.rdc *.sr2 *.srf *.x3f");
 }
 
 std::string fmt_codec::fmt_mime()
@@ -305,17 +305,18 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
     RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    if(finfo.image[currentImage].bpp == 32)
-        for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+    if(im->bpp == 32)
+        for(s32 i = 0;i < im->w;i++)
         {
             frs.readK(&rgba, sizeof(RGBA));
             memcpy(scan+i, &rgba, sizeof(RGBA));
         }
     else
-	for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+	for(s32 i = 0;i < im->w;i++)
 	{
             frs.readK(&rgb, sizeof(RGB));
             memcpy(scan+i, &rgb, sizeof(RGB));
@@ -397,3 +398,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

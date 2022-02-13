@@ -57,16 +57,7 @@ class fmt_codec : public fmt_codec_base
 	u32   *starttab, *lengthtab;
 	SGI_HEADER      sfh;
 	s32             rle_row;
+        s8              *channel[4];
 };
-
-extern "C" fmt_codec_base* fmt_codec_create()
-{
-    return (new fmt_codec);
-}
-
-extern "C" void fmt_codec_destroy(fmt_codec_base *p)
-{
-    delete p;
-}
 
 #endif

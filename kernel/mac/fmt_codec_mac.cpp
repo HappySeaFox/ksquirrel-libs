@@ -139,8 +139,9 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     s32 i = 0;
     u8 c, count, value;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
     
     printf("---------------------------------\n");
 
@@ -281,3 +282,5 @@ bool checkForMacBinary(u8 *h)
 	
     return true;
 }
+
+#include "fmt_codec_cd_func.h"

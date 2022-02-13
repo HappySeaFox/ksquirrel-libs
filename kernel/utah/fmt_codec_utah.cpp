@@ -97,9 +97,9 @@ s32 fmt_codec::fmt_read_next()
 
     if(!frs.readK(&utah, sizeof(UTAH_HEADER))) return SQE_R_BADFILE;
 
-    if(utah.magic != UTAH_MAGIC)  return SQE_R_BADFILE;
+    if(utah.magic != UTAH_MAGIC) return SQE_R_BADFILE;
 
-    if(utah.ncolors != 3 && utah.ncolors != 4) return SQE_R_NOTSUPPORTED;
+    if(utah.ncmap || (utah.ncolors != 3 && utah.ncolors != 4)) return SQE_R_NOTSUPPORTED;
 
     if(utah.ncmap != 1 && utah.ncmap != 0 && utah.ncmap != utah.ncolors) return SQE_R_BADFILE;
 
@@ -116,6 +116,23 @@ s32 fmt_codec::fmt_read_next()
     utah.green,
     utah.blue
     );
+
+    bool clearfirst = utah.flags & 1;
+    bool nobackgr   = utah.flags & 2;
+    bool alpha      = utah.flags & 4;
+    bool comments   = utah.flags & 8;
+
+    // read comments, if present
+    if(comments)
+    {
+        u16 len;
+        
+        if(!frs.readK(&len, sizeof(u16))) return SQE_R_BADFILE;
+
+        frs.seekg(len, ios::cur);
+    }
+
+    printf("pos: %d\n", (int)frs.tellg());
 
     image.compression = "RLE";
     image.colorspace = fmt_utils::colorSpaceByBpp(8);
@@ -134,8 +151,9 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
     RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
 
     return SQE_OK;
@@ -211,3 +229,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

@@ -176,14 +176,15 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     RGB rgb;
     RGBA rgba;
     u8 c, *p;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
     switch(sct.format)
     {
 	case SCT_FORMAT_RGB:
 	    for(s32 ch = 0;ch < 3;ch++)
-		for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+		for(s32 i = 0;i < im->w;i++)
 		{
 		    if(!frs.readK(&c, sizeof(u8))) return SQE_R_BADFILE;
 
@@ -193,7 +194,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	break;
 
 	case SCT_FORMAT_GRAY:
-	    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+	    for(s32 i = 0;i < im->w;i++)
 	    {
 		if(!frs.readK(&c, sizeof(c))) return SQE_R_BADFILE;
 
@@ -205,7 +206,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	case SCT_FORMAT_CMYK:
 	    for(s32 ch = 0;ch < 4;ch++)
-		for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+		for(s32 i = 0;i < im->w;i++)
 		{
 		    if(!frs.readK(&c, sizeof(u8))) return SQE_R_BADFILE;
 
@@ -213,7 +214,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		    *(p + ch) = c;
 		}
 
-		for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+		for(s32 i = 0;i < im->w;i++)
 		{
             	    scan[i].r = (scan[i].r * scan[i].a) >> 8;
 		    scan[i].g = (scan[i].g * scan[i].a) >> 8;
@@ -296,3 +297,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

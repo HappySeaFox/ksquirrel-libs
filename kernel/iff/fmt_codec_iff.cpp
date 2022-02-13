@@ -285,6 +285,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB rgb;
     RGBA rgba;
+    fmt_image *im = image(currentImage);
     
     line++;
 /*
@@ -297,7 +298,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	}
     }
 */
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
     return SQE_OK;
 }
@@ -419,3 +420,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

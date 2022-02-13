@@ -45,9 +45,7 @@ InterlacedOffset[] = { 0, 4, 2, 1 }, /* The way Interlaced image should. */
 InterlacedJumps[] = { 8, 8, 4, 2 };    /* be read - offsets and jumps... */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{
-    cerr << "libSQ_codec_gif: using libungif 4.1.3" << endl;
-}
+{}
 
 fmt_codec::~fmt_codec()
 {}
@@ -304,24 +302,14 @@ s32 fmt_codec::fmt_read_next()
 	    back.a = (transIndex != -1) ? 0 : 255;
 
 	    for(s32 k = 0;k < gif->SWidth;k++)
-	    {
     		memcpy(saved+k, &back, sizeof(RGBA));
-	    }
-/*
-	    snprs32f(finfo.image[currentImage].dump, sizeof(finfo.image[currentImage].dump), "%s\n%dx%d\n%d\n%s\nLZW\n%d\n",
-		fmt_quickinfo(),
-    		finfo.image[currentImage].w,
-		finfo.image[currentImage].h,
-		finfo.image[currentImage].bpp,
-		"Color indexed",
-		finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA));
-*/
+
 	    image.compression = "LZW";
-    	image.colorspace = "Color indexed";
+    	    image.colorspace = "Color indexed";
 	    image.interlaced = gif->Image.Interlace;
 	    image.passes = (gif->Image.Interlace) ? 4 : 1;
     	
-		finfo.image.push_back(image);
+	    finfo.image.push_back(image);
 
 	    layer = -1;
 	    currentPass = -1;
@@ -333,17 +321,19 @@ s32 fmt_codec::fmt_read_next()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
+    fmt_image *im = image(currentImage);
+
     if(curLine < Row || curLine >= Row + Height)
     {
-    	if(currentPass == finfo.image[currentImage].passes-1)
+    	if(currentPass == im->passes-1)
 	{
-	    memcpy(scan, Last[curLine], finfo.image[currentImage].w * sizeof(RGBA));
+	    memcpy(scan, Last[curLine], im->w * sizeof(RGBA));
 
 	    if(lastDisposal == DISPOSAL_BACKGROUND)
 		if(curLine >= lastRow && curLine < lastRow+lastHeight)
 		{
 		    memcpy(scan+lastCol, saved, lastWidth * sizeof(RGBA));
-		    memcpy(Last[curLine], scan, finfo.image[currentImage].w * sizeof(RGBA));
+		    memcpy(Last[curLine], scan, im->w * sizeof(RGBA));
 		}
 	}
 	
@@ -359,7 +349,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
     if(gif->Image.Interlace)
     {
-	memcpy(scan, Last[curLine-1], finfo.image[currentImage].w * sizeof(RGBA));
+	memcpy(scan, Last[curLine-1], im->w * sizeof(RGBA));
 
 	if(line == 0)
 	    j = InterlacedOffset[layer];
@@ -369,7 +359,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    if(DGifGetLine(gif, buf, Width) == GIF_ERROR)
 	    {
 	        PrintGifError();
-	        memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+	        memset(scan, 255, im->w * sizeof(RGBA));
 	        return SQE_R_BADFILE;
 	    }
 	    else
@@ -415,24 +405,24 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		    }
 		}
 
-		Lines[line] = (RGBA*)realloc(Lines[line], finfo.image[currentImage].w * sizeof(RGBA));
+		Lines[line] = (RGBA*)realloc(Lines[line], im->w * sizeof(RGBA));
 
 		if(!Lines[line])
 		    return SQE_R_NOMEMORY;
 			
-		memcpy(Lines[line], scan, finfo.image[currentImage].w * sizeof(RGBA));
+		memcpy(Lines[line], scan, im->w * sizeof(RGBA));
 	    }
 	} // if(line == j)
 	else
 	{
 	    if(Lines[line])
-	        memcpy(scan, Lines[line], finfo.image[currentImage].w * sizeof(RGBA));
+	        memcpy(scan, Lines[line], im->w * sizeof(RGBA));
 	    else
-	        memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+	        memset(scan, 255, im->w * sizeof(RGBA));
 	}
 
-	if(currentPass == finfo.image[currentImage].passes-1)
-	    memcpy(Last[curLine-1], scan, finfo.image[currentImage].w * sizeof(RGBA));
+	if(currentPass == im->passes-1)
+	    memcpy(Last[curLine-1], scan, im->w * sizeof(RGBA));
 
 	line++;
     }
@@ -440,13 +430,13 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     {
         if(DGifGetLine(gif, buf, Width) == GIF_ERROR)
         {
-	    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+	    memset(scan, 255, im->w * sizeof(RGBA));
 	    PrintGifError();
 	    return SQE_R_BADFILE;
 	}
 	else
 	{
-	    memcpy(scan, Last[curLine-1], finfo.image[currentImage].w * sizeof(RGBA));
+	    memcpy(scan, Last[curLine-1], im->w * sizeof(RGBA));
 
 	    if(lastDisposal == DISPOSAL_BACKGROUND)
 	    {
@@ -493,7 +483,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		}
 	    } // for
 
-	    memcpy(Last[curLine-1], scan, finfo.image[currentImage].w * sizeof(RGBA));
+	    memcpy(Last[curLine-1], scan, im->w * sizeof(RGBA));
 	}
     }
 
@@ -596,3 +586,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

@@ -53,9 +53,7 @@ RGBA RgbaToRGBA(struct Rgba);
  */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{
-    cerr << "libSQ_codec_openexr: using OpenEXR library 1.2.2" << endl;
-}
+{}
 
 fmt_codec::~fmt_codec()
 {}
@@ -197,12 +195,13 @@ s32 fmt_codec::fmt_read_next_pass()
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGBA rgba;
+    fmt_image *im = image(currentImage);
     
     line++;
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    for(s32 x = 0; x < finfo.image[currentImage].w; x++)
+    for(s32 x = 0; x < im->w; x++)
     {
 	rgba = RgbaToRGBA(pixels[line][x]);
 	memcpy(scan+x, &rgba, sizeof(RGBA));
@@ -376,3 +375,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("exr");
 }
+
+#include "fmt_codec_cd_func.h"

@@ -192,13 +192,14 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    const s32	bpl = finfo.image[currentImage].w * (cpp+2);
+    fmt_image *im = image(currentImage);
+    const s32	bpl = im->w * (cpp+2);
     s32		i, j;
     s8 	line[bpl], key[KEY_LENGTH];
     
 //    printf("bpl: %d\n", bpl);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
     memset(key, 0, sizeof(key));
     memset(line, 0, sizeof(line));
 /*    
@@ -206,7 +207,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     printf("line %d\n", ee);
     ee++;
 */
-    switch(finfo.image[currentImage].bpp)
+    switch(im->bpp)
     {
 	case 24:
 	{
@@ -219,7 +220,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    while(line[i++] != '\"') // skip spaces
 	    {}
 
-	    for(;j < finfo.image[currentImage].w;j++)
+	    for(;j < im->w;j++)
 	    {
 		strncpy(key, line+i, cpp);
 		i += cpp;
@@ -343,3 +344,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

@@ -115,7 +115,7 @@ s32 fmt_codec::fmt_read_next()
 
     if(!frs.readK(&xcur_chunk, sizeof(XCUR_CHUNK_HEADER))) return SQE_R_BADFILE;
     if(!frs.readK(&xcur_im, sizeof(XCUR_CHUNK_IMAGE))) return SQE_R_BADFILE;
-    
+
     image.w = xcur_im.width;
     image.h = xcur_im.height;
     image.bpp = 32;
@@ -137,8 +137,9 @@ s32 fmt_codec::fmt_read_next_pass()
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+    for(s32 i = 0;i < im->w;i++)
     {
 	if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
@@ -157,6 +158,9 @@ void fmt_codec::fmt_read_close()
 
     if(tocs)
 	delete [] tocs;
+
+    finfo.meta.clear();
+    finfo.image.clear();
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
@@ -221,3 +225,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

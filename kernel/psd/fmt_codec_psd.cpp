@@ -266,14 +266,15 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     u8 c, value, *p;
     s32 count = 0;
+    fmt_image *im = image(currentImage);
     
     line++;
 
-    memcpy(scan, last[line], finfo.image[currentImage].w * sizeof(RGBA));
+    memcpy(scan, last[line], im->w * sizeof(RGBA));
 
     if(compression)
     {
-	while(count < finfo.image[currentImage].w)
+	while(count < im->w)
 	{
 	    if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
 
@@ -321,13 +322,13 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	}
     }
 
-    memcpy(last[line], scan, finfo.image[currentImage].w * sizeof(RGBA));
+    memcpy(last[line], scan, im->w * sizeof(RGBA));
 
-    if(layer == finfo.image[currentImage].passes-1)
+    if(layer == im->passes-1)
     {
 	if(mode == PSD_CMYK)
 	{
-	    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+	    for(s32 i = 0;i < im->w;i++)
 	    {
 		scan[i].r = (scan[i].r * scan[i].a) >> 8;
 		scan[i].g = (scan[i].g * scan[i].a) >> 8;
@@ -343,7 +344,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    const s32 z1 = 768/3;
 	    const s32 z2 = z1 << 1;
 
-	    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+	    for(s32 i = 0;i < im->w;i++)
 	    {
 		u8 *p = (u8*)pal;
 		r = scan[i].r;
@@ -358,7 +359,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 	    u8 v;
 
-	    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+	    for(s32 i = 0;i < im->w;i++)
 	    {
 		v = scan[i].r;
 
@@ -457,3 +458,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

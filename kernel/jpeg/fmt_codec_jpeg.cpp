@@ -198,13 +198,13 @@ s32 fmt_codec::fmt_read_next_pass()
 	
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    s32 i;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
     (void)jpeg_read_scanlines(&cinfo, buffer, 1);
 
-    for(i = 0;i < finfo.image[0].w;i++)
+    for(s32 i = 0;i < im->w;i++)
 	memcpy(scan+i, buffer[0] + i*3, 3);
 
     return SQE_OK;
@@ -315,3 +315,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("jpeg");
 }
+
+#include "fmt_codec_cd_func.h"

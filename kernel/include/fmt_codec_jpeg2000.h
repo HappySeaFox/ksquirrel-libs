@@ -72,14 +72,4 @@ class fmt_codec : public fmt_codec_base
 	s32		family;
 };
 
-extern "C" fmt_codec_base* fmt_codec_create()
-{
-    return (new fmt_codec);
-}
-
-extern "C" void fmt_codec_destroy(fmt_codec_base *p)
-{
-    delete p;
-}
-
 #endif

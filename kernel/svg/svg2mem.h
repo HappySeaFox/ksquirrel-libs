@@ -1,4 +1,4 @@
-#include <cairo.h>
+#include <cairo/cairo.h>
 #include <svg-cairo.h>
 
 extern "C" {

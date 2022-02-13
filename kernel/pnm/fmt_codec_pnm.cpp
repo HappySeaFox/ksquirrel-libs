@@ -187,10 +187,11 @@ s32 fmt_codec::fmt_read_next()
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     RGB		rgb;
-    s8	bt;
+    u8	        bt;
     s32		i;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
     switch(pnm)
     {
@@ -198,7 +199,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
         {
 	    s32 d;
 
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
 		fscanf(fptr, format, &d);
 		if(sq_ferror(fptr)) return SQE_R_BADFILE;
@@ -217,7 +218,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 	    s32 d;
 
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
 		fscanf(fptr, format, &d);
 		if(sq_ferror(fptr)) return SQE_R_BADFILE;
@@ -233,7 +234,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	break;
 
 	case 3:
-    	    for(i = 0;i < finfo.image[currentImage].w;i++)
+    	    for(i = 0;i < im->w;i++)
 	    {
 		fscanf(fptr, format, (s32*)&rgb.r);
 		fscanf(fptr, format, (s32*)&rgb.g);
@@ -248,7 +249,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	break;
 
 	case 6:
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
 		if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQE_R_BADFILE;
 
@@ -259,44 +260,39 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	case 5:
 	{
-	    s32 pos;
-	    pos = ftell(fptr);
-//	    printf("POS1: %d, ", pos);
-
-	    for(i = 0;i < finfo.image[currentImage].w;i++)
+	    for(i = 0;i < im->w;i++)
 	    {
-		if(!sq_fread(&bt,1,1,fptr)) return SQE_R_BADFILE;
+		if(!sq_fread(&bt, 1, 1, fptr)) return SQE_R_BADFILE;
 
-		rgb.r = rgb.g = rgb.b = bt;
-		memcpy(scan+i, &rgb, 3);
+		memset(scan+i, int(bt*koeff), sizeof(RGB));
 	    }
 	}
 	break;
 	
 	case 4:
 	{
-	    s32 index;//, remain = finfo.image[currentImage].w % 8;
+	    s32 index;//, remain = im->w % 8;
 
 	    for(i = 0;;)
 	    {
 		if(!sq_fread(&bt,1,1,fptr)) return SQE_R_BADFILE;
 
 		index = (bt&128)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&64)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&32)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&16)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&8)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&4)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&2)?1:0;
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 		index = (bt&1);
-		memcpy(scan+i, palmono+index, 3);i++; if(i >= finfo.image[currentImage].w) break;
+		memcpy(scan+i, palmono+index, 3);i++; if(i >= im->w) break;
 	    }
 	}
 	break;
@@ -420,3 +416,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("pnm");
 }
+
+#include "fmt_codec_cd_func.h"

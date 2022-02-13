@@ -158,6 +158,8 @@ MAKEINFO = @MAKEINFO@
 NOOPT_CFLAGS = @NOOPT_CFLAGS@
 NOOPT_CXXFLAGS = @NOOPT_CXXFLAGS@
 OBJEXT = @OBJEXT@
+OpenEXR_CFLAGS = @OpenEXR_CFLAGS@
+OpenEXR_LIBS = @OpenEXR_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -165,21 +167,24 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
+SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
 SQ_HAVE_CAMERA_FALSE = @SQ_HAVE_CAMERA_FALSE@
 SQ_HAVE_CAMERA_TRUE = @SQ_HAVE_CAMERA_TRUE@
-SQ_HAVE_FREETYPE_FALSE = @SQ_HAVE_FREETYPE_FALSE@
-SQ_HAVE_FREETYPE_TRUE = @SQ_HAVE_FREETYPE_TRUE@
 SQ_HAVE_GIF_FALSE = @SQ_HAVE_GIF_FALSE@
 SQ_HAVE_GIF_TRUE = @SQ_HAVE_GIF_TRUE@
 SQ_HAVE_JPEG2000_FALSE = @SQ_HAVE_JPEG2000_FALSE@
 SQ_HAVE_JPEG2000_TRUE = @SQ_HAVE_JPEG2000_TRUE@
 SQ_HAVE_JPEG_FALSE = @SQ_HAVE_JPEG_FALSE@
 SQ_HAVE_JPEG_TRUE = @SQ_HAVE_JPEG_TRUE@
+SQ_HAVE_MNG_FALSE = @SQ_HAVE_MNG_FALSE@
+SQ_HAVE_MNG_TRUE = @SQ_HAVE_MNG_TRUE@
 SQ_HAVE_OPENEXR_FALSE = @SQ_HAVE_OPENEXR_FALSE@
 SQ_HAVE_OPENEXR_TRUE = @SQ_HAVE_OPENEXR_TRUE@
 SQ_HAVE_PNG_FALSE = @SQ_HAVE_PNG_FALSE@
@@ -188,24 +193,29 @@ SQ_HAVE_SVG_FALSE = @SQ_HAVE_SVG_FALSE@
 SQ_HAVE_SVG_TRUE = @SQ_HAVE_SVG_TRUE@
 SQ_HAVE_TIFF_FALSE = @SQ_HAVE_TIFF_FALSE@
 SQ_HAVE_TIFF_TRUE = @SQ_HAVE_TIFF_TRUE@
+SQ_HAVE_TTF_FALSE = @SQ_HAVE_TTF_FALSE@
+SQ_HAVE_TTF_TRUE = @SQ_HAVE_TTF_TRUE@
 SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
-SQ_XML_CFLAGS = @SQ_XML_CFLAGS@
-SQ_XML_LDFLAGS = @SQ_XML_LDFLAGS@
+SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
+SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
+SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
+SQ_WMF_LDFLAGS = @SQ_WMF_LDFLAGS@
 STRIP = @STRIP@
 USE_EXCEPTIONS = @USE_EXCEPTIONS@
 USE_RTTI = @USE_RTTI@
 VERSION = @VERSION@
+WMF_CONFIG = @WMF_CONFIG@
 WOVERLOADED_VIRTUAL = @WOVERLOADED_VIRTUAL@
-XML_CONFIG = @XML_CONFIG@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -221,6 +231,8 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+cairo_CFLAGS = @cairo_CFLAGS@
+cairo_LIBS = @cairo_LIBS@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
 host = @host@
@@ -233,6 +245,12 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+libpixman_CFLAGS = @libpixman_CFLAGS@
+libpixman_LIBS = @libpixman_LIBS@
+libsvg_CFLAGS = @libsvg_CFLAGS@
+libsvg_LIBS = @libsvg_LIBS@
+libsvg_cairo_CFLAGS = @libsvg_cairo_CFLAGS@
+libsvg_cairo_LIBS = @libsvg_cairo_LIBS@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
@@ -241,7 +259,6 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -286,7 +303,7 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/camera/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/camera/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/camera/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/camera/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -574,6 +591,7 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
 
+
 #>+ 2
 KDE_DIST=Makefile.in fmt_utils.Plo Makefile.am 
 
@@ -593,7 +611,7 @@ force-reedit:
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/camera/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/camera/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/camera/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/camera/Makefile.in
 
 
 #>+ 21

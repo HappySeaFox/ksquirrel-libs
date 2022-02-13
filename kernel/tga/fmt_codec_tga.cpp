@@ -209,8 +209,9 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     s32 j, counter = 0;
     RGB rgb;
     RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * 4);
+    memset(scan, 255, im->w * 4);
 
     switch(tfh.ImageType)
     {
@@ -226,7 +227,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 	    if(tfh.ImageSpecDepth==24)
 	    {
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 		    if(!frs.readK(&rgb, sizeof(RGB))) return SQE_R_BADFILE;
 
@@ -238,7 +239,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    }
 	    else if(tfh.ImageSpecDepth==32)
 	    {
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 		    if(!frs.readK(&rgba, sizeof(RGBA))) return SQE_R_BADFILE;
 
@@ -252,7 +253,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	    {
 		u16 word;
 
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 		    if(!frs.readK(&word, 2)) return SQE_R_BADFILE;
 
@@ -287,7 +288,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     	        // RLE packet
     		if(bt >= 128)
 		{
-		    switch(finfo.image[currentImage].bpp)
+		    switch(im->bpp)
 		    {
 			case 16:
     			    if(!frs.readK(&word, 2)) return SQE_R_BADFILE;
@@ -299,7 +300,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 			    for(j = 0;j < count;j++)
 			    {
 				memcpy(scan+(counter++), &rgb, sizeof(RGB));
-				if(counter >= finfo.image[currentImage].w-1) goto lts;
+				if(counter >= im->w-1) goto lts;
 			    }
 			break;
 
@@ -313,7 +314,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 				(scan+counter)->b = rgb.r;
 				counter++;
 
-				if(counter >= finfo.image[currentImage].w-1) goto lts;
+				if(counter >= im->w-1) goto lts;
 			    }
 			break;
 
@@ -327,14 +328,14 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 				(scan+counter)->b = rgba.r;
 				counter++;
 
-				if(counter >= finfo.image[currentImage].w-1) goto lts;
+				if(counter >= im->w-1) goto lts;
 			    }
 			break;
 		    }
 		}
 		else // Raw packet
 		{
-		    switch(finfo.image[currentImage].bpp)
+		    switch(im->bpp)
 		    {
 			case 16:
 
@@ -347,7 +348,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 				rgb.r = ((word&0x7c00)>>10) << 3;
 
 				memcpy(scan+(counter++), &rgb, sizeof(RGB));
-				if(counter >= finfo.image[currentImage].w-1) goto lts;
+				if(counter >= im->w-1) goto lts;
 			    }
 			break;
 
@@ -361,7 +362,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 				(scan+counter)->b = rgb.r;
 				counter++;
 
-				if(counter >= finfo.image[currentImage].w-1) goto lts;
+				if(counter >= im->w-1) goto lts;
 			    }
 			break;
 
@@ -374,7 +375,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     				(scan+counter)->g = rgba.g;
 				(scan+counter)->b = rgba.r;
 				counter++;
-				if(counter >= finfo.image[currentImage].w-1) goto lts;
+				if(counter >= im->w-1) goto lts;
 			    }
 			break;
 		    }
@@ -392,7 +393,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     if(fliph)
     {
 	RGBA t;
-	s32 ww = finfo.image[currentImage].w;
+	s32 ww = im->w;
 
 	for(j = 0;j < ww / 2;j++)
 	{
@@ -475,3 +476,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

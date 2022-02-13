@@ -186,15 +186,14 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    RGB rgb;
-    RGBA rgba;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
     
     line++;
 
-    for(int i = 0;i < finfo.image[currentImage].w;i++)
-	memcpy(scan+i, mono + (wbmp.bitmap[line * finfo.image[currentImage].w + i]), sizeof(RGB));
+    for(s32 i = 0;i < im->w;i++)
+	memcpy(scan+i, mono + (wbmp.bitmap[line * im->w + i]), sizeof(RGB));
 
     return SQE_OK;
 }
@@ -371,3 +370,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

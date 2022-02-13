@@ -178,16 +178,17 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
     u16 remain, scanShouldBe, j, counter = 0;
     u8 bt, dummy;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    switch(finfo.image[currentImage].bpp)
+    switch(im->bpp)
     {
     	case 1:
 	{
 		u8	index;
-		remain=((finfo.image[currentImage].w)<=8)?(0):((finfo.image[currentImage].w)%8);
-		scanShouldBe = finfo.image[currentImage].w;
+		remain=((im->w)<=8)?(0):((im->w)%8);
+		scanShouldBe = im->w;
 
 		s32 tmp = scanShouldBe;
 		scanShouldBe /= 8;
@@ -220,9 +221,9 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	case 4:
 	{
 		u8	index;
-		remain = (finfo.image[currentImage].w)%2;
+		remain = (im->w)%2;
 
-		s32 ck = (finfo.image[currentImage].w%2)?(finfo.image[currentImage].w + 1):(finfo.image[currentImage].w);
+		s32 ck = (im->w%2)?(im->w + 1):(im->w);
 		ck /= 2;
 
 		for(j = 0;j < ck-1;j++)
@@ -258,7 +259,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	case 8:
 	{
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 			if(!frs.readK(&bt, 1))
 			    return SQE_R_BADFILE;
@@ -278,7 +279,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 		u16 word;
 
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 			if(!frs.readK(&word, 2))
 			    return SQE_R_BADFILE;
@@ -300,7 +301,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 		RGB rgb;
 
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 		    if(!frs.readK(&rgb, sizeof(RGB)))
 			return SQE_R_BADFILE;
@@ -323,7 +324,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	{
 		RGBA rgba;
 
-		for(j = 0;j < finfo.image[currentImage].w;j++)
+		for(j = 0;j < im->w;j++)
 		{
 		    if(!frs.readK(&rgba, sizeof(RGBA)))
 			return SQE_R_BADFILE;
@@ -454,3 +455,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("bmp");
 }
+
+#include "fmt_codec_cd_func.h"

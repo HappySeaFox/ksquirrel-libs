@@ -147,12 +147,14 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    fmt_image *im = image(currentImage);
 
-    if(!frs.readK(bits, finfo.image[currentImage].w))
+    memset(scan, 255, im->w * sizeof(RGBA));
+
+    if(!frs.readK(bits, im->w))
 	return SQE_R_BADFILE;
 
-    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
+    for(s32 i = 0;i < im->w;i++)
     {
 	scan[i].r = q2pal[bits[i] * 3];
 	scan[i].g = q2pal[bits[i] * 3 + 1];
@@ -235,3 +237,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"

@@ -124,10 +124,11 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     s32	len = 0, i, counter = 0;
     u8 count;
     RGB	rgb;
+    fmt_image *im = image(currentImage);
 
-    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+    memset(scan, 255, im->w * sizeof(RGBA));
 
-    switch(finfo.image[currentImage].bpp)
+    switch(im->bpp)
     {
 	case 24:
 	    do
@@ -142,7 +143,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 		for(i = 0;i < count;i++)
 		    memcpy(scan+counter++, &rgb, 3);
 		    
-	    }while(len < finfo.image[currentImage].w);
+	    }while(len < im->w);
 	break;
 
     }
@@ -221,3 +222,5 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 {
     return std::string("");
 }
+
+#include "fmt_codec_cd_func.h"
