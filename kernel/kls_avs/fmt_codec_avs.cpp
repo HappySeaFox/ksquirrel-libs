@@ -50,6 +50,7 @@ void fmt_codec::options(codec_options *o)
     o->name = "AVS X image";
     o->filter = "*.x ";
     o->mime = "";
+    o->mimetype = "image/x-avs";
     o->config = "";
     o->pixmap = codec_avs;
     o->readable = true;

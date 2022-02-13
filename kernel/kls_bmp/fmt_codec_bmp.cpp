@@ -51,6 +51,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.bmp *.dib ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-bmp";
     o->pixmap = codec_bmp;
     o->readable = true;
     o->canbemultiple = false;

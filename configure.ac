@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.7.0], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.7.1], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.0)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.1)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -24,6 +24,8 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+AM_PROG_CC_C_O
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -182,6 +184,18 @@ AC_ARG_ENABLE(dxf,
               [     case "${enableval}" in
                        yes) sq_codec_dxf="yes" ;;
                        no)  sq_codec_dxf="no" ;;
+                       *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
+                    esac]
+             )
+
+sq_codec_fig="yes"
+sq_have_fig="no"
+
+AC_ARG_ENABLE(fig,
+              [AS_HELP_STRING([--disable-fig], [don't compile fig codec  [default=no]])],
+              [     case "${enableval}" in
+                       yes) sq_codec_fig="yes" ;;
+                       no)  sq_codec_fig="no" ;;
                        *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
                     esac]
              )
@@ -429,14 +443,19 @@ if [ test -n "$FREETYPE_CONFIG" ]; then
 
         AC_CHECK_HEADER([ft2build.h], [
             AC_CHECK_HEADER([freetype/ftbitmap.h], [
-                AC_CHECK_LIB([freetype], [FTC_ImageCache], [
-                    AC_CHECK_LIB([freetype], [FT_Bitmap_New], [
-                        SQ_FT_LDFLAGS="$freetype_libs"
-                        SQ_FT_CFLAGS="$freetype_cflags"
-                            sq_have_ttf="yes"
-                        AC_SUBST(SQ_FT_CFLAGS)
-                        AC_SUBST(SQ_FT_LDFLAGS)
+                AC_CHECK_LIB([freetype], [FTC_ImageCache_New], [
+                    AC_CHECK_LIB([freetype], [FTC_SBitCache_New], [
+                        AC_CHECK_LIB([freetype], [FTC_CMapCache_New], [
+                            AC_CHECK_LIB([freetype], [FTC_Manager_New], [
 
+                                SQ_FT_LDFLAGS="$freetype_libs"
+                                SQ_FT_CFLAGS="$freetype_cflags"
+                                sq_have_ttf="yes"
+                                AC_SUBST(SQ_FT_CFLAGS)
+                                AC_SUBST(SQ_FT_LDFLAGS)
+
+                            ],[ sq_have_ttf="no" missing TTF freetype])
+                        ],[ sq_have_ttf="no" missing TTF freetype])
                     ],[ sq_have_ttf="no" missing TTF freetype])
                 ],[ sq_have_ttf="no" missing TTF freetype])
             ],[ sq_have_ttf="no" missing TTF freetype])
@@ -456,6 +475,18 @@ if [ test -n "$DJVU" ]; then
         sq_have_djvu="yes"
         AC_SUBST(DJVU)
 else missing_prog DJVU ddjvu
+fi
+
+fi
+
+if test $sq_codec_fig = yes; then
+
+AC_PATH_PROG(XFIG, fig2dev)
+
+if [ test -n "$XFIG" ]; then
+        sq_have_fig="yes"
+        AC_SUBST(XFIG)
+else missing_prog XFIG fig2dev
 fi
 
 fi
@@ -503,6 +534,15 @@ if test $sq_codec_pi1 = yes; then
     AC_PATH_PROG(PI1TOPPM, pi1toppm)
     if [ test -n "$PI1TOPPM" ]; then sq_have_pi1="yes" AC_SUBST(PI1TOPPM)
     else missing_prog PI1 netpbm
+    fi
+fi
+
+sq_codec_pi3="yes"
+sq_have_pi3="no"
+if test $sq_codec_pi3 = yes; then
+    AC_PATH_PROG(PI3TOPPM, pi3topbm)
+    if [ test -n "$PI3TOPPM" ]; then sq_have_pi3="yes" AC_SUBST(PI3TOPPM)
+    else missing_prog PI3 netpbm
     fi
 fi
 
@@ -556,7 +596,7 @@ fi
 
 SQ_LOCAL_RPATH="-L../ksquirrel-libs -lksquirrel-libs"
 AC_SUBST(SQ_LOCAL_RPATH)
-SQ_RELEASE="-version-info 7:0:7"
+SQ_RELEASE="-version-info 7:1:7"
 AC_SUBST(SQ_RELEASE)
 
 ################### for xcf codec ##############
@@ -632,6 +672,7 @@ kernel/kls_jpeg/Makefile
 kernel/kls_xwd/Makefile
 kernel/kls_tiff/Makefile
 kernel/kls_camera/Makefile
+kernel/kls_camera/ksquirrel-libs-camera2ppm
 kernel/kls_pxr/Makefile
 kernel/kls_ttf/Makefile
 kernel/kls_ttf/ftview/Makefile
@@ -642,6 +683,8 @@ kernel/kls_djvu/Makefile
 kernel/kls_dxf/Makefile
 kernel/kls_xcf/Makefile
 kernel/kls_xcf/xcf2pnm/Makefile
+kernel/kls_fig/ksquirrel-libs-fig2ppm
+kernel/kls_fig/Makefile
 kernel/kls_mac/ksquirrel-libs-mac2ppm
 kernel/kls_mac/Makefile
 kernel/kls_iff/ksquirrel-libs-iff2ppm
@@ -650,11 +693,13 @@ kernel/kls_neo/ksquirrel-libs-neo2ppm
 kernel/kls_neo/Makefile
 kernel/kls_pi1/ksquirrel-libs-pi12ppm
 kernel/kls_pi1/Makefile
+kernel/kls_pi3/ksquirrel-libs-pi32ppm
+kernel/kls_pi3/Makefile
 kernel/kls_xim/ksquirrel-libs-xim2ppm
 kernel/kls_xim/Makefile
 kernel/kls_leaf/ksquirrel-libs-leaf2ppm
 kernel/kls_leaf/Makefile
-kernel/kls_utah/ksquirrel-libs-utah2pnm
+kernel/kls_utah/ksquirrel-libs-utah2ppm
 kernel/kls_utah/Makefile
 kernel/kls_pict/ksquirrel-libs-pict2ppm
 kernel/kls_pict/Makefile
@@ -682,12 +727,14 @@ AM_CONDITIONAL(SQ_HAVE_TTF,     [ test $sq_codec_ttf      = yes -a $sq_have_ttf 
 AM_CONDITIONAL(SQ_HAVE_MNG,     [ test $sq_codec_mng      = yes -a $sq_have_mng       = yes ])
 AM_CONDITIONAL(SQ_HAVE_DJVU,    [ test $sq_codec_djvu     = yes -a $sq_have_djvu      = yes ])
 AM_CONDITIONAL(SQ_HAVE_DXF,     [ test $sq_codec_dxf      = yes -a $sq_have_dxf       = yes ])
+AM_CONDITIONAL(SQ_HAVE_FIG,     [ test $sq_codec_fig      = yes -a $sq_have_fig       = yes ])
 AM_CONDITIONAL(SQ_HAVE_XCF,     [ test $sq_codec_xcf      = yes ])
 
 # NetPBM
 AM_CONDITIONAL(SQ_HAVE_NEO,     [ test $sq_have_neo      = yes ])
 AM_CONDITIONAL(SQ_HAVE_XIM,     [ test $sq_have_xim      = yes ])
 AM_CONDITIONAL(SQ_HAVE_PI1,     [ test $sq_have_pi1      = yes ])
+AM_CONDITIONAL(SQ_HAVE_PI3,     [ test $sq_have_pi3      = yes ])
 AM_CONDITIONAL(SQ_HAVE_UTAH,    [ test $sq_have_utah     = yes ])
 AM_CONDITIONAL(SQ_HAVE_LEAF,    [ test $sq_have_leaf     = yes ])
 AM_CONDITIONAL(SQ_HAVE_PICT,    [ test $sq_have_pict     = yes ])
@@ -733,10 +780,12 @@ if test $sq_have_mng = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=
 if test $sq_have_gif = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled gif `;    else sq_disabled=`echo -n $sq_disabled gif `;    fi
 if test $sq_have_djvu = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled djvu `;   else sq_disabled=`echo -n $sq_disabled djvu `;   fi
 if test $sq_have_dxf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled dxf `;    else sq_disabled=`echo -n $sq_disabled dxf `;    fi
+if test $sq_have_fig = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled fig `;    else sq_disabled=`echo -n $sq_disabled fig `;    fi
 if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;    fi
 
 if test $sq_have_neo = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled neo `;    else sq_disabled=`echo -n $sq_disabled neo `;    fi
 if test $sq_have_pi1 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi1 `;    else sq_disabled=`echo -n $sq_disabled pi1 `;    fi
+if test $sq_have_pi3 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi3 `;    else sq_disabled=`echo -n $sq_disabled pi3 `;    fi
 if test $sq_have_utah = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled utah `;    else sq_disabled=`echo -n $sq_disabled utah `;    fi
 if test $sq_have_xim = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xim `;    else sq_disabled=`echo -n $sq_disabled xim `;    fi
 if test $sq_have_leaf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled leaf `;    else sq_disabled=`echo -n $sq_disabled leaf `;    fi

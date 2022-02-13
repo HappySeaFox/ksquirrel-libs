@@ -63,6 +63,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.gif ";
     o->config = "";
     o->mime = "\x0047\x0049\x0046\x0038[\x0039\x0037]\x0061";
+    o->mimetype = "image/gif";
     o->pixmap = codec_gif;
     o->readable = true;
     o->canbemultiple = true;

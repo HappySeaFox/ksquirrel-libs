@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>502</width>
-            <height>449</height>
+            <width>635</width>
+            <height>551</height>
         </rect>
     </property>
     <property name="caption">
@@ -53,92 +53,6 @@
             <property name="text">
                 <string>Change file dates to camera timestamp</string>
             </property>
-        </widget>
-        <widget class="QLayoutWidget" row="8" column="0" rowspan="2" colspan="1">
-            <property name="name">
-                <cstring>layout10</cstring>
-            </property>
-            <vbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="spacing">
-                    <number>0</number>
-                </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel2_3_2</cstring>
-                    </property>
-                    <property name="text">
-                        <string>&lt;b&gt;Apply camera ICC profile from file&lt;/b&gt;</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter</set>
-                    </property>
-                </widget>
-                <widget class="KURLRequester">
-                    <property name="name">
-                        <cstring>icc_file</cstring>
-                    </property>
-                    <property name="filter">
-                        <string>*.icc *.icm</string>
-                    </property>
-                </widget>
-            </vbox>
-        </widget>
-        <widget class="QButtonGroup" row="10" column="0" rowspan="2" colspan="1">
-            <property name="name">
-                <cstring>quick</cstring>
-            </property>
-            <property name="title">
-                <string>Interpolation</string>
-            </property>
-            <grid>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>9</number>
-                </property>
-                <property name="spacing">
-                    <number>1</number>
-                </property>
-                <widget class="QRadioButton" row="0" column="0">
-                    <property name="name">
-                        <cstring>radioButton1</cstring>
-                    </property>
-                    <property name="text">
-                        <string>No interpolation</string>
-                    </property>
-                </widget>
-                <widget class="QRadioButton" row="1" column="0">
-                    <property name="name">
-                        <cstring>radioButton2</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Low-quality bilinear interpolation</string>
-                    </property>
-                    <property name="buttonGroupId">
-                        <number>1</number>
-                    </property>
-                </widget>
-                <widget class="QRadioButton" row="2" column="0">
-                    <property name="name">
-                        <cstring>radioButton3</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Variable Number of Gradients interpolation</string>
-                    </property>
-                </widget>
-                <widget class="QRadioButton" row="3" column="0">
-                    <property name="name">
-                        <cstring>radioButton4</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Adaptive Homogeneity-Directed interpolation</string>
-                    </property>
-                </widget>
-            </grid>
         </widget>
         <widget class="QCheckBox" row="7" column="0">
             <property name="name">
@@ -394,7 +308,7 @@
                 </widget>
             </grid>
         </widget>
-        <widget class="QLayoutWidget" row="9" column="1" rowspan="2" colspan="1">
+        <widget class="QLayoutWidget" row="9" column="1">
             <property name="name">
                 <cstring>layout4</cstring>
             </property>
@@ -466,7 +380,7 @@
                 </widget>
             </grid>
         </widget>
-        <widget class="QLayoutWidget" row="11" column="1" rowspan="2" colspan="1">
+        <widget class="QLayoutWidget" row="10" column="1">
             <property name="name">
                 <cstring>layout3</cstring>
             </property>
@@ -821,24 +735,93 @@
                 </widget>
             </grid>
         </widget>
-        <spacer row="13" column="1">
+        <widget class="QButtonGroup" row="10" column="0">
             <property name="name">
-                <cstring>spacer5</cstring>
+                <cstring>quick</cstring>
             </property>
-            <property name="orientation">
-                <enum>Vertical</enum>
+            <property name="title">
+                <string>Interpolation</string>
             </property>
-            <property name="sizeType">
-                <enum>Expanding</enum>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>9</number>
+                </property>
+                <property name="spacing">
+                    <number>1</number>
+                </property>
+                <widget class="QRadioButton" row="0" column="0">
+                    <property name="name">
+                        <cstring>radioButton1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>No interpolation</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="1" column="0">
+                    <property name="name">
+                        <cstring>radioButton2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Low-quality bilinear interpolation</string>
+                    </property>
+                    <property name="buttonGroupId">
+                        <number>1</number>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="2" column="0">
+                    <property name="name">
+                        <cstring>radioButton3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Variable Number of Gradients interpolation</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton" row="3" column="0">
+                    <property name="name">
+                        <cstring>radioButton4</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Adaptive Homogeneity-Directed interpolation</string>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QLayoutWidget" row="9" column="0">
+            <property name="name">
+                <cstring>layout10</cstring>
             </property>
-            <property name="sizeHint">
-                <size>
-                    <width>16</width>
-                    <height>60</height>
-                </size>
-            </property>
-        </spacer>
-        <widget class="QButtonGroup" row="12" column="0" rowspan="2" colspan="1">
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="spacing">
+                    <number>0</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel2_3_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;Apply camera ICC profile from file&lt;/b&gt;</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter</set>
+                    </property>
+                </widget>
+                <widget class="KURLRequester">
+                    <property name="name">
+                        <cstring>icc_file</cstring>
+                    </property>
+                    <property name="filter">
+                        <string>*.icc *.icm</string>
+                    </property>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QButtonGroup" row="11" column="0">
             <property name="name">
                 <cstring>flipping</cstring>
             </property>
@@ -912,6 +895,31 @@
                 </widget>
             </grid>
         </widget>
+        <widget class="QCheckBox" row="8" column="0">
+            <property name="name">
+                <cstring>embedded_cm</cstring>
+            </property>
+            <property name="text">
+                <string>Use an embedded color matrix</string>
+            </property>
+        </widget>
+        <spacer row="11" column="1">
+            <property name="name">
+                <cstring>spacer5</cstring>
+            </property>
+            <property name="orientation">
+                <enum>Vertical</enum>
+            </property>
+            <property name="sizeType">
+                <enum>Expanding</enum>
+            </property>
+            <property name="sizeHint">
+                <size>
+                    <width>16</width>
+                    <height>110</height>
+                </size>
+            </property>
+        </spacer>
     </grid>
 </widget>
 <customwidgets>
@@ -1008,9 +1016,9 @@
 </tabstops>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
+    <includehint>knuminput.h</includehint>
     <includehint>kurlrequester.h</includehint>
     <includehint>klineedit.h</includehint>
     <includehint>kpushbutton.h</includehint>
-    <includehint>knuminput.h</includehint>
 </includehints>
 </UI>

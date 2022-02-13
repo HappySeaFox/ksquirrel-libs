@@ -29,9 +29,9 @@ libkls_camera_la_SOURCES = fmt_codec_pnm.cpp fmt_codec_pnm_defs.h
 libkls_camera_la_LDFLAGS = ${SQ_RELEASE}
 libkls_camera_la_LIBADD = ${SQ_LOCAL_RPATH}
 
-AM_CXXFLAGS = ${camera_cms} -DCAMERA_UI=\"${pkgdatadir}/libkls_camera.so.ui\" -DCODEC_CAMERA -DCODEC_ANOTHER -DKLDCRAW=\"${bindir}/ksquirrel-libs-dcraw\"
+AM_CXXFLAGS = ${camera_cms} -DCAMERA_UI=\"${pkgdatadir}/libkls_camera.so.ui\" -DCODEC_CAMERA -DCODEC_ANOTHER -DKLDCRAW_S=\"${bindir}/ksquirrel-libs-camera2ppm\" -DKLDCRAW=\"${bindir}/ksquirrel-libs-dcraw\" 
 
-EXTRA_DIST = libkls_camera.so.ui
+EXTRA_DIST = libkls_camera.so.ui ksquirrel-libs-camera2ppm.in
 
 install-data-am:
 	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)

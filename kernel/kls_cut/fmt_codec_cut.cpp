@@ -56,6 +56,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.cut ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-cut";
     o->pixmap = codec_cut;
     o->readable = true;
     o->canbemultiple = false;

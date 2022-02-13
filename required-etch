@@ -1,0 +1,14 @@
+#!/bin/sh
+
+#
+# Install required packages in Debian Etch
+#
+# Run this as root before ./configure.gnu
+#
+
+aptitude install libjpeg62 libjpeg62-dev libopenexr2c2a libopenexr-dev \
+                 libmng1 libmng-dev libpng12-0 libpng12-dev transfig   \
+                 netpbm djvulibre-bin libfreetype6 libfreetype6-dev    \
+                 libjasper-1.701-1 libjasper-1.701-dev libtiff4        \
+                 libtiff4-dev libungif4g libungif4-dev libwmf0.2-7     \
+                 libwmf-dev

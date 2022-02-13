@@ -26,7 +26,8 @@
         || defined CODEC_CAMERA \
         || defined CODEC_DXF    \
         || defined CODEC_XCF    \
-        || defined CODEC_LBM    \
+        || defined CODEC_TTF    \
+        || defined CODEC_FIG    \
         || defined CODEC_NETPBM
 #include <sys/types.h>
 #include <unistd.h>
@@ -50,8 +51,6 @@
 #include "../xpm/codec_xcf.xpm"
 #elif defined CODEC_DXF
 #include "../xpm/codec_dxf.xpm"
-#elif defined CODEC_LBM
-#include "../xpm/codec_lbm.xpm"
 #elif defined CODEC_NEO
 #include "../xpm/codec_neo.xpm"
 #elif defined CODEC_FITS
@@ -60,6 +59,8 @@
 #include "../xpm/codec_leaf.xpm"
 #elif defined CODEC_PI1
 #include "../xpm/codec_pi1.xpm"
+#elif defined CODEC_PI3
+#include "../xpm/codec_pi3.xpm"
 #elif defined CODEC_XIM
 #include "../xpm/codec_xim.xpm"
 #elif defined CODEC_UTAH
@@ -70,6 +71,10 @@
 #include "../xpm/codec_iff.xpm"
 #elif defined CODEC_MAC
 #include "../xpm/codec_mac.xpm"
+#elif defined CODEC_TTF
+#include "../xpm/codec_ttf.xpm"
+#elif defined CODEC_FIG
+#include "../xpm/codec_fig.xpm"
 #else
 #include "../xpm/codec_pnm.xpm"
 #endif
@@ -101,11 +106,12 @@ fmt_codec::~fmt_codec()
 void fmt_codec::options(codec_options *o)
 {
 #if defined CODEC_CAMERA
-    o->version = "1.0.0";
+    o->version = "8.77"; // dcraw version
     o->name = "Photos from different cameras";
     o->filter = "*.arw *.bay *.bmq *.cr2 *.crw *.cs1 *.dc2 *.dcr *.dng *.erf *.fff *.hdr *.ia *.k25 *.kc2 *.kdc *.mdc *.mos *.mrw *.nef *.orf *.pef *.pxn *.raf *.raw *.rdc *.sr2 *.srf *.sti *.x3f ";
     o->config = std::string(CAMERA_UI);
     o->mime = "";
+    o->mimetype = "image/x-raw";
     o->pixmap = codec_camera;
     o->readable = true;
     o->canbemultiple = false;
@@ -118,6 +124,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.djvu *.djv *.iw4 *.iw44 ";
     o->config = std::string(DJVU_UI);
     o->mime = "";
+    o->mimetype = "image/x-djvu";
     o->pixmap = codec_djvu;
     o->readable = true;
     o->canbemultiple = false;
@@ -130,6 +137,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.dxf ";
     o->config = std::string(DXF_UI);
     o->mime = "";
+    o->mimetype = "image/x-dxf";
     o->pixmap = codec_dxf;
     o->readable = true;
     o->canbemultiple = false;
@@ -142,19 +150,8 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.xcf ";
     o->config = std::string(XCF_UI);
     o->mime = "";
+    o->mimetype = "image/x-xcf-gimp";
     o->pixmap = codec_xcf;
-    o->readable = true;
-    o->canbemultiple = false;
-    o->writestatic = false;
-    o->writeanimated = false;
-    o->needtempfile = true;
-#elif defined CODEC_LBM
-    o->version = "1.0.0";
-    o->name = "PC Deluxe Paint II LBM";
-    o->filter = "*.lbm ";
-    o->config = "";
-    o->mime = "";
-    o->pixmap = codec_lbm;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -166,6 +163,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.neo ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-neo";
     o->pixmap = codec_neo;
     o->readable = true;
     o->canbemultiple = false;
@@ -178,6 +176,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.fits ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/fits";
     o->pixmap = codec_fits;
     o->readable = true;
     o->canbemultiple = false;
@@ -190,6 +189,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.leaf ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-leaf";
     o->pixmap = codec_leaf;
     o->readable = true;
     o->canbemultiple = false;
@@ -202,7 +202,21 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.pi1 ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-pi1";
     o->pixmap = codec_pi1;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_PI3
+    o->version = "1.0.0";
+    o->name = "Degas PI3";
+    o->filter = "*.pi3 ";
+    o->config = "";
+    o->mime = "";
+    o->mimetype = "image/x-pi3";
+    o->pixmap = codec_pi3;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -214,6 +228,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.xim ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-xim";
     o->pixmap = codec_xim;
     o->readable = true;
     o->canbemultiple = false;
@@ -226,6 +241,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.rle ";
     o->config = "";
     o->mime = "\x0052\x00CC";
+    o->mimetype = "image/x-utah";
     o->pixmap = codec_utah;
     o->readable = true;
     o->canbemultiple = false;
@@ -238,6 +254,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.pict ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-pict";
     o->pixmap = codec_pict;
     o->readable = true;
     o->canbemultiple = false;
@@ -250,6 +267,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.iff *.ilbm *.lbm ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-iff";
     o->pixmap = codec_iff;
     o->readable = true;
     o->canbemultiple = false;
@@ -262,7 +280,34 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.mac ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-mac";
     o->pixmap = codec_mac;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_FIG
+    o->version = "0.1.0";
+    o->name = "XFIG";
+    o->filter = "*.fig ";
+    o->config = "";
+    o->mime = "";
+    o->mimetype = "image/x-xfig";
+    o->pixmap = codec_fig;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_TTF
+    o->version = "0.3.0";
+    o->name = "TrueType and Other Fonts";
+    o->filter = "*.ttf *.ttc *.pfa *.pfb *.otf ";
+    o->config = "";
+    o->mime = "";
+    o->mimetype = "application/x-font-ttf;application/x-font-ttc;application/x-font-otf;application/x-font-type1";
+    o->pixmap = codec_ttf;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -274,6 +319,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.pnm *.pgm *.pbm *.ppm ";
     o->config = "";
     o->mime = "P[123456]";
+    o->mimetype = "image/x-portable-bitmap;image/x-portable-greymap;image/x-portable-pixmap";
     o->pixmap = codec_pnm;
     o->readable = true;
     o->canbemultiple = false;
@@ -302,6 +348,7 @@ void fmt_codec::fill_default_settings()
     m_settings["document_mode"] = val;
     m_settings["interpolate_rggb"] = val;
     m_settings["icc_cam"] = val;
+    m_settings["embedded_cm"] = val;
 
     val.type = settings_value::v_int;
     val.iVal = 0;
@@ -382,7 +429,8 @@ s32 fmt_codec::read_init(const std::string &file)
     camera_white,
     document_mode,
     interpolate_rggb,
-    icc_cam;
+    icc_cam,
+    embedded_cm;
 
     int quick,
     threshold,
@@ -401,6 +449,10 @@ s32 fmt_codec::read_init(const std::string &file)
 
     it = m_settings.find("icc_cam");
     icc_cam = (it == m_settings.end() || (*it).second.type != settings_value::v_bool) ?
+                    false : (*it).second.bVal;
+
+    it = m_settings.find("embedded_cm");
+    embedded_cm = (it == m_settings.end() || (*it).second.type != settings_value::v_bool) ?
                     false : (*it).second.bVal;
 
     it = m_settings.find("dontstretch");
@@ -480,6 +532,11 @@ s32 fmt_codec::read_init(const std::string &file)
     icc_file = (it == m_settings.end() || (*it).second.type != settings_value::v_string) ?
                     "" : (*it).second.sVal;
 
+    if(embedded_cm)
+        params.push_back("+M");
+    else
+        params.push_back("-M");
+
     if(half_size) params.push_back("-h");
     if(dontstretch) params.push_back("-j");
     if(camera_date) params.push_back("-z");
@@ -549,27 +606,35 @@ s32 fmt_codec::read_init(const std::string &file)
     }
 #endif
 
-    const s32 argc = 5 + params.size();
+    const s32 argc = 9 + params.size();
 
     const char *argv[argc];
-    argv[0] = KLDCRAW;
+    argv[0] = KLDCRAW_S;
 
-    for(int i = 1;i < argc-4;i++)
+    for(int i = 1;i < argc-8;i++)
         argv[i] = params[i-1].c_str();
 
-    argv[argc-4] = "-y";
-    argv[argc-3] = tmp.c_str();
-    argv[argc-2] = file.c_str();
+    argv[argc-8] = "-c"; // write to stdout
+    argv[argc-7] = "--input";
+    argv[argc-6] = file.c_str();
+    argv[argc-5] = "--binary";
+    argv[argc-4] = KLDCRAW;
+    argv[argc-3] = "--output";
+    argv[argc-2] = tmp.c_str();
     argv[argc-1] = (char *)0;
 
-    for(int i = 0;i < argc;i++)
-        printf("CAMERA %s\n", argv[i]);
+//    for(int i = 0;i < argc;i++)
+//        printf("CAMERA %s\n", argv[i]);
 
-    if(!fork())
+    pid_t pid = fork();
+
+    if(!pid)
     {
-        execvp(KLDCRAW, (char *const *)argv);
+        execvp(argv[0], (char *const *)argv);
         exit(1);
     }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
 
     ::wait(&status); // TODO check for errors
 
@@ -612,11 +677,15 @@ s32 fmt_codec::read_init(const std::string &file)
     snprintf(subsample, 20, "-subsample=%d", aspect);
     snprintf(pagesp,    20, "-page=%d", ipage);
 
-    if(!fork())
+    pid_t pid = fork();
+
+    if(!pid)
     {
         execlp(DJVU, DJVU, "-format=ppm", subsample, pagesp, file.c_str(), tmp.c_str(), (char *)0);
         exit(1);
     }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
 
     ::wait(&status);
 
@@ -632,7 +701,7 @@ s32 fmt_codec::read_init(const std::string &file)
 #elif defined CODEC_DXF
 
     std::string tmmp = tmp + ".ppm";
-    printf("TMP: %s\n", tmmp.c_str());
+//    printf("TMP: %s\n", tmmp.c_str());
     fmt_settings::iterator it = m_settings.find("width");
 
     // get aspect
@@ -682,11 +751,15 @@ s32 fmt_codec::read_init(const std::string &file)
 
     argv[i] = (char *)0;
 
-    if(!fork())
+    pid_t pid = fork();
+
+    if(!pid)
     {
         execvp(VEC2WEB, (char* const*)argv);
         exit(1);
     }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
 
     ::wait(&status);
 
@@ -737,11 +810,15 @@ s32 fmt_codec::read_init(const std::string &file)
     argv[i++] = file.c_str();
     argv[i++] = (char *)0;
 
-    if(!fork())
+    pid_t pid = fork();
+
+    if(!pid)
     {
         execvp(KLXCF2PNM, (char *const *)argv);
         exit(1);
     }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
 
     ::wait(&status); // TODO check for errors
 
@@ -758,11 +835,65 @@ s32 fmt_codec::read_init(const std::string &file)
 
     int status;
 
-    if(!fork())
+    pid_t pid = fork();
+
+    if(!pid)
     {
         execlp(NETPBM_S, NETPBM_S, file.c_str(), tmp.c_str(), (char *)0);
         exit(1);
     }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
+
+    ::wait(&status);
+
+    if(WIFEXITED(status))
+        if(WEXITSTATUS(status))
+            return SQE_R_BADFILE;
+        else;
+    else
+        return SQE_R_BADFILE;
+
+    fptr = fopen(tmp.c_str(), "rb");
+
+#elif defined CODEC_FIG
+
+    int status;
+
+    pid_t pid = fork();
+
+    if(!pid)
+    {
+        execlp(XFIG_S, XFIG_S, file.c_str(), tmp.c_str(), (char *)0);
+        exit(1);
+    }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
+
+    ::wait(&status);
+
+    if(WIFEXITED(status))
+        if(WEXITSTATUS(status))
+            return SQE_R_BADFILE;
+        else;
+    else
+        return SQE_R_BADFILE;
+
+    fptr = fopen(tmp.c_str(), "rb");
+
+#elif defined CODEC_TTF
+
+    int status;
+
+    pid_t pid = fork();
+
+    if(!pid)
+    {
+        execlp(TTF2PNM, TTF2PNM, file.c_str(), tmp.c_str(), (char *)0);
+        exit(1);
+    }
+    else if(pid == -1)
+        return SQE_R_BADFILE;
 
     ::wait(&status);
 

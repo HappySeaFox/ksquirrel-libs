@@ -40,6 +40,7 @@ class fmt_codec : public fmt_codec_base
 	struct jpeg_compress_struct 	m_cinfo;
         struct jpeg_error_mgr 		m_jerr;
 	JSAMPROW 			row_pointer;
+        bool                            zerror;
 };
 
 #endif

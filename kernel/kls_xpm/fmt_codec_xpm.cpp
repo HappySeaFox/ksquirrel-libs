@@ -64,6 +64,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.xpm ";
     o->config = "";
     o->mime = "/\\* XPM \\*/\n";
+    o->mimetype = "image/x-xpm";
     o->pixmap = codec_xpm;
     o->readable = true;
     o->canbemultiple = false;

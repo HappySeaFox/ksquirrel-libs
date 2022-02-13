@@ -1,3 +1,3 @@
 #!/bin/sh
 
-@PICTTOPPM@ $1 > $2
+@PICTTOPPM@ "$1" > "$2"

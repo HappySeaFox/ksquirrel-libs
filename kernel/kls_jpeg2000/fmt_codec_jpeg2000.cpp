@@ -56,7 +56,9 @@ fmt_codec::fmt_codec() : fmt_codec_base()
 }
 
 fmt_codec::~fmt_codec()
-{}
+{
+    jas_cleanup();
+}
 
 void fmt_codec::options(codec_options *o)
 {
@@ -67,6 +69,7 @@ void fmt_codec::options(codec_options *o)
     // some jp2 files don't have this mime header (why ?)
     // "....\152\120\040\040" => o->mime is empty
     o->mime = "";
+    o->mimetype = "image/jp2";
     o->config = "";
     o->pixmap = codec_jpeg2000;
     o->readable = true;

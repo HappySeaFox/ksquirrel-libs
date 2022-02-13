@@ -61,6 +61,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.msp ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-msp";
     o->pixmap = codec_msp;
     o->readable = true;
     o->canbemultiple = false;

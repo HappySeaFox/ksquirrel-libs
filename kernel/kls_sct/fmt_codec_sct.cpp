@@ -46,6 +46,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.sct *.ct ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-sct";
     o->pixmap = codec_sct;
     o->readable = true;
     o->canbemultiple = false;

@@ -74,6 +74,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.jpg *.jpeg *.jpe ";
     o->config = "";
     o->mime = "\x00FF\x00D8\x00FF";
+    o->mimetype = "image/jpeg";
     o->pixmap = codec_jpeg;
     o->readable = true;
     o->canbemultiple = false;
@@ -84,6 +85,8 @@ void fmt_codec::options(codec_options *o)
 
 s32 fmt_codec::read_init(const std::string &file)
 {
+    zerror = false;
+
     fptr = fopen(file.c_str(), "rb");
 
     if(!fptr)
@@ -110,6 +113,7 @@ s32 fmt_codec::read_next()
 
     if(setjmp(jerr.setjmp_buffer)) 
     {
+        zerror = true;
 	return SQE_R_BADFILE;
     }
 
@@ -152,21 +156,16 @@ s32 fmt_codec::read_next()
 
     jpeg_saved_marker_ptr it = cinfo.marker_list;
 
-    while(true)
+    while(it)
     {
-        if(!it)
-	    break;
-
 	if(it->marker == JPEG_COM)
 	{
             fmt_metaentry mt;
 
 	    mt.group = "Comment";
-
 	    s8 data[it->data_length+1];
 	    memcpy(data, it->data, it->data_length);
 	    data[it->data_length] = '\0';
-//	    memcpy(data, it->data, it->data_length);
 	    mt.data = data;
 
 	    addmeta(mt);
@@ -192,6 +191,12 @@ s32 fmt_codec::read_scanline(RGBA *scan)
     fmt_image *im = image(currentImage);
     fmt_utils::fillAlpha(scan, im->w);
 
+    if(zerror || setjmp(jerr.setjmp_buffer)) 
+    {
+        zerror = true;
+	return SQE_R_BADFILE;
+    }
+
     (void)jpeg_read_scanlines(&cinfo, buffer, 1);
 
     for(s32 i = 0;i < im->w;i++)
@@ -205,7 +210,8 @@ void fmt_codec::read_close()
     jpeg_abort_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
 
-    fclose(fptr);
+    if(fptr)
+        fclose(fptr);
 
     finfo.meta.clear();
     finfo.image.clear();

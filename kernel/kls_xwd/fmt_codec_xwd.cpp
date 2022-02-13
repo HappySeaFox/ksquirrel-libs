@@ -58,6 +58,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.xwd ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-xwd";
     o->pixmap = codec_xwd;
     o->readable = true;
     o->canbemultiple = false;

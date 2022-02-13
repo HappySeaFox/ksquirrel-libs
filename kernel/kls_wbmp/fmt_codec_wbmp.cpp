@@ -67,6 +67,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.wbmp ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-wbmp";
     o->pixmap = codec_wbmp;
     o->readable = true;
     o->canbemultiple = false;

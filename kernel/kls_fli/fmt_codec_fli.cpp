@@ -59,6 +59,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.fli ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "video/x-flic";
     o->pixmap = codec_fli;
     o->readable = true;
     o->canbemultiple = true;

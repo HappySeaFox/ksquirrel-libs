@@ -33,6 +33,7 @@ struct codec_options
                 name,
                 filter,
                 mime,
+                mimetype,
                 config;
 
     void *pixmap;

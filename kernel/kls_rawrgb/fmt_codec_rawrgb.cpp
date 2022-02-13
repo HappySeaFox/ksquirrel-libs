@@ -62,6 +62,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.rawrgb ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-rawrgb";
     o->pixmap = codec_rawrgb;
     o->readable = true;
     o->canbemultiple = false;

@@ -73,6 +73,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.koa *.kla ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-koala";
     o->pixmap = codec_koala;
     o->readable = true;
     o->canbemultiple = false;

@@ -66,6 +66,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.tif *.tiff ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/tiff";
     o->pixmap = codec_tiff;
     o->readable = true;
     o->canbemultiple = true;

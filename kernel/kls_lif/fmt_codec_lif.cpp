@@ -45,6 +45,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.lif ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-lif";
     o->pixmap = codec_lif;
     o->readable = true;
     o->canbemultiple = false;

@@ -53,6 +53,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.ico *.cur ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-ico";
     o->pixmap = codec_ico;
     o->readable = true;
     o->canbemultiple = true;

@@ -67,6 +67,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.svg *.svgz ";
     o->config = std::string(SVG_UI); // SVG_UI comes from Makefile.am
     o->mime = "";
+    o->mimetype = "image/svg+xml";
     o->pixmap = codec_svg;
     o->readable = true;
     o->canbemultiple = false;

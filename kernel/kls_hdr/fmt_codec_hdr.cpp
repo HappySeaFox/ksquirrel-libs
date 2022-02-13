@@ -51,6 +51,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.hdr ";
     o->config = "";
     o->mime  = "#.RADIANCE";
+    o->mimetype = "image/x-hdr";
     o->pixmap = codec_hdr;
     o->readable = true;
     o->canbemultiple = false;

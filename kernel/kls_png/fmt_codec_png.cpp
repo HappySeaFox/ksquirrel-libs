@@ -49,13 +49,6 @@
 #define png_jmpbuf(p) ((p)->jmpbuf)
 #endif
 
-bool zerror;
-
-void my_error_exit(png_struct *, const char *)
-{
-    zerror = true;
-}
-
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
 
@@ -69,6 +62,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.png ";
     o->config = "";
     o->mime = "\x0089\x0050\x004E\x0047\x000D\x000A\x001A\x000A";
+    o->mimetype = "image/png";
     o->pixmap = codec_png;
     o->readable = true;
     o->canbemultiple = false;
@@ -79,19 +73,19 @@ void fmt_codec::options(codec_options *o)
 
 s32 fmt_codec::read_init(const std::string &file)
 {
+    png_ptr = 0;
+    info_ptr = 0;
+
     fptr = fopen(file.c_str(), "rb");
 
     if(!fptr)
 	return SQE_R_NOFILE;
-	
+
     currentImage = -1;
-    
     zerror = false;
-
-    rows = 0L;
-
+    rows = 0;
     finfo.animated = false;
-	    
+
     return SQE_OK;
 }
 
@@ -106,7 +100,7 @@ s32 fmt_codec::read_next()
 
     fmt_image image;
 
-    if((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, my_error_exit, 0)) == NULL)
+    if((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)) == NULL)
     {
 	zerror = true;
 	return SQE_R_NOMEMORY;
@@ -117,16 +111,16 @@ s32 fmt_codec::read_next()
 	zerror = true;
 	return SQE_R_NOMEMORY;
     }
-    
+
     if(setjmp(png_jmpbuf(png_ptr)))
     {
-	zerror = true;
-	return SQE_R_BADFILE;
+        zerror = true;
+        return SQE_R_BADFILE;
     }
 
     png_init_io(png_ptr, fptr);
     png_read_info(png_ptr, info_ptr);
-    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, (int*)NULL, (int*)NULL);
+    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, (int*)0, (int*)0);
 
     image.w = width;
     image.h = height;
@@ -142,9 +136,7 @@ s32 fmt_codec::read_next()
 	png_set_gray_1_2_4_to_8(png_ptr);
 
     if(color_type == PNG_COLOR_TYPE_PALETTE)
-    {
 	png_set_palette_to_rgb(png_ptr);
-    }
 	
     if(color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	png_set_gray_to_rgb(png_ptr);
@@ -161,14 +153,14 @@ s32 fmt_codec::read_next()
 
     png_read_update_info(png_ptr, info_ptr);
 
-    rows = (png_bytep*)calloc(image.h, sizeof(png_bytep));
+    rows = (png_bytep*)malloc(image.h * sizeof(png_bytep*));
 
     if(!rows)
 	return SQE_R_NOMEMORY;
 
     for(s32 row = 0; row < image.h; row++)
     {
-	rows[row] = NULL;
+	rows[row] = 0;
     }
 
     for(s32 row = 0; row < image.h; row++)
@@ -178,7 +170,7 @@ s32 fmt_codec::read_next()
 	if(!rows[row])
 	    return SQE_R_NOMEMORY;
     }
-    
+
     std::string color_;
 
     switch(color_type)
@@ -225,9 +217,7 @@ s32 fmt_codec::read_next()
     {
 	fmt_metaentry mt;
 
-        std::string key;
-        key = key + "PNG key [" + lines[i].key + "]";
-        mt.group = key;
+        mt.group = lines[i].key;
         mt.data = lines[i].text;
 
         addmeta(mt);
@@ -251,35 +241,37 @@ s32 fmt_codec::read_scanline(RGBA *scan)
     fmt_image *im = image(currentImage);
     fmt_utils::fillAlpha(scan, im->w);
 
+    if(zerror || setjmp(png_jmpbuf(png_ptr)))
+    {
+        zerror = true;
+        return SQE_R_BADFILE;
+    }
+
     line++;
 
-    png_read_rows(png_ptr, &rows[line], NULL, 1);
-
+    png_read_rows(png_ptr, &rows[line], png_bytepp_NULL, 1);
     memcpy(scan, rows[line], im->w * sizeof(RGBA));
-    
+
     return SQE_OK;
 }
 
 void fmt_codec::read_close()
 {
-    if(!zerror)
-    {
-//	png_read_end(png_ptr, info_ptr);
-    }
+    if(png_ptr)
+        png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 
-    png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-
-    fclose(fptr);
+    if(fptr)
+        fclose(fptr);
 
     if(rows)
     {
-	for(u32 row = 0; row < height; row++)
-	{
-	    if(rows[row])
-		free(rows[row]);
-	}
+        for(u32 i = 0;i < height;i++)
+        {
+            if(rows[i])
+                free(rows[i]);
+        }
 
-	free(rows);
+        free(rows);
     }
 
     finfo.meta.clear();
@@ -300,22 +292,26 @@ void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)
 
 s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
+    m_png_ptr = 0;
+    m_info_ptr = 0;
+    zerror = false;
+
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
 
     writeimage = image;
     writeopt = opt;
-    
+
     m_fptr = fopen(file.c_str(), "wb");
 
     if(!m_fptr)
 	return SQE_W_NOFILE;
 
-    m_png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, my_error_exit, NULL);
+    m_png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 
     if(!m_png_ptr)
     {
-	fclose(m_fptr);
+	zerror = true;
 	return SQE_W_NOMEMORY;
     }
 
@@ -323,15 +319,13 @@ s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const
 
     if(!m_info_ptr)
     {
-	png_destroy_write_struct(&m_png_ptr, png_infopp_NULL);
-	fclose(m_fptr);
+	zerror = true;
 	return SQE_W_NOMEMORY;
     }
 
     if(setjmp(png_jmpbuf(m_png_ptr)))
     {
-	png_destroy_write_struct(&m_png_ptr, &m_info_ptr);
-	fclose(m_fptr);
+        zerror = true;
 	return SQE_W_ERROR;
     }
 
@@ -353,8 +347,6 @@ s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const
     s32 factor = (writeopt.compression_level < 1 || writeopt.compression_level > 9) ? 1 : writeopt.compression_level;
 
     png_set_compression_level(m_png_ptr, factor);
-
-//    png_set_gAMA(m_png_ptr, m_info_ptr, 1.2);
 
     png_write_info(m_png_ptr, m_info_ptr);
 
@@ -381,6 +373,12 @@ s32 fmt_codec::write_next_pass()
 
 s32 fmt_codec::write_scanline(RGBA *scan)
 {
+    if(zerror || setjmp(png_jmpbuf(m_png_ptr)))
+    {
+        zerror = true;
+	return SQE_W_ERROR;
+    }
+
     m_row_pointer = (png_bytep)scan;
 
     png_write_rows(m_png_ptr, &m_row_pointer, 1);
@@ -390,11 +388,8 @@ s32 fmt_codec::write_scanline(RGBA *scan)
 
 void fmt_codec::write_close()
 {
-    png_write_end(m_png_ptr, m_info_ptr);
-
-    png_destroy_write_struct(&m_png_ptr, &m_info_ptr);
-
-    fclose(m_fptr);
+    if(m_png_ptr) png_destroy_write_struct(&m_png_ptr, &m_info_ptr);
+    if(m_fptr)    fclose(m_fptr);
 }
 
 std::string fmt_codec::extension(const s32 /*bpp*/)

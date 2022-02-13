@@ -52,6 +52,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "";
     o->config = "";
     o->mime = "Xcur";
+    o->mimetype = "image/x-xcursor";
     o->pixmap = codec_xcur;
     o->readable = true;
     o->canbemultiple = false;

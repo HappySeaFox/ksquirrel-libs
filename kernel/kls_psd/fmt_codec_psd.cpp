@@ -55,6 +55,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.psd ";
     o->config = "";
     o->mime = "\x0038\x0042\x0050\x0053\x0001";
+    o->mimetype = "image/psd";
     o->pixmap = codec_psd;
     o->readable = true;
     o->canbemultiple = false;

@@ -68,6 +68,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.exr ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-exr";
     o->pixmap = codec_openexr;
     o->readable = true;
     o->canbemultiple = false;

@@ -58,6 +58,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.tga ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-targa";
     o->pixmap = codec_tga;
     o->readable = true;
     o->canbemultiple = false;

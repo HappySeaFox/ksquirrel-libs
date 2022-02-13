@@ -50,6 +50,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.pix ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-pix";
     o->pixmap = codec_pix;
     o->readable = true;
     o->canbemultiple = false;

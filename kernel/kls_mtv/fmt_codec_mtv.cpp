@@ -46,6 +46,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.mtv ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-mtv";
     o->pixmap = codec_mtv;
     o->readable = true;
     o->canbemultiple = false;

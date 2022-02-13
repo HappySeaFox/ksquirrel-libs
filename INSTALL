@@ -1,16 +1,20 @@
 How to install 'ksquirrel-libs' package:
 
    a) from sources
-   # tar zxfv ksquirrel-libs-0.6.0.tar.gz
-   # cd ksquirrel-libs-0.6.0/
+   # tar zxfv ksquirrel-libs-0.7.0.tar.gz
+   # cd ksquirrel-libs-0.7.0/
+ * # su -c './required-etch'
    # ./configure.gnu (not ./configure !)
    # make
    # su -c 'make install'
 
+* For Debian Etch and Ubuntu Feisty only.
+  This will install all required packages with aptitude.
+
    b) from binary packages
-RPM  # rpm -ihv ksquirrel-libs-0.6.0.rpm
-TGZ  # installpkg ksquirrel-libs-0.6.0.tgz
-DEB  # dpkg -i ksquirrel-libs-0.6.0.deb
+RPM  # rpm -ihv ksquirrel-libs-0.7.0.rpm
+TGZ  # installpkg ksquirrel-libs-0.7.0.tgz
+DEB  # dpkg -i ksquirrel-libs-0.7.0.deb
 
 --------------------------------------------------------------
 

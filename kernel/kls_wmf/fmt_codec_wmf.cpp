@@ -59,6 +59,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.wmf ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-wmf";
     o->pixmap = codec_wmf;
     o->readable = true;
     o->canbemultiple = false;

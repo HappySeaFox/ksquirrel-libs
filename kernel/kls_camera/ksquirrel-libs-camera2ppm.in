@@ -1,0 +1,20 @@
+#!/bin/sh
+
+kls_camera_i=""
+kls_camera_o=""
+kls_camera_bin=""
+kls_camera_params=""
+
+while [ "$1" ] ; do
+
+    case "$1" in
+        "--input")  kls_camera_i="$2"   shift ;;
+        "--output") kls_camera_o="$2"   shift ;;
+        "--binary") kls_camera_bin="$2" shift ;;
+        *) kls_camera_params="$kls_camera_params $1"     ;;
+    esac
+
+shift
+done
+
+$kls_camera_bin $kls_camera_params "$kls_camera_i" > "$kls_camera_o"

@@ -54,6 +54,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.rgb *.rgba *.bw";
     o->config = "";
     o->mime = "\001\332.[\001\002]";
+    o->mimetype = "image/x-rgb";
     o->pixmap = codec_sgi;
     o->readable = true;
     o->canbemultiple = false;

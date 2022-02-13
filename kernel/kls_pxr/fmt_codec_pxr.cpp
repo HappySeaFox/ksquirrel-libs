@@ -46,6 +46,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.pxr ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-pxr";
     o->pixmap = codec_pxr;
     o->readable = true;
     o->canbemultiple = false;

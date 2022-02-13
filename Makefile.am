@@ -18,4 +18,4 @@ dist-hook:
 	cd $(top_distdir) && $(MAKE) -f admin/Makefile.common subdirs
 
 EXTRA_DIST = examples/w3.bmp examples/qtapp/main.cpp examples/qtapp/myqt.cpp examples/qtapp/myqt.h examples/qtapp/qtapp.pro \
-examples/qtgl/main.cpp  examples/qtgl/myqgl.cpp  examples/qtgl/myqgl.h  examples/qtgl/qtgl.pro ksquirrellibs.pc.in
+examples/qtgl/main.cpp  examples/qtgl/myqgl.cpp  examples/qtgl/myqgl.h  examples/qtgl/qtgl.pro ksquirrellibs.pc.in required-etch

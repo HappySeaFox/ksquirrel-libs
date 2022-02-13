@@ -54,6 +54,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.xbm ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-xbm";
     o->pixmap = codec_xbm;
     o->readable = true;
     o->canbemultiple = false;

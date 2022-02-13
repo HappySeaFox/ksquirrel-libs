@@ -64,9 +64,10 @@ void fmt_codec::options(codec_options *o)
 {
     o->version = "0.9.1";
     o->name = "SUN Icon";
-    o->filter = "*.ico ";
+    o->filter = "*.sun ";
     o->config = "";
     o->mime = "/\\* Format_";
+    o->mimetype = "image/x-sun";
     o->pixmap = codec_sun;
     o->readable = true;
     o->canbemultiple = false;

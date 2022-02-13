@@ -53,6 +53,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.wal ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-wal";
     o->pixmap = codec_wal;
     o->readable = true;
     o->canbemultiple = true;

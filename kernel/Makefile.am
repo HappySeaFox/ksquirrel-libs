@@ -70,6 +70,10 @@ if SQ_HAVE_PI1
 SUBDIRS += kls_pi1
 endif
 
+if SQ_HAVE_PI3
+SUBDIRS += kls_pi3
+endif
+
 if SQ_HAVE_XIM
 SUBDIRS += kls_xim
 endif
@@ -88,6 +92,10 @@ endif
 
 if SQ_HAVE_IFF
 SUBDIRS += kls_iff
+endif
+
+if SQ_HAVE_FIG
+SUBDIRS += kls_fig
 endif
 
 # unstable/buggy codecs - for developers only

@@ -212,6 +212,7 @@ void fmt_codec::options(codec_options *o)
 
     o->config = "";
     o->mime = "";
+    o->mimetype = "video/x-mng;image/x-jng";
     o->pixmap = codec_mng;
     o->readable = true;
     o->canbemultiple = true;

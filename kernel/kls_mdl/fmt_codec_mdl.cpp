@@ -45,6 +45,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.mdl ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-mdl";
     o->pixmap = codec_mdl;
     o->readable = true;
     o->canbemultiple = false;

@@ -57,6 +57,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.ras ";
     o->config = "";
     o->mime = "\x0059\x00A6\x006A\x0095";
+    o->mimetype = "image/x-ras";
     o->pixmap = codec_ras;
     o->readable = true;
     o->canbemultiple = false;

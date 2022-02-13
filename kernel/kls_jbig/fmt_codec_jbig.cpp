@@ -46,6 +46,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.jbg *.jbig ";
     o->config = "";
     o->mime = "";
+    o->mimetype = "image/x-jbig";
     o->pixmap = codec_jbig;
     o->readable = true;
     o->canbemultiple = false;

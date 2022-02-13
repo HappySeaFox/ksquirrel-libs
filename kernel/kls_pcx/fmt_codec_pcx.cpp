@@ -63,6 +63,7 @@ void fmt_codec::options(codec_options *o)
     o->filter = "*.pcx ";
     o->config = "";
     o->mime = "\x000A[\x0002\x0003\x0004\x0005]";
+    o->mimetype = "image/x-pcx";
     o->pixmap = codec_pcx;
     o->readable = true;
     o->canbemultiple = false;
