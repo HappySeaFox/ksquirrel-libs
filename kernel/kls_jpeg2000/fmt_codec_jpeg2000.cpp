@@ -62,12 +62,13 @@ fmt_codec::~fmt_codec()
 
 void fmt_codec::options(codec_options *o)
 {
-    o->version = "0.3.1";
+    o->version = "0.4.0";
     o->name = "JPEG 2000";
     o->filter = "*.jp2 *.j2k ";
 
-    // some jp2 files don't have this mime header (why ?)
-    // "....\152\120\040\040" => o->mime is empty
+    // mime is "....\152\120\040\040",
+    // but some jp2 files don't have this mime header (why ?)
+    //  => o->mime is empty
     o->mime = "";
     o->mimetype = "image/jp2";
     o->config = "";
@@ -81,6 +82,12 @@ void fmt_codec::options(codec_options *o)
 
 s32 fmt_codec::read_init(const std::string &file)
 {
+    gs.image = 0;
+    gs.altimage = 0;
+    gs.data[0] = 0;
+    gs.data[1] = 0;
+    gs.data[2] = 0;
+
     in = jas_stream_fopen(file.c_str(), "rb");
 
     if(!in)
@@ -103,19 +110,21 @@ s32 fmt_codec::read_next()
 
     fmt_image image;
 
-    jp2_image = jas_image_decode(in, -1, 0);
+    gs.image = jas_image_decode(in, -1, 0);
 
     jas_stream_close(in);
-    
-    if(!jp2_image)
+
+    if(!gs.image)
 	return SQE_R_NOMEMORY;
 
-    gs.image = jp2_image;
-
-    family = jas_clrspc_fam(jas_image_clrspc(gs.image));
+    s32 family = jas_clrspc_fam(jas_image_clrspc(gs.image));
 
     if(!convert_colorspace())
 	return SQE_R_BADFILE;
+
+    jas_image_destroy(gs.image);
+    gs.image = gs.altimage;
+    gs.altimage = 0;
 
     image.w = jas_image_width(gs.image);
     image.h = jas_image_height(gs.image);
@@ -149,24 +158,30 @@ s32 fmt_codec::read_next()
 
     image.compression = "JPEG2000";
 
-    if((gs.cmptlut[0] = jas_image_getcmptbytype(gs.altimage, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_R))) < 0 ||
-       (gs.cmptlut[1] = jas_image_getcmptbytype(gs.altimage, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_G))) < 0 ||
-       (gs.cmptlut[2] = jas_image_getcmptbytype(gs.altimage, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_B))) < 0)
+    if((gs.cmptlut[0] = jas_image_getcmptbytype(gs.image, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_R))) < 0 ||
+       (gs.cmptlut[1] = jas_image_getcmptbytype(gs.image, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_G))) < 0 ||
+       (gs.cmptlut[2] = jas_image_getcmptbytype(gs.image, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_B))) < 0)
 
 	return SQE_R_NOMEMORY;
 
     const s32 *cmptlut = gs.cmptlut;
 
     // check that all components have the same size.
-    const s32 width = jas_image_cmptwidth(gs.altimage, cmptlut[0]);
-    const s32 height = jas_image_cmptheight(gs.altimage, cmptlut[0]);
+    const s32 width = jas_image_cmptwidth(gs.image, cmptlut[0]);
+    const s32 height = jas_image_cmptheight(gs.image, cmptlut[0]);
 
     for(s32 i = 1; i < 3; ++i)
     {
-	if(jas_image_cmptwidth(gs.altimage, cmptlut[i]) != width ||
-		jas_image_cmptheight(gs.altimage, cmptlut[i]) != height)
+	if(jas_image_cmptwidth(gs.image, cmptlut[i]) != width ||
+		jas_image_cmptheight(gs.image, cmptlut[i]) != height)
 
 	return SQE_R_BADFILE;
+    }
+
+    for(s32 i = 0;i < 3;i++)
+    {
+        if(!(gs.data[i] = jas_matrix_create(1, image.w)))
+            return SQE_R_BADFILE;
     }
 
     finfo.image.push_back(image);
@@ -183,34 +198,41 @@ s32 fmt_codec::read_next_pass()
 
 s32 fmt_codec::read_scanline(RGBA *scan)
 {
-    s32 v[3];
-    const s32* cmptlut = gs.cmptlut;
     fmt_image *im = image(currentImage);
+    jas_seqent_t v;
+
     fmt_utils::fillAlpha(scan, im->w);
 
     line++;
 
     u8 *data = (u8 *)scan;
 
+    for(s32 cmptno = 0; cmptno < 3; ++cmptno)
+    {
+        if(jas_image_readcmpt(gs.image, gs.cmptlut[cmptno], 0, line, im->w, 1, gs.data[cmptno]))
+            return SQE_R_BADFILE;
+
+        gs.d[cmptno] = jas_matrix_getref(gs.data[cmptno], 0, 0);
+    }
+
     for(s32 x = 0; x < im->w;++x)
     {
 	for(int k = 0; k < 3; ++k)
 	{
-		v[k] = jas_image_readcmptsample(gs.altimage, cmptlut[k], x, line);
+            v = *gs.d[k];
 
-		// if the precision of the component is too small, increase
-		// it to use the complete value range.
-		v[k] <<= 8 - jas_image_cmptprec(gs.altimage, cmptlut[k]);
+	    if(v < 0)
+                v = 0;
+    	    else if(v > 255)
+                v = 255;
 
-		if(v[k] < 0) v[k] = 0;
-		else if(v[k] > 255) v[k] = 255;
+	    *data = v;
+            data++;
+
+            ++gs.d[k];
 	}
 
-	*data = v[0];
-	*(data+1) = v[1];
-	*(data+2) = v[2];
-
-	data += 4;
+	data++;
     }
 
     return SQE_OK;
@@ -218,6 +240,12 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 
 void fmt_codec::read_close()
 {
+    for(s32 cmptno = 0; cmptno < 3; ++cmptno)
+    {
+        if (gs.data[cmptno])
+            jas_matrix_destroy(gs.data[cmptno]);
+    }
+
     if(gs.image) jas_image_destroy(gs.image);
     if(gs.altimage) jas_image_destroy(gs.altimage);
 
@@ -237,6 +265,8 @@ bool fmt_codec::convert_colorspace()
 
     if(!gs.altimage)
 	return false;
+
+    jas_cmprof_destroy(outprof);
 
     return true;
 }

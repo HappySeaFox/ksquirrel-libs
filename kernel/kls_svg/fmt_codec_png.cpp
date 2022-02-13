@@ -193,7 +193,7 @@ s32 fmt_codec::read_init(const std::string &file)
     else if(pid == -1)
         return SQE_R_BADFILE;
 
-    ::wait(&status);
+    ::waitpid(pid, &status, 0);
 
     if(WIFEXITED(status))
         if(WEXITSTATUS(status))
@@ -218,7 +218,7 @@ s32 fmt_codec::read_init(const std::string &file)
     else if(pid == -1)
         return SQE_R_BADFILE;
 
-    ::wait(&status);
+    ::waitpid(pid, &status, 0);
 
     if(WIFEXITED(status))
         if(WEXITSTATUS(status))

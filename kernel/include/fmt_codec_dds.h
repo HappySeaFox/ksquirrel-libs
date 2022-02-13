@@ -1,6 +1,6 @@
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2007 Dmitry Baryshev <ksquirrel@tut.by>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -19,20 +19,12 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_jpeg2000_H
-#define KSQUIRREL_LIBS_CLASS_DEFINITION_jpeg2000_H
+#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_dds_H
+#define KSQUIRREL_LIBS_CLASS_DEFINITION_dds_H
+
+#include "dds.h"
 
 #include "ksquirrel-libs/fmt_codec_base.h"
-
-typedef struct
-{
-    jas_image_t		*image;
-    s32			cmptlut[MAXCMPTS];
-    jas_image_t		*altimage;
-    jas_matrix_t        *data[3];
-    jas_seqent_t        *d[3];
-
-} gs_t;
 
 class fmt_codec : public fmt_codec_base
 {
@@ -41,11 +33,7 @@ class fmt_codec : public fmt_codec_base
         BASE_CODEC_DECLARATIONS
 
     private:
-	bool convert_colorspace();
-	
-    private:
-	gs_t		gs;
-	jas_stream_t	*in;
+        DDSINFO dds;
 };
 
 #endif

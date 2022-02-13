@@ -135,9 +135,7 @@ s32 fmt_codec::read_init(const std::string &file)
     dircount = 0;
 
     while(TIFFReadDirectory(ftiff))
-    {
 	dircount++;
-    }
 
     TIFFSetDirectory(ftiff, 0);
 

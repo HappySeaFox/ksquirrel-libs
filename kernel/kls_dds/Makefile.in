@@ -14,6 +14,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -33,35 +34,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@SQ_HAVE_CAMERA_TRUE@am__append_1 = kls_camera
-@SQ_HAVE_JPEG_TRUE@am__append_2 = kls_jpeg
-@SQ_HAVE_TIFF_TRUE@am__append_3 = kls_tiff
-@SQ_HAVE_XWD_TRUE@am__append_4 = kls_xwd
-@SQ_HAVE_WMF_TRUE@am__append_5 = kls_wmf
-@SQ_HAVE_SVG_TRUE@am__append_6 = kls_svg
-@SQ_HAVE_GIF_TRUE@am__append_7 = kls_gif
-@SQ_HAVE_OPENEXR_TRUE@am__append_8 = kls_openexr
-@SQ_HAVE_JPEG2000_TRUE@am__append_9 = kls_jpeg2000
-@SQ_HAVE_TTF_TRUE@am__append_10 = kls_ttf
-@SQ_HAVE_MNG_TRUE@am__append_11 = kls_mng
-@SQ_HAVE_DJVU_TRUE@am__append_12 = kls_djvu
-@SQ_HAVE_DXF_TRUE@am__append_13 = kls_dxf
-@SQ_HAVE_NEO_TRUE@am__append_14 = kls_neo
-@SQ_HAVE_LEAF_TRUE@am__append_15 = kls_leaf
-@SQ_HAVE_PI1_TRUE@am__append_16 = kls_pi1
-@SQ_HAVE_PI3_TRUE@am__append_17 = kls_pi3
-@SQ_HAVE_XIM_TRUE@am__append_18 = kls_xim
-@SQ_HAVE_UTAH_TRUE@am__append_19 = kls_utah
-@SQ_HAVE_PICT_TRUE@am__append_20 = kls_pict
-@SQ_HAVE_MAC_TRUE@am__append_21 = kls_mac
-@SQ_HAVE_IFF_TRUE@am__append_22 = kls_iff
-@SQ_HAVE_FIG_TRUE@am__append_23 = kls_fig
-@SQ_HAVE_LJPEG_TRUE@am__append_24 = kls_ljpeg
-@SQ_HAVE_DICOM_TRUE@am__append_25 = kls_dicom
-
-# unstable/buggy codecs - for developers only
-@SQ_DEVEL_TRUE@am__append_26 = kls_msp
-subdir = kernel
+subdir = kernel/kls_dds
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -70,36 +43,67 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/admin/mkinstalldirs
 CONFIG_CLEAN_FILES =
-SOURCES =
-DIST_SOURCES =
-#>- RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-#>- 	html-recursive info-recursive install-data-recursive \
-#>- 	install-dvi-recursive install-exec-recursive \
-#>- 	install-html-recursive install-info-recursive \
-#>- 	install-pdf-recursive install-ps-recursive install-recursive \
-#>- 	installcheck-recursive installdirs-recursive pdf-recursive \
-#>- 	ps-recursive uninstall-recursive
-#>+ 7
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-dvi-recursive install-exec-recursive \
-	install-html-recursive install-info-recursive \
-	install-pdf-recursive install-ps-recursive install-recursive \
-	installcheck-recursive installdirs-recursive pdf-recursive \
-	ps-recursive uninstall-recursive nmcheck-recursive bcheck-recursive
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+am__installdirs = "$(DESTDIR)$(pkglibdir)"
+pkglibLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(pkglib_LTLIBRARIES)
+am__DEPENDENCIES_1 =
+libkls_dds_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_libkls_dds_la_OBJECTS = fmt_codec_dds.lo dds.lo
+#>- libkls_dds_la_OBJECTS = $(am_libkls_dds_la_OBJECTS)
+#>+ 4
+libkls_dds_la_final_OBJECTS = libkls_dds_la.all_cpp.lo 
+libkls_dds_la_nofinal_OBJECTS = fmt_codec_dds.lo dds.lo
+@KDE_USE_FINAL_FALSE@libkls_dds_la_OBJECTS = $(libkls_dds_la_nofinal_OBJECTS)
+@KDE_USE_FINAL_TRUE@libkls_dds_la_OBJECTS = $(libkls_dds_la_final_OBJECTS)
+#>- libkls_dds_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+#>- 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+#>- 	$(CXXFLAGS) $(libkls_dds_la_LDFLAGS) $(LDFLAGS) -o $@
+#>+ 3
+libkls_dds_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(KDE_CXXFLAGS) $(libkls_dds_la_LDFLAGS) $(LDFLAGS) -o $@
+DEFAULT_INCLUDES = -I.@am__isrc@
+depcomp = $(SHELL) $(top_srcdir)/admin/depcomp
+am__depfiles_maybe = depfiles
+#>- CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+#>- 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+#>+ 2
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(KDE_CXXFLAGS)
+#>- LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+#>- 	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+#>- 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+#>+ 3
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(KDE_CXXFLAGS)
+CXXLD = $(CXX)
+#>- CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+#>- 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+#>- 	$(LDFLAGS) -o $@
+#>+ 3
+CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(KDE_CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+SOURCES = $(libkls_dds_la_SOURCES)
+DIST_SOURCES = $(libkls_dds_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_dds kls_fli \
-	kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv \
-	kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb \
-	kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm \
-	kls_xcf kls_xcur kls_xpm kls_png kls_camera kls_jpeg kls_tiff \
-	kls_xwd kls_wmf kls_svg kls_gif kls_openexr kls_jpeg2000 \
-	kls_ttf kls_mng kls_djvu kls_dxf kls_neo kls_leaf kls_pi1 \
-	kls_pi3 kls_xim kls_utah kls_pict kls_mac kls_iff kls_fig \
-	kls_ljpeg kls_dicom kls_msp
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -269,26 +273,17 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_dds kls_fli \
-	kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv \
-	kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb \
-	kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm \
-	kls_xcf kls_xcur kls_xpm kls_png $(am__append_1) \
-	$(am__append_2) $(am__append_3) $(am__append_4) \
-	$(am__append_5) $(am__append_6) $(am__append_7) \
-	$(am__append_8) $(am__append_9) $(am__append_10) \
-	$(am__append_11) $(am__append_12) $(am__append_13) \
-	$(am__append_14) $(am__append_15) $(am__append_16) \
-	$(am__append_17) $(am__append_18) $(am__append_19) \
-	$(am__append_20) $(am__append_21) $(am__append_22) \
-	$(am__append_23) $(am__append_24) $(am__append_25) \
-	$(am__append_26)
-EXTRA_DIST = generate link include/*.h include/ksquirrel-libs/*.h xpm/*.xpm
-#>- all: all-recursive
+INCLUDES = -I../include
+pkglib_LTLIBRARIES = libkls_dds.la
+libkls_dds_la_SOURCES = fmt_codec_dds.cpp fmt_codec_dds_defs.h dds.cpp
+libkls_dds_la_LDFLAGS = ${SQ_RELEASE}
+libkls_dds_la_LIBADD = ${SQ_LOCAL_RPATH}
+#>- all: all-am
 #>+ 1
-all: docs-am  all-recursive
+all: docs-am  all-am
 
 .SUFFIXES:
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 #>- 	@for dep in $?; do \
 #>- 	  case '$(am__configure_deps)' in \
@@ -298,9 +293,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 #>- 	      exit 1;; \
 #>- 	  esac; \
 #>- 	done; \
-#>- 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/Makefile'; \
+#>- 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/kls_dds/Makefile'; \
 #>- 	cd $(top_srcdir) && \
-#>- 	  $(AUTOMAKE) --gnu  kernel/Makefile
+#>- 	  $(AUTOMAKE) --gnu  kernel/kls_dds/Makefile
 #>+ 12
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -310,10 +305,10 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/kls_dds/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  kernel/Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/Makefile.in
+	  $(AUTOMAKE) --gnu  kernel/kls_dds/Makefile
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/kls_dds/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -331,82 +326,71 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkglibdir)" || $(MKDIR_P) "$(DESTDIR)$(pkglibdir)"
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) --mode=install $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(pkglibdir)/$$f'"; \
+	    $(LIBTOOL) --mode=install $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(pkglibdir)/$$f"; \
+	  else :; fi; \
+	done
+
+uninstall-pkglibLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(pkglibdir)/$$p'"; \
+	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(pkglibdir)/$$p"; \
+	done
+
+clean-pkglibLTLIBRARIES:
+	-test -z "$(pkglib_LTLIBRARIES)" || rm -f $(pkglib_LTLIBRARIES)
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libkls_dds.la: $(libkls_dds_la_OBJECTS) $(libkls_dds_la_DEPENDENCIES) 
+	$(libkls_dds_la_LINK) -rpath $(pkglibdir) $(libkls_dds_la_OBJECTS) $(libkls_dds_la_LIBADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dds.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_codec_dds.Plo@am__quote@
+
+.cpp.o:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run `make' without going through this Makefile.
-# To change the values of `make' variables: instead of editing Makefiles,
-# (1) if the variable is set in `config.status', edit `config.status'
-#     (which will cause the Makefiles to be regenerated when you run `make');
-# (2) otherwise, pass the desired values on the `make' command line.
-$(RECURSIVE_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
-$(RECURSIVE_CLEAN_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	rev=''; for subdir in $$list; do \
-	  if test "$$subdir" = "."; then :; else \
-	    rev="$$subdir $$rev"; \
-	  fi; \
-	done; \
-	rev="$$rev ."; \
-	target=`echo $@ | sed s/-recursive//`; \
-	for subdir in $$rev; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done && test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
-ctags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
-	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -418,23 +402,10 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      tags="$$tags $$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -447,7 +418,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
@@ -495,37 +466,22 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -d "$(distdir)/$$subdir" \
-	    || $(MKDIR_P) "$(distdir)/$$subdir" \
-	    || exit 1; \
-	    distdir=`$(am__cd) $(distdir) && pwd`; \
-	    top_distdir=`$(am__cd) $(top_distdir) && pwd`; \
-	    (cd $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$top_distdir" \
-	        distdir="$$distdir/$$subdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile
-installdirs: installdirs-recursive
-installdirs-am:
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(LTLIBRARIES)
+installdirs:
+	for dir in "$(DESTDIR)$(pkglibdir)"; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
@@ -541,97 +497,93 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-#>- clean: clean-recursive
+#>- clean: clean-am
 #>+ 1
-clean: kde-rpo-clean  clean-recursive
+clean: kde-rpo-clean  clean-am
 
-#>- clean-am: clean-generic clean-libtool mostlyclean-am
-#>+ 1
-clean-am: clean-bcheck  clean-generic clean-libtool mostlyclean-am
+#>- clean-am: clean-generic clean-libtool clean-pkglibLTLIBRARIES \
+#>- 	mostlyclean-am
+#>+ 2
+clean-am: clean-bcheck clean-final  clean-generic clean-libtool clean-pkglibLTLIBRARIES \
+	mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
-info: info-recursive
+info: info-am
 
 info-am:
 
-install-dvi: install-dvi-recursive
+install-data-am:
 
-install-exec-am:
+install-dvi: install-dvi-am
 
-install-html: install-html-recursive
+install-exec-am: install-pkglibLTLIBRARIES
 
-install-info: install-info-recursive
+install-html: install-html-am
+
+install-info: install-info-am
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am:
+uninstall-am: uninstall-pkglibLTLIBRARIES
 
-.MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
-	install-strip
+.MAKE: install-am install-strip
 
-.PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
-	all all-am check check-am clean clean-generic clean-libtool \
-	ctags ctags-recursive distclean distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-pkglibLTLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-pkglibLTLIBRARIES \
 	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-pkglibLTLIBRARIES
 
-
-# install headers
-install-data-am:
-	$(mkinstalldirs) $(DESTDIR)$(pkgincludedir)
-	$(INSTALL_HEADER) include/ksquirrel-libs/fileio.h         $(DESTDIR)$(pkgincludedir)/fileio.h
-	$(INSTALL_HEADER) include/ksquirrel-libs/error.h          $(DESTDIR)$(pkgincludedir)/error.h
-	$(INSTALL_HEADER) include/ksquirrel-libs/fmt_utils.h      $(DESTDIR)$(pkgincludedir)/fmt_utils.h
-	$(INSTALL_HEADER) include/ksquirrel-libs/fmt_types.h      $(DESTDIR)$(pkgincludedir)/fmt_types.h
-	$(INSTALL_HEADER) include/ksquirrel-libs/fmt_defs.h       $(DESTDIR)$(pkgincludedir)/fmt_defs.h
-	$(INSTALL_HEADER) include/ksquirrel-libs/fmt_codec_base.h $(DESTDIR)$(pkgincludedir)/fmt_codec_base.h
-	$(INSTALL_HEADER) include/ksquirrel-libs/settings.h       $(DESTDIR)$(pkgincludedir)/settings.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
 
 
 #>+ 2
-KDE_DIST=Makefile.in plusx Makefile.am 
+KDE_DIST=Makefile.in Makefile.am dds.h 
 
 #>+ 2
 docs-am:
@@ -646,17 +598,17 @@ force-reedit:
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/kls_dds/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  kernel/Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/Makefile.in
+	  $(AUTOMAKE) --gnu  kernel/kls_dds/Makefile
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/kls_dds/Makefile.in
 
 
 #>+ 21
 clean-bcheck: 
 	rm -f *.bchecktest.cc *.bchecktest.cc.class a.out
 
-bcheck: bcheck-recursive
+bcheck: bcheck-am
 
 bcheck-am:
 	@for i in ; do \
@@ -664,7 +616,7 @@ bcheck-am:
 	        echo "int main() {return 0;}" > $$i.bchecktest.cc ; \
 	        echo "#include \"$$i\"" >> $$i.bchecktest.cc ; \
 	        echo "$$i"; \
-	        if ! $(CXX) $(DEFS) -I. -I$(srcdir) -I$(top_builddir) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(KDE_CXXFLAGS)  --dump-class-hierarchy -c $$i.bchecktest.cc; then \
+	        if ! $(CXXCOMPILE)  --dump-class-hierarchy -c $$i.bchecktest.cc; then \
 	            rm -f $$i.bchecktest.cc; exit 1; \
 	        fi ; \
 	        echo "" >> $$i.bchecktest.cc.class; \
@@ -674,21 +626,37 @@ bcheck-am:
 	done
 
 
+#>+ 11
+libkls_dds_la.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fmt_codec_dds.cpp $(srcdir)/dds.cpp 
+	@echo 'creating libkls_dds_la.all_cpp.cpp ...'; \
+	rm -f libkls_dds_la.all_cpp.files libkls_dds_la.all_cpp.final; \
+	echo "#define KDE_USE_FINAL 1" >> libkls_dds_la.all_cpp.final; \
+	for file in fmt_codec_dds.cpp dds.cpp ; do \
+	  echo "#include \"$$file\"" >> libkls_dds_la.all_cpp.files; \
+	  test ! -f $(srcdir)/$$file || egrep '^#pragma +implementation' $(srcdir)/$$file >> libkls_dds_la.all_cpp.final; \
+	done; \
+	cat libkls_dds_la.all_cpp.final libkls_dds_la.all_cpp.files > libkls_dds_la.all_cpp.cpp; \
+	rm -f libkls_dds_la.all_cpp.final libkls_dds_la.all_cpp.files
+
+#>+ 3
+clean-final:
+	-rm -f libkls_dds_la.all_cpp.cpp
+
 #>+ 3
 final:
-	$(MAKE) all-am
+	$(MAKE) libkls_dds_la_OBJECTS="$(libkls_dds_la_final_OBJECTS)" all-am
 
 #>+ 3
 final-install:
-	$(MAKE) install-am
+	$(MAKE) libkls_dds_la_OBJECTS="$(libkls_dds_la_final_OBJECTS)" install-am
 
 #>+ 3
 no-final:
-	$(MAKE) all-am
+	$(MAKE) libkls_dds_la_OBJECTS="$(libkls_dds_la_nofinal_OBJECTS)" all-am
 
 #>+ 3
 no-final-install:
-	$(MAKE) install-am
+	$(MAKE) libkls_dds_la_OBJECTS="$(libkls_dds_la_nofinal_OBJECTS)" install-am
 
 #>+ 3
 cvs-clean:

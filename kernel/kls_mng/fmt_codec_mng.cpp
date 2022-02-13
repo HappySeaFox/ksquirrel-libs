@@ -79,7 +79,7 @@ void mymngfree(mng_ptr p, mng_size_t /*size*/)
 
 mng_bool mymngopenstream(mng_handle mng)
 {
-    mngstuff*mymng;
+    mngstuff *mymng;
 
     /* look up our stream struct */
     mymng = (mngstuff*)mng_get_userdata(mng);
@@ -247,7 +247,7 @@ s32 fmt_codec::read_init(const std::string &file)
 
     mymng->filename = file;
     mymng->codec = this;
-    priv.frame = NULL;
+    priv.frame = 0;
     priv.ms = 10;
 
     /* set up the mng decoder for our stream */
@@ -286,6 +286,7 @@ s32 fmt_codec::read_next()
     if(!currentImage)
     {
         myretcode = mng_read(mng);
+
         if(myretcode != MNG_NOERROR)
             return SQE_R_BADFILE;
 
@@ -362,7 +363,7 @@ void fmt_codec::read_close()
     mng_cleanup(&mng);
 
     delete [] priv.frame;
-    priv.frame = NULL;
+    priv.frame = 0;
 }
 
 #include "fmt_codec_cd_func.h"

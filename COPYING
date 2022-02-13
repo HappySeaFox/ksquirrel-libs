@@ -17,3 +17,4 @@
 * JPEG2000 library dynamically links against jasper
 * SVG library uses "rsvg-convert" executable (via fork)
 * LJPEG library statically uses ljpg
+* DDS plugin is taken from KImageIO plugin from kdelibs 3.4.0

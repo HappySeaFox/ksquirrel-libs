@@ -680,7 +680,7 @@ install-data-am:
 
 
 #>+ 2
-KDE_DIST=Makefile.in ksquirrel-libs-dcraw fmt_utils.Plo ksquirrel-libs-camera2ppm Makefile.am 
+KDE_DIST=Makefile.in ksquirrel-libs-dcraw ksquirrel-libs-camera2ppm Makefile.am 
 
 #>+ 2
 docs-am:

@@ -1,6 +1,6 @@
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2007 Dmitry Baryshev <ksquirrel@tut.by>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -24,10 +24,36 @@
 #include "ksquirrel-libs/fmt_types.h"
 #include "ksquirrel-libs/fileio.h"
 
-#include "fmt_codec_ttx_defs.h"
-#include "fmt_codec_ttx.h"
+#include "fmt_codec_dds_defs.h"
+#include "fmt_codec_dds.h"
 
 #include "ksquirrel-libs/error.h"
+#include "ksquirrel-libs/fmt_utils.h"
+
+#include "../xpm/codec_dds.xpm"
+
+typedef RGBA* RGBAP;
+
+inline void FREE_ROWS(RGBAP **A, const int H)
+{
+    if(*A)
+    {
+        for(s32 i = 0;i < H;i++)
+        {
+            if((*A)[i])
+                free((*A)[i]);
+        }
+
+        free(*A);
+        *A = 0;
+    }
+}
+
+/*
+ *
+ * DDS
+ *
+ */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
@@ -38,29 +64,31 @@ fmt_codec::~fmt_codec()
 void fmt_codec::options(codec_options *o)
 {
     o->version = "0.1.0";
-    o->name = "";
-    o->filter = "*. ";
+    o->name = "DirectDraw Surface";
+    o->filter = "*.dds ";
     o->mime = "";
-    o->pixmap = "";
+    o->mimetype = "image/x-dds";
     o->config = "";
+    o->pixmap = codec_dds;
     o->readable = true;
+    o->canbemultiple = false;
     o->writestatic = false;
     o->writeanimated = false;
-    o->canbemultiple = false;
     o->needtempfile = false;
 }
 
 s32 fmt_codec::read_init(const std::string &file)
 {
-    frs.open(file.c_str(), ios::binary | ios::in);
-
-    if(!frs.good())
-        return SQE_R_NOFILE;
-
     currentImage = -1;
     read_error = false;
 
     finfo.animated = false;
+
+    dds.img = 0;
+    dds.w = dds.h = 0;
+
+    if(!dds_read(file, dds))
+        return SQE_R_BADFILE;
 
     return SQE_OK;
 }
@@ -74,16 +102,15 @@ s32 fmt_codec::read_next()
 
     fmt_image image;
 
-/*
-    image.w = 
-    image.h = 
-    image.bpp = 
-*/
+    image.w = dds.w;
+    image.h = dds.h;
+    image.bpp = 32;
 
-    image.compression = "";
-    image.colorspace = "";
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(32);
 
     finfo.image.push_back(image);
+    line = -1;
 
     return SQE_OK;
 }
@@ -95,19 +122,16 @@ s32 fmt_codec::read_next_pass()
 
 s32 fmt_codec::read_scanline(RGBA *scan)
 {
-    RGB rgb;
-    RGBA rgba;
-    fmt_image *im = image(currentImage);
+    line++;
 
-    memset(scan, 255, im->w * sizeof(RGBA));
-
+    memcpy(scan, dds.img[line], dds.w * sizeof(RGBA));
 
     return SQE_OK;
 }
 
 void fmt_codec::read_close()
 {
-    frs.close();
+    FREE_ROWS(&dds.img, dds.h);
 
     finfo.meta.clear();
     finfo.image.clear();

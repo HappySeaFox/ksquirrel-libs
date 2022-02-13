@@ -1,4 +1,4 @@
-SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcf kls_xcur kls_xpm kls_png
+SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_dds kls_fli kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcf kls_xcur kls_xpm kls_png
 
 EXTRA_DIST = generate link include/*.h include/ksquirrel-libs/*.h xpm/*.xpm
 
