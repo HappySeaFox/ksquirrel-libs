@@ -1,0 +1,211 @@
+#!/bin/sh
+
+# generates new development directory for some format
+# Usage: "./generate <format>"
+
+
+name=$1
+mkdir $name
+cd $name
+
+cat << EOF > read_$name.h
+#ifndef _READ_WRITE_IMAGE_$name
+#define _READ_WRITE_IMAGE_$name
+
+#include "../defs.h"
+#include "../err.h"
+
+typedef struct
+{
+
+};
+
+typedef struct
+{
+
+};
+
+#endif
+EOF
+
+cat << EOF > read_$name.c
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#include "read_$name.h"
+
+
+char* fmt_version()
+{
+    return "";
+}
+
+char* fmt_quickinfo()
+{
+    return "";
+}
+
+char* fmt_extension()
+{
+    return "*.";
+}
+
+
+/* inits decoding of 'file': opens it, fills struct fmt_info  */
+int fmt_init(fmt_info **finfo, const char *file)
+{
+    *finfo = (fmt_info*)calloc(1, sizeof(fmt_info));
+    
+    if(!finfo)
+	return SQERR_NOMEMORY;
+	
+    (*finfo)->w = 0;
+    (*finfo)->h = 0;
+    (*finfo)->bpp = 0;
+    (*finfo)->hasalpha = FALSE;
+
+    (*finfo)->fptr = fopen(file, "rb");
+    
+    if(!((*finfo)->fptr))
+    {
+	free(*finfo);
+	return SQERR_NOFILE;
+    }
+    
+    return SQERR_OK;
+}
+
+
+/*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
+int fmt_read_info(fmt_info *finfo)
+{
+    RGBA		rgba;
+    RGB			rgb;
+    long		i, j;
+    uchar		bt;
+
+    /* read info about a file  here  */
+
+    /* init palette, w, h, bpp */
+    if(/* bpp! */0 < 16)
+    	finfo->pal_entr = 1 << 0/* bpp! */;
+    else
+	finfo->pal_entr = 0;
+
+    finfo->w = 0;
+    finfo->h = 0;
+    finfo->bpp = 0;
+
+
+    if(finfo->bpp < 16)
+    {
+	if((finfo->pal = (RGB*)calloc(finfo->pal_entr, sizeof(RGB))) == 0)
+	{
+		fclose(finfo->fptr);
+		free(finfo);
+		return SQERR_NOMEMORY;
+	}
+
+	fseek(finfo->fptr, 0/* move to palette! */, SEEK_SET);
+
+	/*  read palette  */
+	for(i = 0;i < finfo->pal_entr;i++)
+	{
+		fread(&rgba, sizeof(RGBA), 1, finfo->fptr);
+		(finfo->pal)[i].r = rgba.b;
+		(finfo->pal)[i].g = rgba.g;
+		(finfo->pal)[i].b = rgba.r;
+		
+	}
+    }
+    else
+	finfo->pal = 0;
+
+    /*  fseek to image bits  */
+    fseek(finfo->fptr, 0, SEEK_SET);
+
+
+    return SQERR_OK;
+}
+
+
+
+/*  
+ *    reads scanline
+ *    scan should exist, e.g. RGBA scan[N], not RGBA *scan  
+ */
+int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
+{
+
+    long j, counter = 0;
+    unsigned char bt;
+
+    switch(finfo->bpp)
+    {
+    	case 1:
+	{
+	}
+	break;
+
+	case 4:
+	{
+	}
+	break;
+
+	case 8:
+	{
+	}
+	break;
+
+	case 16:
+	{
+	}
+	break;
+
+	case 24:
+	{
+	}
+	break;
+
+	case 32:
+	{
+	}
+	break;
+
+	default:
+	{
+		//@TODO:  free memory !!
+		return SQERR_BADFILE;
+	}
+    }
+
+    return SQERR_OK;
+}
+
+int fmt_close(fmt_info *finfo)
+{
+    fclose(finfo->fptr);
+    return SQERR_OK;
+}
+
+EOF
+
+echo "#!/bin/sh" > build
+echo >> build
+echo "rm -f libSQ_read_$name.so" >> build
+echo "../compile read_$name" >> build
+chmod +x ./build
+
+#cd ..
+
+#echo "#!/bin/sh" > compile
+#echo >> compile
+#echo "gcc -fPIC -c $1.c" >> compile
+#echo "gcc -shared -o libSQ_$1.so $1.o" >> compile
+#echo "rm -f $1.o" >> compile
+#chmod +x ./compile
+
+echo
+echo "All done!"
+echo

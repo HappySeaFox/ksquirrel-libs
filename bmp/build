@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -f libSQ_read_bmp.so
+../compile read_bmp

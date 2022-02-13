@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -f libSQ_read_tga.so
+../compile read_tga

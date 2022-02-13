@@ -1,0 +1,11 @@
+#ifndef __SQUIRREL_LIBS_ERROR_CODES__
+#define __SQUIRREL_LIBS_ERROR_CODES__
+
+#define		SQERR_NOTOK	0
+#define		SQERR_OK	1
+
+#define		SQERR_NOFILE	1024
+#define		SQERR_BADFILE	1025
+#define		SQERR_NOMEMORY	1026
+
+#endif

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -f libSQ_read_png.so
+../compile read_png -lpng
