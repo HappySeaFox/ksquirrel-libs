@@ -38,10 +38,9 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/libwmf-config.in \
-	$(srcdir)/libwmf.spec.in $(srcdir)/wmfconfig.h.in \
-	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	TODO config.guess config.sub depcomp install-sh ltmain.sh \
-	missing
+	$(srcdir)/wmfconfig.h.in $(top_srcdir)/configure AUTHORS \
+	COPYING ChangeLog INSTALL NEWS TODO config.guess config.sub \
+	depcomp install-sh ltmain.sh missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -51,7 +50,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = wmfconfig.h
-CONFIG_CLEAN_FILES = libwmf-config libwmf.spec
+CONFIG_CLEAN_FILES = libwmf-config
 am__installdirs = "$(DESTDIR)$(bindir)"
 binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(bin_SCRIPTS)
@@ -151,7 +150,6 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -295,8 +293,6 @@ $(srcdir)/wmfconfig.h.in:  $(am__configure_deps)
 distclean-hdr:
 	-rm -f wmfconfig.h stamp-h1
 libwmf-config: $(top_builddir)/config.status $(srcdir)/libwmf-config.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-libwmf.spec: $(top_builddir)/config.status $(srcdir)/libwmf.spec.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)

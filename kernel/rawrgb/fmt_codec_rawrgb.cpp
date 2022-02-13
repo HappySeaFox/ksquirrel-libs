@@ -37,7 +37,7 @@
  * File structure:
  *
  * <WIDTH><HEIGHT><BIT_DEPTH>
- * <UNCOMPRESSED DATA>
+ * <UNCOMPRESSED IMAGE DATA>
  *
  */
 
@@ -74,7 +74,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,242,242,242,202,202,202,86,106,142,178,178,178,174,174,174,254,254,254,78,78,78,222,222,222,238,238,254,70,70,70,147,120,168,25,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,109,73,68,65,84,120,218,53,141,33,14,133,48,16,68,71,115,2,244,26,18,236,26,90,197,105,170,9,8,2,150,32,208,163,138,34,255,11,2,167,164,75,195,83,111,51,153,89,140,70,11,224,39,34,245,106,18,66,168,203,54,75,53,30,89,68,58,96,190,51,248,235,139,199,20,53,146,186,227,82,46,36,119,76,155,50,105,18,101,164,107,188,69,164,115,30,195,215,186,191,157,94,140,244,162,176,243,236,240,0,144,145,50,150,72,18,227,15,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -166,7 +166,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;

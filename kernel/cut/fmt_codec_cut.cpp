@@ -38,14 +38,17 @@
  */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{}
+{
+    for(s32 i = 0;i < 256;i++)
+	memset(pal+i, i, sizeof(RGB));	
+}
 
 fmt_codec::~fmt_codec()
 {}
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.1.0-a1");
+    return std::string("0.1.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -60,7 +63,6 @@ std::string fmt_codec::fmt_filter()
 
 std::string fmt_codec::fmt_mime()
 {
-/*  QRegExp pattern  */
     return std::string();
 }
 
@@ -69,7 +71,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,132,47,163,76,76,76,191,215,159,11,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,87,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,83,35,167,78,157,26,10,100,128,232,153,145,32,198,76,24,3,38,2,84,19,10,102,192,116,193,205,1,89,10,54,153,11,236,142,5,12,0,123,238,58,138,176,181,106,30,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -96,9 +98,6 @@ s32 fmt_codec::fmt_read_next()
 
     finfo.image.push_back(fmt_image());
 
-    for(s32 i = 0;i < 256;i++)
-	memset(pal+i, i, sizeof(RGB));	
-
     finfo.image[currentImage].passes = 1;
 
     if(!frs.readK(&width, sizeof(s16))) return SQE_R_BADFILE;
@@ -123,42 +122,44 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-//    static s32 s = 0;
-//    printf("Reading scan %d\n", s++);
-    s32 count = 0;
-    u8 c, run;
+    s32 i = 0, j;
+    u8 count, run, c;
     
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
-    
-    while(count < finfo.image[currentImage].w)
-    {
-	if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
 
-	if(!c)
+    while(i < finfo.image[currentImage].w)
+    {
+	if(!frs.readK(&count, 1)) return SQE_R_BADFILE;
+
+	if(count == 0)
 	{
 	    frs.readK(&c, 1);
+
 	    if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
-	    break;
+	    
+	    continue; // ugly hack
 	}
-	else if(c & 0x80)
+	else if(count & 0x80)
 	{
-	    c &= ~(0x80);
+	    count &= ~(0x80);
 
 	    if(!frs.readK(&run, 1)) return SQE_R_BADFILE;
 
-	    count += c;
-
-	    for(s32 i = 0;i < c;i++)
+	    for(j = 0;j < count;j++)
+	    {
 		memcpy(scan+i, pal+run, sizeof(RGB));
+		i++;
+	    }
 	}
 	else
 	{
-	    count += c;
-
-	    for(s32 i = 0;i < c;i++)
+	    for(j = 0;j < count;j++)
 	    {
 		if(!frs.readK(&run, 1)) return SQE_R_BADFILE;
+
 		memcpy(scan+i, pal+run, sizeof(RGB));
+
+		i++;
 	    }
 	}
     }
@@ -185,7 +186,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -211,7 +212,7 @@ s32 fmt_codec::fmt_write_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
 {
     return SQE_OK;
 }

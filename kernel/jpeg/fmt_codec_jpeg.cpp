@@ -91,7 +91,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,128,128,0,76,76,76,137,239,99,177,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,93,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,83,167,134,206,156,26,10,102,204,140,140,132,137,68,2,69,150,2,69,102,70,78,5,50,34,129,12,176,26,152,46,184,57,32,75,193,38,115,129,221,177,128,1,0,131,30,58,190,241,2,42,229,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     fptr = fopen(file.c_str(), "rb");
 
@@ -135,14 +135,11 @@ s32 fmt_codec::fmt_read_next()
 
     if(cinfo.jpeg_color_space == JCS_GRAYSCALE)
     {
-	finfo.image[currentImage].bpp = 8;
         cinfo.out_color_space = JCS_RGB;
 	cinfo.desired_number_of_colors = 256;
 	cinfo.quantize_colors = FALSE;
 	cinfo.two_pass_quantize = FALSE;
     }
-    else
-	finfo.image[currentImage].bpp = 24;
 
     jpeg_start_decompress(&cinfo);
 
@@ -155,11 +152,11 @@ s32 fmt_codec::fmt_read_next()
 
     switch(cinfo.jpeg_color_space)
     {
-	case JCS_GRAYSCALE:   type =  "Grayscale (black&white)"; break;
-	case JCS_RGB:         type =  "RGB";                     break;
-	case JCS_YCbCr:       type =  "YUV";                     break;
-	case JCS_CMYK:        type =  "CMYK";                    break;
-	case JCS_YCCK:        type =  "YCCK";                    break;
+	case JCS_GRAYSCALE: type =  "Grayscale"; finfo.image[currentImage].bpp = 8;  break;
+	case JCS_RGB:       type =  "RGB";       finfo.image[currentImage].bpp = 24; break;
+	case JCS_YCbCr:     type =  "YUV";       finfo.image[currentImage].bpp = 24; break;
+	case JCS_CMYK:      type =  "CMYK";      finfo.image[currentImage].bpp = 32; break;
+	case JCS_YCCK:      type =  "YCCK";      finfo.image[currentImage].bpp = 32; break;
 
 	default:
 	    type = "Unknown";
@@ -244,7 +241,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;

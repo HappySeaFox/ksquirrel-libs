@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.0-pre4], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.0-pre5], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre4)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre5)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -58,6 +58,8 @@ AC_CONFIG_SUBDIRS([contrib/libpixman])
 AC_CONFIG_SUBDIRS([contrib/cairo])
 AC_CONFIG_SUBDIRS([contrib/libsvg])
 AC_CONFIG_SUBDIRS([contrib/libsvg-cairo])
+AC_CONFIG_SUBDIRS([contrib/libjasper])
+AC_CONFIG_SUBDIRS([contrib/libopenexr])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([doc/Makefile])
@@ -66,6 +68,7 @@ AC_CONFIG_FILES([doc/sources/Makefile])
 AC_CONFIG_FILES([contrib/Makefile])
 AC_CONFIG_FILES([examples/Makefile])
 AC_CONFIG_FILES([kernel/Makefile])
+AC_CONFIG_FILES([kernel/aaa/Makefile])
 AC_CONFIG_FILES([kernel/bmp/Makefile])
 AC_CONFIG_FILES([kernel/gif/Makefile])
 AC_CONFIG_FILES([kernel/pix/Makefile])
@@ -88,6 +91,14 @@ AC_CONFIG_FILES([kernel/wmf/Makefile])
 AC_CONFIG_FILES([kernel/wbmp/Makefile])
 AC_CONFIG_FILES([kernel/sun/Makefile])
 AC_CONFIG_FILES([kernel/svg/Makefile])
+AC_CONFIG_FILES([kernel/jpeg2000/Makefile])
+AC_CONFIG_FILES([kernel/openexr/Makefile])
+AC_CONFIG_FILES([kernel/koala/Makefile])
+AC_CONFIG_FILES([kernel/wal/Makefile])
+AC_CONFIG_FILES([kernel/mdl/Makefile])
+AC_CONFIG_FILES([kernel/hdr/Makefile])
+AC_CONFIG_FILES([kernel/sct/Makefile])
+AC_CONFIG_FILES([kernel/lif/Makefile])
 
 if test $sq_have_png = yes; then
 AC_CONFIG_FILES([kernel/png/Makefile])
@@ -130,7 +141,7 @@ Installation options:
 Libraries:
 ----------"
 
-sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wmf wbmp sun svg"
+sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wmf wbmp sun svg jpeg2000 openexr koala wal mdl hdr sct lif"
 sq_disabled=""
 
 if test $sq_have_jpeg = yes; then sq_enabled=`echo -n $sq_enabled jpeg `; else sq_disabled=`echo -n $sq_disabled jpeg `; fi

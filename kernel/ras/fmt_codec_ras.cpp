@@ -72,7 +72,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,78,78,78,174,174,174,202,202,202,70,70,70,254,254,254,178,178,178,102,254,206,242,242,242,222,222,222,2,2,2,116,218,129,101,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,102,73,68,65,84,120,218,99,16,4,129,4,6,6,6,97,99,99,99,195,73,32,70,104,104,168,73,39,80,200,25,200,48,20,20,128,136,24,27,3,25,46,80,192,32,94,14,6,37,12,82,171,202,171,150,151,175,90,194,32,85,190,188,106,121,21,68,4,72,175,42,1,137,172,90,85,94,14,150,90,94,85,5,20,129,235,130,155,3,178,212,216,216,129,129,129,5,196,117,20,96,0,0,147,141,40,240,190,118,236,206,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -330,7 +330,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;

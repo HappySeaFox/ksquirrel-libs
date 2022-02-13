@@ -1,6 +1,6 @@
 if LIBWMF_BUILD_ALL
 LIBHEAVY = libwmf.la
-DIRHEAVY = extra ipa . convert
+DIRHEAVY = extra ipa .
 DEFHEAVY = -DLIBWMF_INCLUDE_TRIO_H=1
 else
 LIBHEAVY = 
@@ -16,7 +16,7 @@ GDK_PIXBUF_PLUGIN =
 GDK_PIXBUF_DEFS = 
 endif
 
-DIST_SUBDIRS = extra ipa . convert
+DIST_SUBDIRS = extra ipa .
 
 SUBDIRS = $(DIRHEAVY)
 

@@ -59,11 +59,11 @@ am__installdirs = "$(DESTDIR)$(libdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libSQ_codec_svg_la_LIBADD =
-am_libSQ_codec_svg_la_OBJECTS = fmt_codec_svg.lo fileio.lo svg2mem.lo
+am_libSQ_codec_svg_la_OBJECTS = fmt_codec_svg.lo svg2mem.lo
 #>- libSQ_codec_svg_la_OBJECTS = $(am_libSQ_codec_svg_la_OBJECTS)
 #>+ 4
 libSQ_codec_svg_la_final_OBJECTS = libSQ_codec_svg_la.all_cpp.lo 
-libSQ_codec_svg_la_nofinal_OBJECTS = fmt_codec_svg.lo fileio.lo svg2mem.lo
+libSQ_codec_svg_la_nofinal_OBJECTS = fmt_codec_svg.lo svg2mem.lo
 @KDE_USE_FINAL_FALSE@libSQ_codec_svg_la_OBJECTS = $(libSQ_codec_svg_la_nofinal_OBJECTS)
 @KDE_USE_FINAL_TRUE@libSQ_codec_svg_la_OBJECTS = $(libSQ_codec_svg_la_final_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -146,7 +146,7 @@ KDE_USE_NMCHECK_FALSE = @KDE_USE_NMCHECK_FALSE@
 KDE_USE_NMCHECK_TRUE = @KDE_USE_NMCHECK_TRUE@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lfreetype -lxml2 -lfontconfig -L. -lsvg-cairo -lsvg -lcairo -lpixman
+LIBS = -lfreetype -lxml2 -lfontconfig -L. -lsvg-cairo -lsvg -lcairo -lpixman ../fileio.lo
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -219,8 +219,7 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 INCLUDES = -I.. -I../include -I../../contrib/cairo/src -I../../contrib/libsvg/src -I../../contrib/libsvg-cairo/src
 lib_LTLIBRARIES = libSQ_codec_svg.la
-libSQ_codec_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h ../fileio.cpp svg2mem.cpp svg2mem.h
-libSQ_codec_svg_la_LIBDADD = 
+libSQ_codec_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h svg2mem.cpp svg2mem.h
 libSQ_codec_svg_la_LDFLAGS = -release 0.1.1
 #>- all: all-am
 #>+ 1
@@ -306,7 +305,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fileio.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_codec_svg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svg2mem.Plo@am__quote@
 
@@ -330,18 +328,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
-
-fileio.lo: ../fileio.cpp
-#>- @am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fileio.lo -MD -MP -MF "$(DEPDIR)/fileio.Tpo" -c -o fileio.lo `test -f '../fileio.cpp' || echo '$(srcdir)/'`../fileio.cpp; \
-#>- @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/fileio.Tpo" "$(DEPDIR)/fileio.Plo"; else rm -f "$(DEPDIR)/fileio.Tpo"; exit 1; fi
-#>+ 2
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(KDE_CXXFLAGS) -MT fileio.lo -MD -MP -MF "$(DEPDIR)/fileio.Tpo" -c -o fileio.lo `test -f '../fileio.cpp' || echo '$(srcdir)/'`../fileio.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/fileio.Tpo" "$(DEPDIR)/fileio.Plo"; else rm -f "$(DEPDIR)/fileio.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../fileio.cpp' object='fileio.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-#>- @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fileio.lo `test -f '../fileio.cpp' || echo '$(srcdir)/'`../fileio.cpp
-#>+ 1
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(KDE_CXXFLAGS) -c -o fileio.lo `test -f '../fileio.cpp' || echo '$(srcdir)/'`../fileio.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -577,11 +563,11 @@ bcheck-am:
 
 
 #>+ 11
-libSQ_codec_svg_la.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fmt_codec_svg.cpp $(srcdir)/../fileio.cpp $(srcdir)/svg2mem.cpp 
+libSQ_codec_svg_la.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fmt_codec_svg.cpp $(srcdir)/svg2mem.cpp 
 	@echo 'creating libSQ_codec_svg_la.all_cpp.cpp ...'; \
 	rm -f libSQ_codec_svg_la.all_cpp.files libSQ_codec_svg_la.all_cpp.final; \
 	echo "#define KDE_USE_FINAL 1" >> libSQ_codec_svg_la.all_cpp.final; \
-	for file in fmt_codec_svg.cpp ../fileio.cpp svg2mem.cpp ; do \
+	for file in fmt_codec_svg.cpp svg2mem.cpp ; do \
 	  echo "#include \"$$file\"" >> libSQ_codec_svg_la.all_cpp.files; \
 	  test ! -f $(srcdir)/$$file || egrep '^#pragma +implementation' $(srcdir)/$$file >> libSQ_codec_svg_la.all_cpp.final; \
 	done; \

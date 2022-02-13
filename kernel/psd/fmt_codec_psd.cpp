@@ -70,7 +70,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,254,254,2,202,202,202,178,178,178,254,254,254,174,174,174,90,90,90,242,242,242,78,78,78,222,222,222,70,70,70,241,50,95,84,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,105,73,68,65,84,120,218,99,232,0,1,3,6,6,134,69,74,74,74,90,83,65,12,23,23,23,173,74,3,8,67,163,99,1,132,161,164,212,192,192,208,181,10,2,24,22,10,130,129,20,67,91,154,160,88,154,88,154,20,195,50,193,196,68,65,49,193,44,176,72,34,152,1,84,32,6,98,44,19,20,76,75,4,169,105,132,233,90,5,51,167,73,9,4,128,86,112,172,234,90,177,170,171,129,1,0,249,243,39,139,216,187,115,145,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -269,7 +269,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
     
     line++;
 
-    memcpy(scan, last[line], sizeof(RGBA) * finfo.image[currentImage].w);
+    memcpy(scan, last[line], finfo.image[currentImage].w * sizeof(RGBA));
 
     if(compression)
     {
@@ -321,7 +321,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 	}
     }
 
-    memcpy(last[line], scan, sizeof(RGBA) * finfo.image[currentImage].w);
+    memcpy(last[line], scan, finfo.image[currentImage].w * sizeof(RGBA));
 
     if(layer == finfo.image[currentImage].passes-1)
     {
@@ -406,7 +406,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;

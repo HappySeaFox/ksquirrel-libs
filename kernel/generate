@@ -34,6 +34,7 @@ if [ "$3" = "-utils" ]; then HAVE_UTILS="yes"; fi
 
 name=$1
 mkdir $name
+mkdir include > /dev/null 2>&1
 cd $name
 
 create_build()
@@ -66,23 +67,18 @@ INCLUDES = -I.. -I../include
 
 lib_LTLIBRARIES = libSQ_codec_${name}.la
 
-EOF
-
-if test $HAVE_UTILS = yes ; then
-echo "libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h ../fileio.cpp ../fmt_utils.cpp" >> Makefile.am; else
-echo "libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h ../fileio.cpp" >> Makefile.am;
-fi
-
-cat << EOF >> Makefile.am
-
-libSQ_codec_${name}_la_LIBDADD = 
+libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h
 
 libSQ_codec_${name}_la_LDFLAGS = -release 0.1.0
 
-LIBS = 
 EOF
 
-cat << EOF > fmt_codec_${name}.h
+if test $HAVE_UTILS = yes ; then
+echo "LIBS = ../fileio.lo ../fmt_utils.lo" >> Makefile.am; else
+echo "LIBS = ../fileio.lo" >> Makefile.am;
+fi
+
+cat << EOF > ../include/fmt_codec_${name}.h
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
     Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
@@ -123,7 +119,7 @@ class fmt_codec : public fmt_codec_base
         virtual std::string     fmt_pixmap();
 
 	virtual bool    fmt_readable() const;
-        virtual s32     fmt_read_init(std::string file);
+        virtual s32     fmt_read_init(const std::string &file);
         virtual s32     fmt_read_next();
         virtual s32     fmt_read_next_pass();
         virtual s32     fmt_read_scanline(RGBA *scan);
@@ -132,7 +128,7 @@ class fmt_codec : public fmt_codec_base
         virtual bool    fmt_writable() const;
         virtual void    fmt_getwriteoptions(fmt_writeoptionsabs *);
 
-        virtual s32     fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt);
+        virtual s32     fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt);
 	virtual s32     fmt_write_next();
 	virtual s32     fmt_write_next_pass();
 	virtual s32     fmt_write_scanline(RGBA *scan);
@@ -259,7 +255,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
 
@@ -328,7 +324,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
         return SQE_W_WRONGPARAMS;
@@ -354,9 +350,8 @@ s32 fmt_codec::fmt_write_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
 {
-
     return SQE_OK;
 }
 

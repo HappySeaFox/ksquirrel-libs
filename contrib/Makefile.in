@@ -182,7 +182,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = libpixman cairo libsvg libsvg-cairo libungif libwmf
+SUBDIRS = libpixman cairo libsvg libsvg-cairo libungif libwmf libjasper libopenexr
 #>- all: all-recursive
 #>+ 1
 all: docs-am  all-recursive

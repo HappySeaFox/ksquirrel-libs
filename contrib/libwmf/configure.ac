@@ -270,6 +270,7 @@ WMF_X_CFLAGS=""
 WMF_X_LDFLAGS=""
 
 WMF_X_CFLAGS="$X_CFLAGS"
+
 if [ test "x$no_x" != "xyes" ]; then
 	WMF_X_CONFIG_CFLAGS="$X_CFLAGS"
 	WMF_X_LDFLAGS="$X_LIBS $X_PRE_LIBS -lX11 $X_EXTRA_LIBS"
@@ -743,14 +744,15 @@ GDK_PIXBUF_CFLAGS=""
 GDK_PIXBUF_LIBS=""
 GDK_PIXBUF_DIR=""
 
-if test $LIBWMF_BUILDSTYLE != lite; then
-	PKG_CHECK_MODULES(GDK_PIXBUF,gdk-pixbuf-2.0 >= 2.1.2,[
-		GTK_VERSION=`$PKG_CONFIG --variable=gtk_binary_version gtk+-2.0`
-		GDK_PIXBUF_DIR="gtk-2.0/$GTK_VERSION/loaders"
-		wmf_gdk_pixbuf=yes
-	],[	wmf_gdk_pixbuf=no
-	])
-fi
+#if test $LIBWMF_BUILDSTYLE != lite; then
+#	PKG_CHECK_MODULES(GDK_PIXBUF,gdk-pixbuf-2.0 >= 2.1.2,[
+#		GTK_VERSION=`$PKG_CONFIG --variable=gtk_binary_version gtk+-2.0`
+#		GDK_PIXBUF_DIR="gtk-2.0/$GTK_VERSION/loaders"
+#		wmf_gdk_pixbuf=yes
+#	],[	wmf_gdk_pixbuf=no
+#	])
+#fi
+
 AM_CONDITIONAL(LIBWMF_GDK_PIXBUF,[test $wmf_gdk_pixbuf = yes])
 
 AC_SUBST(GDK_PIXBUF_CFLAGS)
@@ -887,9 +889,7 @@ src/extra/Makefile
 src/extra/trio/Makefile
 src/extra/gd/Makefile
 src/ipa/Makefile
-src/convert/Makefile
 libwmf-config
-libwmf.spec
 ])
 AC_OUTPUT
 

@@ -12,10 +12,13 @@
 
 KSQUIRREL_LIBS="/usr/lib/ksquirrel-libs/"
 
+rm -f $KSQUIRREL_LIBS/*
+
 mkdir $KSQUIRREL_LIBS > /dev/null 2>&1
 
-for i in bmp camera cut fli gif ico iff jpeg pcx pix png pnm psd ras rawrgb sgi sun svg tga tiff utah wbmp wmf xbm xcur xpm xwd;
-do ln -s `pwd`/$i/.libs/libSQ_codec_$i.so $KSQUIRREL_LIBS;
+for i in bmp camera cut fli gif hdr ico iff jpeg jpeg2000 koala lif mdl openexr pcx pix png pnm psd ras rawrgb sct sgi sun svg tga tiff utah wal wbmp wmf xbm xcur xpm xwd;
+do echo "Linking libSQ_codec_$i.so ..." && ln -s `pwd`/$i/.libs/libSQ_codec_$i.so $KSQUIRREL_LIBS;
 done
 
 ln -s `pwd`/xpm/rgbmap $KSQUIRREL_LIBS
+ln -s `pwd`/../VERSION $KSQUIRREL_LIBS/version
