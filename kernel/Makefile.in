@@ -668,7 +668,7 @@ install-data-am:
 
 
 #>+ 2
-KDE_DIST=Makefile.in kwrite kwrite-am Makefile.am 
+KDE_DIST=Makefile.in kwrite plusx kwrite-am Makefile.am 
 
 #>+ 2
 docs-am:

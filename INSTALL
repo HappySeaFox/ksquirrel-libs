@@ -16,4 +16,3 @@ DEB  # dpkg -i ksquirrel-libs-0.6.0.deb
 
 Note: You can pass all regular 'configure' parameters to configure.gnu.
 Note: Your automake version should be 1.8 or higher.
-Note: If "make install" fails in doc/ directory, ignore it.

@@ -7,9 +7,12 @@ Important
 * SVG library requires libxml2, freetype2, fontconfig, libsvg, cairo, libsvg-cairo, libpixman
 * MNG library requires libmng
 * TTF library requires libfreetype >= 2.1.9
+* GIF library requires libungif
 * All this packages plus -devel packages
 
+* DXF  library requires vec2web installed
 * DJVU library requires "ddjvu" installed
+* NEO, IFF, PICT and some other libraries require NetPBM installed
 
 About
 -----

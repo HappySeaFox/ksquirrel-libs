@@ -20,4 +20,5 @@ for i in avs bmp camera cut fli gif hdr ico iff jbig jpeg jpeg2000 koala lif mac
 do echo "Linking libkls_$i.so ..." && ln -s `pwd`/kls_$i/.libs/libkls_$i.so $KSQUIRREL_LIBS;
 done
 
+rm -f /usr/lib/libksquirrel-libs.so
 ln -s `pwd`/kls_lib/.libs/libksquirrel-libs.so /usr/lib
