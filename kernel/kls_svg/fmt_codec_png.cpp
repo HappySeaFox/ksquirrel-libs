@@ -167,6 +167,7 @@ s32 fmt_codec::read_init(const std::string &file)
     frame = 0;
     prev = 0;
     cur = 0;
+    zerror = false;
 
 #ifdef CODEC_SVG
     int status;
@@ -237,7 +238,6 @@ s32 fmt_codec::read_init(const std::string &file)
 	return SQE_R_NOFILE;
 
     currentImage = -1;
-    zerror = false;
 
     if((png_ptr = my_png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0)) == NULL)
     {
@@ -264,7 +264,6 @@ s32 fmt_codec::read_init(const std::string &file)
     img.w = next_frame_width = width;
     img.h = next_frame_height = height;
     img.bpp = bit_depth;
-    img.hasalpha = true;
 
     if(img.bpp == 16)
 	my_png_set_strip_16(png_ptr);
@@ -310,10 +309,10 @@ s32 fmt_codec::read_init(const std::string &file)
 
     std::string color_;
 
-    switch(color_type)
+    img.hasalpha = (color_type & PNG_COLOR_MASK_ALPHA);
+
+    switch((color_type & ~PNG_COLOR_MASK_ALPHA))
     {
-	case PNG_COLOR_TYPE_GRAY_ALPHA:  color_ = "Grayscale with ALPHA"; break;
-	case PNG_COLOR_TYPE_RGB_ALPHA:   color_ = "RGBA";                 break;
 	case PNG_COLOR_TYPE_RGB:         color_ = "RGB";                  break;
 	case PNG_COLOR_TYPE_PALETTE:     color_ = "Color indexed";        break;
 	case PNG_COLOR_TYPE_GRAY:        color_ = "Grayscale";            break;
@@ -321,6 +320,9 @@ s32 fmt_codec::read_init(const std::string &file)
 	default:
 	    color_ = "Unknown";
     }
+
+    if(img.hasalpha)
+        color_ += " with ALPHA";
 
     img.compression = "Deflate method 8, 32K window";
     img.colorspace = color_;
@@ -379,18 +381,6 @@ s32 fmt_codec::read_next()
 
             for(u32 i = 0;i < height;i++)
                 memcpy(prev[i], cur[i], width*sizeof(RGBA));
-/*
-        char nn[128];
-        int bpp = 32;
-        sprintf(nn, "/home/krasu/apng/dump-%02d.rawrgb", currentImage);
-        FILE *fp = fopen(nn, "wb");
-        fwrite(&next_frame_width, 4, 1, fp);
-        fwrite(&next_frame_height, 4, 1, fp);
-        fwrite(&bpp, 4, 1, fp);
-        for(int i = 0;i < height;i++)
-            fwrite(prev[i], 4, width, fp);
-        fclose(fp);
-*/
         }
         else if(my_png_get_first_frame_is_hidden(png_ptr, info_ptr))
         {
@@ -506,6 +496,12 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 
     line++;
 
+    if(zerror || setjmp(png_jmpbuf(png_ptr)))
+    {
+        zerror = true;
+	return SQE_R_BADFILE;
+    }
+
     if(finfo.animated)
         memcpy(scan, cur[line], im->w * sizeof(RGBA));
     else
@@ -546,7 +542,8 @@ s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const
 {
     m_png_ptr = 0;
     m_info_ptr = 0;
-    zerror = false;
+    m_fptr = 0;
+    m_zerror = false;
 
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -563,7 +560,7 @@ s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const
 
     if(!m_png_ptr)
     {
-	zerror = true;
+	m_zerror = true;
 	return SQE_W_NOMEMORY;
     }
 
@@ -571,13 +568,13 @@ s32 fmt_codec::write_init(const std::string &file, const fmt_image &image, const
 
     if(!m_info_ptr)
     {
-	zerror = true;
+	m_zerror = true;
 	return SQE_W_NOMEMORY;
     }
 
     if(setjmp(png_jmpbuf(m_png_ptr)))
     {
-        zerror = true;
+        m_zerror = true;
 	return SQE_W_ERROR;
     }
 
@@ -625,9 +622,9 @@ s32 fmt_codec::write_next_pass()
 
 s32 fmt_codec::write_scanline(RGBA *scan)
 {
-    if(zerror || setjmp(png_jmpbuf(m_png_ptr)))
+    if(m_zerror || setjmp(png_jmpbuf(m_png_ptr)))
     {
-        zerror = true;
+        m_zerror = true;
 	return SQE_W_ERROR;
     }
 
@@ -640,6 +637,7 @@ s32 fmt_codec::write_scanline(RGBA *scan)
 
 void fmt_codec::write_close()
 {
+    if(m_png_ptr && !m_zerror) my_png_write_end(m_png_ptr, m_info_ptr);
     if(m_png_ptr) my_png_destroy_write_struct(&m_png_ptr, &m_info_ptr);
     if(m_fptr)    fclose(m_fptr);
 }

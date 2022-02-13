@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.7.4], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.7.5], [ksquirrel.iv@gmail.com])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.4)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.5)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)

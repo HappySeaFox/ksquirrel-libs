@@ -57,7 +57,7 @@ class fmt_codec : public fmt_codec_base
         png_structp 	m_png_ptr;
 	png_infop   	m_info_ptr;
 	png_bytep 	m_row_pointer;
-        bool            zerror;
+        bool            zerror, m_zerror;
 };
 
 #endif

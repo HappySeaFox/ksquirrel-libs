@@ -1,7 +1,7 @@
 How to install 'ksquirrel-libs' package:
 
    a) from sources
-   # tar zxfv ksquirrel-libs-0.7.0.tar.gz
+   # tar jxfv ksquirrel-libs-0.7.0.tar.bz2
    # cd ksquirrel-libs-0.7.0/
  * # su -c './required-etch'
    # ./configure.gnu (not ./configure !)
