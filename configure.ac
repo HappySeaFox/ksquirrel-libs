@@ -211,6 +211,17 @@ AC_ARG_ENABLE(xcf,
                     esac]
              )
 
+sq_codec_ljpeg="yes"
+
+AC_ARG_ENABLE(ljpeg,
+              [AS_HELP_STRING([--disable-ljpeg], [don't compile ljpeg codec  [default=no]])],
+              [     case "${enableval}" in
+                       yes) sq_codec_ljpeg="yes" ;;
+                       no)  sq_codec_ljpeg="no" ;;
+                       *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
+                    esac]
+             )
+
 missing()
 {
     echo
@@ -386,10 +397,18 @@ fi
 # GIF
 if test $sq_codec_gif = yes; then
 
+SQ_GIFLIBS=""
+
 AC_CHECK_HEADERS([gif_lib.h], [
-		    AC_CHECK_LIB([ungif], [DGifOpenFileName], [sq_have_gif="yes"], [sq_have_gif="no" missing GIF libungif])
+		    AC_CHECK_LIB([ungif], [DGifOpenFileName], [sq_have_gif="yes" SQ_GIFLIBS="-lungif"], 
+                        [
+                            AC_CHECK_LIB([gif], [DGifOpenFileName], [sq_have_gif="yes" SQ_GIFLIBS="-lgif"], [sq_have_gif="no" missing GIF "libungif or giflib"])
+                        ]
+                        )
 		    ],
-		    [sq_have_gif="no" missing GIF libungif])
+		    [sq_have_gif="no"])
+
+AC_SUBST(SQ_GIFLIBS)
 
 fi
 
@@ -703,6 +722,9 @@ kernel/kls_utah/ksquirrel-libs-utah2ppm
 kernel/kls_utah/Makefile
 kernel/kls_pict/ksquirrel-libs-pict2ppm
 kernel/kls_pict/Makefile
+kernel/kls_ljpeg/ksquirrel-libs-ljpeg2ppm-s
+kernel/kls_ljpeg/ljpeg2ppm/Makefile
+kernel/kls_ljpeg/Makefile
 kernel/ksquirrel-libs/Makefile
 ksquirrellibs.pc
 ])
@@ -729,6 +751,7 @@ AM_CONDITIONAL(SQ_HAVE_DJVU,    [ test $sq_codec_djvu     = yes -a $sq_have_djvu
 AM_CONDITIONAL(SQ_HAVE_DXF,     [ test $sq_codec_dxf      = yes -a $sq_have_dxf       = yes ])
 AM_CONDITIONAL(SQ_HAVE_FIG,     [ test $sq_codec_fig      = yes -a $sq_have_fig       = yes ])
 AM_CONDITIONAL(SQ_HAVE_XCF,     [ test $sq_codec_xcf      = yes ])
+AM_CONDITIONAL(SQ_HAVE_LJPEG,   [ test $sq_codec_ljpeg    = yes ])
 
 # NetPBM
 AM_CONDITIONAL(SQ_HAVE_NEO,     [ test $sq_have_neo      = yes ])
@@ -781,17 +804,18 @@ if test $sq_have_gif = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=
 if test $sq_have_djvu = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled djvu `;   else sq_disabled=`echo -n $sq_disabled djvu `;   fi
 if test $sq_have_dxf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled dxf `;    else sq_disabled=`echo -n $sq_disabled dxf `;    fi
 if test $sq_have_fig = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled fig `;    else sq_disabled=`echo -n $sq_disabled fig `;    fi
-if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;    fi
+if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;   fi
 
 if test $sq_have_neo = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled neo `;    else sq_disabled=`echo -n $sq_disabled neo `;    fi
 if test $sq_have_pi1 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi1 `;    else sq_disabled=`echo -n $sq_disabled pi1 `;    fi
 if test $sq_have_pi3 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi3 `;    else sq_disabled=`echo -n $sq_disabled pi3 `;    fi
-if test $sq_have_utah = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled utah `;    else sq_disabled=`echo -n $sq_disabled utah `;    fi
+if test $sq_have_utah = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled utah `;   else sq_disabled=`echo -n $sq_disabled utah `;   fi
 if test $sq_have_xim = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xim `;    else sq_disabled=`echo -n $sq_disabled xim `;    fi
-if test $sq_have_leaf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled leaf `;    else sq_disabled=`echo -n $sq_disabled leaf `;    fi
-if test $sq_have_pict = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pict `;    else sq_disabled=`echo -n $sq_disabled pict `;    fi
+if test $sq_have_leaf = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled leaf `;   else sq_disabled=`echo -n $sq_disabled leaf `;   fi
+if test $sq_have_pict = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pict `;   else sq_disabled=`echo -n $sq_disabled pict `;   fi
 if test $sq_have_iff = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled iff `;    else sq_disabled=`echo -n $sq_disabled iff `;    fi
 if test $sq_have_mac = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled mac `;    else sq_disabled=`echo -n $sq_disabled mac `;    fi
+if test $sq_codec_ljpeg = yes; then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled ljpeg `;  else sq_disabled=`echo -n $sq_disabled ljpeg `;  fi
 
 if test $sq_dev = yes;         then sq_total=`expr $sq_total + 1`; else sq_devel="msp" && sq_devel_message="(use --enable-devel to enable these codecs)"; fi
 
@@ -806,6 +830,7 @@ if test $sq_codec_mng = no;       then sq_manual=`echo -n $sq_manual mng`;      
 if test $sq_codec_djvu = no;      then sq_manual=`echo -n $sq_manual djvu`;     fi
 if test $sq_codec_dxf = no;       then sq_manual=`echo -n $sq_manual dxf`;      fi
 if test $sq_codec_xcf = no;       then sq_manual=`echo -n $sq_manual xcf`;      fi
+if test $sq_codec_ljpeg = no;     then sq_manual=`echo -n $sq_manual ljpeg`;    fi
 
 # old version of ksquirrel-libs installed
 sq_have_ksqlibs_msg=""

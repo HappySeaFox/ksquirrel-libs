@@ -57,9 +57,10 @@ target_triplet = @target@
 @SQ_HAVE_MAC_TRUE@am__append_22 = kls_mac
 @SQ_HAVE_IFF_TRUE@am__append_23 = kls_iff
 @SQ_HAVE_FIG_TRUE@am__append_24 = kls_fig
+@SQ_HAVE_LJPEG_TRUE@am__append_25 = kls_ljpeg
 
 # unstable/buggy codecs - for developers only
-@SQ_DEVEL_TRUE@am__append_25 = kls_msp
+@SQ_DEVEL_TRUE@am__append_26 = kls_msp
 subdir = kernel
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -97,7 +98,8 @@ DIST_SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr \
 	kls_xcur kls_xpm kls_camera kls_jpeg kls_png kls_tiff kls_xwd \
 	kls_wmf kls_svg kls_gif kls_openexr kls_jpeg2000 kls_ttf \
 	kls_mng kls_djvu kls_dxf kls_neo kls_leaf kls_pi1 kls_pi3 \
-	kls_xim kls_utah kls_pict kls_mac kls_iff kls_fig kls_msp
+	kls_xim kls_utah kls_pict kls_mac kls_iff kls_fig kls_ljpeg \
+	kls_msp
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -190,6 +192,7 @@ SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
+SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
@@ -286,7 +289,7 @@ SUBDIRS = ksquirrel-libs kls_avs kls_bmp kls_cut kls_fli kls_hdr \
 	$(am__append_15) $(am__append_16) $(am__append_17) \
 	$(am__append_18) $(am__append_19) $(am__append_20) \
 	$(am__append_21) $(am__append_22) $(am__append_23) \
-	$(am__append_24) $(am__append_25)
+	$(am__append_24) $(am__append_25) $(am__append_26)
 EXTRA_DIST = generate link include/*.h include/ksquirrel-libs/*.h xpm/*.xpm
 #>- all: all-recursive
 #>+ 1

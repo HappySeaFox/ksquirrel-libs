@@ -169,6 +169,7 @@ SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
+SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
@@ -568,7 +569,7 @@ uninstall-am: uninstall-binPROGRAMS
 
 
 #>+ 2
-KDE_DIST=ksquirrel-libs-xcf2pnm Makefile.in enums.h options.i xcftools.h pixels.h flatten.h Makefile.am 
+KDE_DIST=Makefile.in enums.h options.i xcftools.h pixels.h flatten.h Makefile.am 
 
 #>+ 2
 docs-am:

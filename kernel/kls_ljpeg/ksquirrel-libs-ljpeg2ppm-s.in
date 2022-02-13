@@ -1,0 +1,18 @@
+#!/bin/sh
+
+kls_ljpeg_i=""
+kls_ljpeg_o=""
+kls_ljpeg_bin=""
+
+while [ "$1" ] ; do
+
+    case "$1" in
+        "--input")  kls_ljpeg_i="$2"   shift ;;
+        "--output") kls_ljpeg_o="$2"   shift ;;
+        "--binary") kls_ljpeg_bin="$2" shift ;;
+    esac
+
+shift
+done
+
+$kls_ljpeg_bin "$kls_ljpeg_i" > "$kls_ljpeg_o"

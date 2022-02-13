@@ -98,6 +98,10 @@ if SQ_HAVE_FIG
 SUBDIRS += kls_fig
 endif
 
+if SQ_HAVE_LJPEG
+SUBDIRS += kls_ljpeg
+endif
+
 # unstable/buggy codecs - for developers only
 if SQ_DEVEL
 SUBDIRS += kls_msp

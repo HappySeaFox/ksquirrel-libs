@@ -53,7 +53,8 @@ am__installdirs = "$(DESTDIR)$(pkglibdir)"
 pkglibLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(pkglib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libkls_gif_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+libkls_gif_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am_libkls_gif_la_OBJECTS = fmt_codec_gif.lo
 #>- libkls_gif_la_OBJECTS = $(am_libkls_gif_la_OBJECTS)
 #>+ 1
@@ -193,6 +194,7 @@ SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
+SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
@@ -281,7 +283,7 @@ INCLUDES = -I../include
 pkglib_LTLIBRARIES = libkls_gif.la
 libkls_gif_la_SOURCES = fmt_codec_gif.cpp fmt_codec_gif_defs.h
 libkls_gif_la_LDFLAGS = ${SQ_RELEASE}
-libkls_gif_la_LIBADD = ${SQ_LOCAL_RPATH} -lungif
+libkls_gif_la_LIBADD = ${SQ_LOCAL_RPATH} ${SQ_GIFLIBS}
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am

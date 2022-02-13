@@ -184,6 +184,7 @@ SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
+SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
@@ -767,7 +768,7 @@ dist-hook:
 
 
 #>+ 2
-KDE_DIST=stamp-h.in subdirs configure.ac Makefile.in mng_LICENSE reconfigure configure.gnu aclocal.m4 Makefile.dist configure Makefile.am acinclude.m4 VERSION ksquirrellibs.pc LICENSE 
+KDE_DIST=stamp-h.in subdirs configure.ac Makefile.in mng_LICENSE reconfigure configure.gnu aclocal.m4 Makefile.dist configure Makefile.am acinclude.m4 ksquirrellibs.pc VERSION LICENSE 
 
 #>+ 2
 docs-am:

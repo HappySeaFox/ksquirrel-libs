@@ -1,5 +1,5 @@
 #!/bin/sh
 
-for i in avs bmp camera cut fli gif hdr ico iff fig jbig jpeg jpeg2000 koala lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd djvu dxf neo leaf pi1 pi3 xim pict;
+for i in avs bmp camera cut fli gif hdr ico iff fig jbig jpeg jpeg2000 koala ljpeg lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd djvu dxf neo leaf pi1 pi3 xim pict;
 do echo $i && cd kls_$i && touch -m * && cd ..;
 done

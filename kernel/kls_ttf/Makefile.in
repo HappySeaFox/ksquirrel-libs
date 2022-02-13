@@ -226,6 +226,7 @@ SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
 SQ_FT_LDFLAGS = @SQ_FT_LDFLAGS@
+SQ_GIFLIBS = @SQ_GIFLIBS@
 SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_RELEASE = @SQ_RELEASE@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
@@ -761,7 +762,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-pkglibLTLIBRARIES
 
 
 #>+ 2
-KDE_DIST=ftcommon.h ksquirrel-libs-ttf2pnm Makefile.in Makefile.am 
+KDE_DIST=ftcommon.h Makefile.in Makefile.am 
 
 #>+ 2
 docs-am:

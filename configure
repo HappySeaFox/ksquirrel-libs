@@ -903,6 +903,7 @@ lcms_LIBS
 WMF_CONFIG
 SQ_WMF_CFLAGS
 SQ_WMF_LDFLAGS
+SQ_GIFLIBS
 OpenEXR_CFLAGS
 OpenEXR_LIBS
 SQ_EXR_CFLAGS
@@ -977,6 +978,8 @@ SQ_HAVE_FIG_TRUE
 SQ_HAVE_FIG_FALSE
 SQ_HAVE_XCF_TRUE
 SQ_HAVE_XCF_FALSE
+SQ_HAVE_LJPEG_TRUE
+SQ_HAVE_LJPEG_FALSE
 SQ_HAVE_NEO_TRUE
 SQ_HAVE_NEO_FALSE
 SQ_HAVE_XIM_TRUE
@@ -1638,6 +1641,7 @@ Optional Features:
   --disable-dxf           don't compile dxf codec [default=no]
   --disable-fig           don't compile fig codec [default=no]
   --disable-xcf           don't compile xcf codec [default=no]
+  --disable-ljpeg         don't compile ljpeg codec [default=no]
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
 
@@ -7560,7 +7564,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7563 "configure"' > conftest.$ac_ext
+  echo '#line 7567 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9306,11 +9310,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9309: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9313: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9313: \$? = $ac_status" >&5
+   echo "$as_me:9317: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -9539,11 +9543,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9542: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9546: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9546: \$? = $ac_status" >&5
+   echo "$as_me:9550: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -9606,11 +9610,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9609: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9613: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9613: \$? = $ac_status" >&5
+   echo "$as_me:9617: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11681,7 +11685,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 11684 "configure"
+#line 11688 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11779,7 +11783,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 11782 "configure"
+#line 11786 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13918,11 +13922,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13921: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13925: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13925: \$? = $ac_status" >&5
+   echo "$as_me:13929: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -13985,11 +13989,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13988: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13992: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13992: \$? = $ac_status" >&5
+   echo "$as_me:13996: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15288,7 +15292,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 15291 "configure"
+#line 15295 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15386,7 +15390,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 15389 "configure"
+#line 15393 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -16209,11 +16213,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16212: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16216: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16216: \$? = $ac_status" >&5
+   echo "$as_me:16220: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -16276,11 +16280,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16279: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16283: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16283: \$? = $ac_status" >&5
+   echo "$as_me:16287: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18233,11 +18237,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18236: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18240: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18240: \$? = $ac_status" >&5
+   echo "$as_me:18244: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -18466,11 +18470,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18469: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18473: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18473: \$? = $ac_status" >&5
+   echo "$as_me:18477: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -18533,11 +18537,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18536: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18540: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18540: \$? = $ac_status" >&5
+   echo "$as_me:18544: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20608,7 +20612,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 20611 "configure"
+#line 20615 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -20706,7 +20710,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 20709 "configure"
+#line 20713 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -24911,6 +24915,21 @@ echo "$as_me: error: bad value ${enableval} for this parameter" >&2;}
 fi
 
 
+sq_codec_ljpeg="yes"
+
+# Check whether --enable-ljpeg was given.
+if test "${enable_ljpeg+set}" = set; then
+  enableval=$enable_ljpeg;      case "${enableval}" in
+                       yes) sq_codec_ljpeg="yes" ;;
+                       no)  sq_codec_ljpeg="no" ;;
+                       *)   { { echo "$as_me:$LINENO: error: bad value ${enableval} for this parameter" >&5
+echo "$as_me: error: bad value ${enableval} for this parameter" >&2;}
+   { (exit 1); exit 1; }; } ;;
+                    esac
+
+fi
+
+
 missing()
 {
     echo
@@ -27815,6 +27834,8 @@ fi
 # GIF
 if test $sq_codec_gif = yes; then
 
+SQ_GIFLIBS=""
+
 
 for ac_header in gif_lib.h
 do
@@ -28018,17 +28039,88 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_lib_ungif_DGifOpenFileName" >&5
 echo "${ECHO_T}$ac_cv_lib_ungif_DGifOpenFileName" >&6; }
 if test $ac_cv_lib_ungif_DGifOpenFileName = yes; then
-  sq_have_gif="yes"
+  sq_have_gif="yes" SQ_GIFLIBS="-lungif"
 else
-  sq_have_gif="no" missing GIF libungif
+
+                            { echo "$as_me:$LINENO: checking for DGifOpenFileName in -lgif" >&5
+echo $ECHO_N "checking for DGifOpenFileName in -lgif... $ECHO_C" >&6; }
+if test "${ac_cv_lib_gif_DGifOpenFileName+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgif  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char DGifOpenFileName ();
+int
+main ()
+{
+return DGifOpenFileName ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_gif_DGifOpenFileName=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_gif_DGifOpenFileName=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_gif_DGifOpenFileName" >&5
+echo "${ECHO_T}$ac_cv_lib_gif_DGifOpenFileName" >&6; }
+if test $ac_cv_lib_gif_DGifOpenFileName = yes; then
+  sq_have_gif="yes" SQ_GIFLIBS="-lgif"
+else
+  sq_have_gif="no" missing GIF "libungif or giflib"
+fi
+
+
+
 fi
 
 
 else
-  sq_have_gif="no" missing GIF libungif
+  sq_have_gif="no"
 fi
 
 done
+
+
 
 
 fi
@@ -32867,7 +32959,7 @@ fi
 
 ################################################
 
-ac_config_files="$ac_config_files Makefile doc/Makefile doc/html/Makefile doc/sources/Makefile kernel/Makefile kernel/kls_bmp/Makefile kernel/kls_gif/Makefile kernel/kls_pix/Makefile kernel/kls_xbm/Makefile kernel/kls_xpm/Makefile kernel/kls_tga/Makefile kernel/kls_sgi/Makefile kernel/kls_ras/Makefile kernel/kls_pnm/Makefile kernel/kls_pcx/Makefile kernel/kls_ico/Makefile kernel/kls_xcur/Makefile kernel/kls_psd/Makefile kernel/kls_fli/Makefile kernel/kls_cut/Makefile kernel/kls_rawrgb/Makefile kernel/kls_wbmp/Makefile kernel/kls_sun/Makefile kernel/kls_jpeg2000/Makefile kernel/kls_openexr/Makefile kernel/kls_koala/Makefile kernel/kls_wal/Makefile kernel/kls_mdl/Makefile kernel/kls_hdr/Makefile kernel/kls_sct/Makefile kernel/kls_lif/Makefile kernel/kls_mtv/Makefile kernel/kls_avs/Makefile kernel/kls_msp/Makefile kernel/kls_svg/Makefile kernel/kls_wmf/Makefile kernel/kls_png/Makefile kernel/kls_jpeg/Makefile kernel/kls_xwd/Makefile kernel/kls_tiff/Makefile kernel/kls_camera/Makefile kernel/kls_camera/ksquirrel-libs-camera2ppm kernel/kls_pxr/Makefile kernel/kls_ttf/Makefile kernel/kls_ttf/ftview/Makefile kernel/kls_mng/Makefile kernel/kls_jbig/libjbig/Makefile kernel/kls_jbig/Makefile kernel/kls_djvu/Makefile kernel/kls_dxf/Makefile kernel/kls_xcf/Makefile kernel/kls_xcf/xcf2pnm/Makefile kernel/kls_fig/ksquirrel-libs-fig2ppm kernel/kls_fig/Makefile kernel/kls_mac/ksquirrel-libs-mac2ppm kernel/kls_mac/Makefile kernel/kls_iff/ksquirrel-libs-iff2ppm kernel/kls_iff/Makefile kernel/kls_neo/ksquirrel-libs-neo2ppm kernel/kls_neo/Makefile kernel/kls_pi1/ksquirrel-libs-pi12ppm kernel/kls_pi1/Makefile kernel/kls_pi3/ksquirrel-libs-pi32ppm kernel/kls_pi3/Makefile kernel/kls_xim/ksquirrel-libs-xim2ppm kernel/kls_xim/Makefile kernel/kls_leaf/ksquirrel-libs-leaf2ppm kernel/kls_leaf/Makefile kernel/kls_utah/ksquirrel-libs-utah2ppm kernel/kls_utah/Makefile kernel/kls_pict/ksquirrel-libs-pict2ppm kernel/kls_pict/Makefile kernel/ksquirrel-libs/Makefile ksquirrellibs.pc"
+ac_config_files="$ac_config_files Makefile doc/Makefile doc/html/Makefile doc/sources/Makefile kernel/Makefile kernel/kls_bmp/Makefile kernel/kls_gif/Makefile kernel/kls_pix/Makefile kernel/kls_xbm/Makefile kernel/kls_xpm/Makefile kernel/kls_tga/Makefile kernel/kls_sgi/Makefile kernel/kls_ras/Makefile kernel/kls_pnm/Makefile kernel/kls_pcx/Makefile kernel/kls_ico/Makefile kernel/kls_xcur/Makefile kernel/kls_psd/Makefile kernel/kls_fli/Makefile kernel/kls_cut/Makefile kernel/kls_rawrgb/Makefile kernel/kls_wbmp/Makefile kernel/kls_sun/Makefile kernel/kls_jpeg2000/Makefile kernel/kls_openexr/Makefile kernel/kls_koala/Makefile kernel/kls_wal/Makefile kernel/kls_mdl/Makefile kernel/kls_hdr/Makefile kernel/kls_sct/Makefile kernel/kls_lif/Makefile kernel/kls_mtv/Makefile kernel/kls_avs/Makefile kernel/kls_msp/Makefile kernel/kls_svg/Makefile kernel/kls_wmf/Makefile kernel/kls_png/Makefile kernel/kls_jpeg/Makefile kernel/kls_xwd/Makefile kernel/kls_tiff/Makefile kernel/kls_camera/Makefile kernel/kls_camera/ksquirrel-libs-camera2ppm kernel/kls_pxr/Makefile kernel/kls_ttf/Makefile kernel/kls_ttf/ftview/Makefile kernel/kls_mng/Makefile kernel/kls_jbig/libjbig/Makefile kernel/kls_jbig/Makefile kernel/kls_djvu/Makefile kernel/kls_dxf/Makefile kernel/kls_xcf/Makefile kernel/kls_xcf/xcf2pnm/Makefile kernel/kls_fig/ksquirrel-libs-fig2ppm kernel/kls_fig/Makefile kernel/kls_mac/ksquirrel-libs-mac2ppm kernel/kls_mac/Makefile kernel/kls_iff/ksquirrel-libs-iff2ppm kernel/kls_iff/Makefile kernel/kls_neo/ksquirrel-libs-neo2ppm kernel/kls_neo/Makefile kernel/kls_pi1/ksquirrel-libs-pi12ppm kernel/kls_pi1/Makefile kernel/kls_pi3/ksquirrel-libs-pi32ppm kernel/kls_pi3/Makefile kernel/kls_xim/ksquirrel-libs-xim2ppm kernel/kls_xim/Makefile kernel/kls_leaf/ksquirrel-libs-leaf2ppm kernel/kls_leaf/Makefile kernel/kls_utah/ksquirrel-libs-utah2ppm kernel/kls_utah/Makefile kernel/kls_pict/ksquirrel-libs-pict2ppm kernel/kls_pict/Makefile kernel/kls_ljpeg/ksquirrel-libs-ljpeg2ppm-s kernel/kls_ljpeg/ljpeg2ppm/Makefile kernel/kls_ljpeg/Makefile kernel/ksquirrel-libs/Makefile ksquirrellibs.pc"
 
 
 
@@ -33023,6 +33115,14 @@ fi
 else
   SQ_HAVE_XCF_TRUE='#'
   SQ_HAVE_XCF_FALSE=
+fi
+
+ if  test $sq_codec_ljpeg    = yes ; then
+  SQ_HAVE_LJPEG_TRUE=
+  SQ_HAVE_LJPEG_FALSE='#'
+else
+  SQ_HAVE_LJPEG_TRUE='#'
+  SQ_HAVE_LJPEG_FALSE=
 fi
 
 
@@ -33391,6 +33491,13 @@ if test -z "${SQ_HAVE_XCF_TRUE}" && test -z "${SQ_HAVE_XCF_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"SQ_HAVE_XCF\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"SQ_HAVE_XCF\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${SQ_HAVE_LJPEG_TRUE}" && test -z "${SQ_HAVE_LJPEG_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"SQ_HAVE_LJPEG\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"SQ_HAVE_LJPEG\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -33990,6 +34097,9 @@ do
     "kernel/kls_utah/Makefile") CONFIG_FILES="$CONFIG_FILES kernel/kls_utah/Makefile" ;;
     "kernel/kls_pict/ksquirrel-libs-pict2ppm") CONFIG_FILES="$CONFIG_FILES kernel/kls_pict/ksquirrel-libs-pict2ppm" ;;
     "kernel/kls_pict/Makefile") CONFIG_FILES="$CONFIG_FILES kernel/kls_pict/Makefile" ;;
+    "kernel/kls_ljpeg/ksquirrel-libs-ljpeg2ppm-s") CONFIG_FILES="$CONFIG_FILES kernel/kls_ljpeg/ksquirrel-libs-ljpeg2ppm-s" ;;
+    "kernel/kls_ljpeg/ljpeg2ppm/Makefile") CONFIG_FILES="$CONFIG_FILES kernel/kls_ljpeg/ljpeg2ppm/Makefile" ;;
+    "kernel/kls_ljpeg/Makefile") CONFIG_FILES="$CONFIG_FILES kernel/kls_ljpeg/Makefile" ;;
     "kernel/ksquirrel-libs/Makefile") CONFIG_FILES="$CONFIG_FILES kernel/ksquirrel-libs/Makefile" ;;
     "ksquirrellibs.pc") CONFIG_FILES="$CONFIG_FILES ksquirrellibs.pc" ;;
 
@@ -34228,6 +34338,7 @@ lcms_LIBS!$lcms_LIBS$ac_delim
 WMF_CONFIG!$WMF_CONFIG$ac_delim
 SQ_WMF_CFLAGS!$SQ_WMF_CFLAGS$ac_delim
 SQ_WMF_LDFLAGS!$SQ_WMF_LDFLAGS$ac_delim
+SQ_GIFLIBS!$SQ_GIFLIBS$ac_delim
 OpenEXR_CFLAGS!$OpenEXR_CFLAGS$ac_delim
 OpenEXR_LIBS!$OpenEXR_LIBS$ac_delim
 SQ_EXR_CFLAGS!$SQ_EXR_CFLAGS$ac_delim
@@ -34287,7 +34398,6 @@ SQ_HAVE_WMF_FALSE!$SQ_HAVE_WMF_FALSE$ac_delim
 SQ_HAVE_JPEG2000_TRUE!$SQ_HAVE_JPEG2000_TRUE$ac_delim
 SQ_HAVE_JPEG2000_FALSE!$SQ_HAVE_JPEG2000_FALSE$ac_delim
 SQ_HAVE_OPENEXR_TRUE!$SQ_HAVE_OPENEXR_TRUE$ac_delim
-SQ_HAVE_OPENEXR_FALSE!$SQ_HAVE_OPENEXR_FALSE$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -34329,6 +34439,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+SQ_HAVE_OPENEXR_FALSE!$SQ_HAVE_OPENEXR_FALSE$ac_delim
 SQ_HAVE_GIF_TRUE!$SQ_HAVE_GIF_TRUE$ac_delim
 SQ_HAVE_GIF_FALSE!$SQ_HAVE_GIF_FALSE$ac_delim
 SQ_HAVE_TTF_TRUE!$SQ_HAVE_TTF_TRUE$ac_delim
@@ -34343,6 +34454,8 @@ SQ_HAVE_FIG_TRUE!$SQ_HAVE_FIG_TRUE$ac_delim
 SQ_HAVE_FIG_FALSE!$SQ_HAVE_FIG_FALSE$ac_delim
 SQ_HAVE_XCF_TRUE!$SQ_HAVE_XCF_TRUE$ac_delim
 SQ_HAVE_XCF_FALSE!$SQ_HAVE_XCF_FALSE$ac_delim
+SQ_HAVE_LJPEG_TRUE!$SQ_HAVE_LJPEG_TRUE$ac_delim
+SQ_HAVE_LJPEG_FALSE!$SQ_HAVE_LJPEG_FALSE$ac_delim
 SQ_HAVE_NEO_TRUE!$SQ_HAVE_NEO_TRUE$ac_delim
 SQ_HAVE_NEO_FALSE!$SQ_HAVE_NEO_FALSE$ac_delim
 SQ_HAVE_XIM_TRUE!$SQ_HAVE_XIM_TRUE$ac_delim
@@ -34364,7 +34477,7 @@ SQ_HAVE_IFF_FALSE!$SQ_HAVE_IFF_FALSE$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 33; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 36; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -34984,17 +35097,18 @@ if test $sq_have_gif = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=
 if test $sq_have_djvu = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled djvu `;   else sq_disabled=`echo -n $sq_disabled djvu `;   fi
 if test $sq_have_dxf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled dxf `;    else sq_disabled=`echo -n $sq_disabled dxf `;    fi
 if test $sq_have_fig = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled fig `;    else sq_disabled=`echo -n $sq_disabled fig `;    fi
-if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;    fi
+if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;   fi
 
 if test $sq_have_neo = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled neo `;    else sq_disabled=`echo -n $sq_disabled neo `;    fi
 if test $sq_have_pi1 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi1 `;    else sq_disabled=`echo -n $sq_disabled pi1 `;    fi
 if test $sq_have_pi3 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi3 `;    else sq_disabled=`echo -n $sq_disabled pi3 `;    fi
-if test $sq_have_utah = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled utah `;    else sq_disabled=`echo -n $sq_disabled utah `;    fi
+if test $sq_have_utah = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled utah `;   else sq_disabled=`echo -n $sq_disabled utah `;   fi
 if test $sq_have_xim = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xim `;    else sq_disabled=`echo -n $sq_disabled xim `;    fi
-if test $sq_have_leaf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled leaf `;    else sq_disabled=`echo -n $sq_disabled leaf `;    fi
-if test $sq_have_pict = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pict `;    else sq_disabled=`echo -n $sq_disabled pict `;    fi
+if test $sq_have_leaf = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled leaf `;   else sq_disabled=`echo -n $sq_disabled leaf `;   fi
+if test $sq_have_pict = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pict `;   else sq_disabled=`echo -n $sq_disabled pict `;   fi
 if test $sq_have_iff = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled iff `;    else sq_disabled=`echo -n $sq_disabled iff `;    fi
 if test $sq_have_mac = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled mac `;    else sq_disabled=`echo -n $sq_disabled mac `;    fi
+if test $sq_codec_ljpeg = yes; then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled ljpeg `;  else sq_disabled=`echo -n $sq_disabled ljpeg `;  fi
 
 if test $sq_dev = yes;         then sq_total=`expr $sq_total + 1`; else sq_devel="msp" && sq_devel_message="(use --enable-devel to enable these codecs)"; fi
 
@@ -35009,6 +35123,7 @@ if test $sq_codec_mng = no;       then sq_manual=`echo -n $sq_manual mng`;      
 if test $sq_codec_djvu = no;      then sq_manual=`echo -n $sq_manual djvu`;     fi
 if test $sq_codec_dxf = no;       then sq_manual=`echo -n $sq_manual dxf`;      fi
 if test $sq_codec_xcf = no;       then sq_manual=`echo -n $sq_manual xcf`;      fi
+if test $sq_codec_ljpeg = no;     then sq_manual=`echo -n $sq_manual ljpeg`;    fi
 
 # old version of ksquirrel-libs installed
 sq_have_ksqlibs_msg=""
