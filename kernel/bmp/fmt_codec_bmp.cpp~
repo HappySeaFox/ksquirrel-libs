@@ -66,7 +66,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,63,63,186,76,76,76,130,43,243,42,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,86,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,149,161,145,145,83,167,134,2,25,145,145,161,161,83,167,162,138,0,25,112,53,32,6,76,23,220,28,144,165,96,147,185,192,238,88,192,0,0,4,186,56,198,86,105,90,109,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
     
@@ -355,9 +355,12 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_min = 0;
     opt->compression_max = 0;
     opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = true;
+    opt->palette_flags = 1 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -370,14 +373,21 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
     if(!fws.good())
 	return SQE_W_NOFILE;
 
+    m_FILLER = (image.w < 4) ? (4-image.w) : image.w%4;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
     m_bfh.Type = BMP_IDENTIFIER;
     m_bfh.Size = 0;
     m_bfh.Reserved1 = 0;
     m_bfh.OffBits = sizeof(BITMAPFILE_HEADER) + sizeof(BITMAPINFO_HEADER);
 
     m_bih.Size = 40;
-    m_bih.Width = image.w;
-    m_bih.Height = image.h;
+    m_bih.Width = writeimage.w;
+    m_bih.Height = writeimage.h;
     m_bih.Planes = 1;
     m_bih.BitCount = 24;
     m_bih.Compression = BI_RGB;
@@ -393,8 +403,11 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
     if(!fws.writeK(&m_bih, sizeof(BITMAPINFO_HEADER)))
 	return SQE_W_ERROR;
 
-    m_FILLER = (image.w < 4) ? (4-image.w) : image.w%4;
+    return SQE_OK;
+}
 
+s32 fmt_codec::fmt_write_next_pass()
+{
     return SQE_OK;
 }
 
@@ -435,4 +448,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("bmp");
 }

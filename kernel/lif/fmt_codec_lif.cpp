@@ -38,7 +38,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.1.0");
+    return std::string("0.1.2");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -87,15 +87,17 @@ s32 fmt_codec::fmt_read_next()
     finfo.image.push_back(fmt_image());
 
     if(!frs.readK(&lif, sizeof(lif_header))) return SQE_R_BADFILE;
-
+/*
     lif.version = fmt_utils::konvertLong(lif.version);
     lif.flags = fmt_utils::konvertLong(lif.flags);
     lif.width = fmt_utils::konvertLong(lif.width);
     lif.height = fmt_utils::konvertLong(lif.height);
     lif.palOffset = fmt_utils::konvertLong(lif.palOffset);
 
+
     if(lif.version != LIF_VERSION || lif.flags != LIF_FLAGS)
 	return SQE_R_BADFILE;
+*/
 
     if(strcmp(lif.id, LIF_ID))
 	return SQE_R_BADFILE;
@@ -105,9 +107,9 @@ s32 fmt_codec::fmt_read_next()
 
     fstream::pos_type pos = frs.tellg();
 
-    frs.seekg(lif.palOffset, ios_base::beg);
-    
-    if(!frs.readK(pal, sizeof(pal) * sizeof(RGBA)))
+    frs.seekg(lif.width * lif.height, ios::beg);
+
+    if(!frs.readK(pal, sizeof(pal)))
 	return SQE_R_BADFILE;
 
     frs.seekg(pos);
@@ -116,6 +118,9 @@ s32 fmt_codec::fmt_read_next()
     finfo.image[currentImage].compression = "-";
     finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(8);
     finfo.image[currentImage].bpp = 8;
+    finfo.image[currentImage].hasalpha = (bool)(lif.flags & 0x08);
+
+    bytes = finfo.image[currentImage].hasalpha ? sizeof(RGBA) : sizeof(RGB);
 
     return SQE_OK;
 }
@@ -137,7 +142,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 	c++;
 
-	memcpy(scan+i, pal+c, sizeof(RGBA));
+	memcpy(scan+i, pal+c, bytes);
     }
 
     return SQE_OK;
@@ -160,6 +165,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 0 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -206,4 +212,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

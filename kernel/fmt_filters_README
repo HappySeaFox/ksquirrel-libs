@@ -1,4 +1,5 @@
-* fmt_filters is a set of image filters, written on pure C++.
+* fmt_filters is a regular C++ namespace.
+* it is a set of image filters, written on pure C++.
 * it is intended to create platform-independed filters, which can be used anywhere -
     in KDE, GNOME, ... apps.
 * these source files are distributed with ksquirrel-libs from http://ksquirrel.sf.net.
@@ -7,4 +8,10 @@
 * to use it in your project, simply add fmt_filters sources to your project.
 * fmt_filters is distributed under the terms of LGPL. See COPYING for details.
 
-* at this time fmt_filters support 4 filters: colorize, brightness, contrast, gamma.
+* at this time fmt_filters support the following filters:
+	- colorize
+	- brightness
+	- contrast
+	- gamma
+	- negative
+	- swap RGB values

@@ -20,16 +20,11 @@
 */
 
 #include <iostream>
+#include <exception>
 
 #include "fmt_types.h"
 #include "fileio.h"
 
-#include "fmt_codec_openexr_defs.h"
-#include "fmt_codec_openexr.h"
-
-#include "error.h"
-
-#include <ImfRgbaFile.h>
 #include <ImfStandardAttributes.h>
 #include <ImathBox.h>
 #include <ImfInputFile.h>
@@ -41,10 +36,12 @@
 #include <ImfLineOrderAttribute.h>
 #include <ImfStringAttribute.h>
 #include <ImfVecAttribute.h>
-#include <ImfArray.h>
 #include <ImfConvert.h>
 
-using namespace Imf;
+#include "fmt_codec_openexr_defs.h"
+#include "fmt_codec_openexr.h"
+
+#include "error.h"
 
 RGBA RgbaToRGBA(struct Rgba);
 
@@ -56,14 +53,16 @@ RGBA RgbaToRGBA(struct Rgba);
  */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
-{}
+{
+    cerr << "libSQ_codec_openexr: using OpenEXR library 1.2.2" << endl;
+}
 
 fmt_codec::~fmt_codec()
 {}
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.1.0");
+    return std::string("0.2.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -83,18 +82,22 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,23,1,0,78,78,78,254,182,2,202,202,202,70,70,70,254,254,254,178,178,178,174,174,174,242,242,242,222,222,222,2,2,2,216,221,231,174,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,88,73,68,65,84,120,218,99,16,4,129,4,6,6,6,97,99,99,99,195,233,32,70,104,104,168,97,103,2,148,33,40,0,97,24,27,3,25,34,46,16,192,32,164,4,6,42,12,66,171,86,105,105,105,173,82,97,88,180,72,9,200,208,2,50,86,45,82,90,132,38,178,10,194,128,235,130,155,3,178,20,108,50,35,216,29,2,12,0,240,94,28,48,28,222,87,31,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(const std::string &file)
+s32 fmt_codec::fmt_read_init(const std::string &fl)
 {
-    frs.open(file.c_str(), ios::binary | ios::in);
+    frs.open(fl.c_str(), ios::binary | ios::in);
 
     if(!frs.good())
         return SQE_R_NOFILE;
 
+    frs.close();
+
     currentImage = -1;
     read_error = false;
+
+    file = fl;
 
     finfo.animated = false;
     finfo.images = 0;
@@ -111,11 +114,78 @@ s32 fmt_codec::fmt_read_next()
 
     finfo.image.push_back(fmt_image());
 
+    s32 width, height;
 
+    RgbaInputFile *in = NULL;
+
+    try
+    {
+	in = new RgbaInputFile(file.c_str());
+
+	Imath::Box2i dw = in->dataWindow();
+
+	width  = dw.max.x - dw.min.x + 1;
+	height = dw.max.y - dw.min.y + 1;
+
+	pixels.resizeErase(height, width);
+
+	in->setFrameBuffer(&pixels[0][0] - dw.min.x - dw.min.y * width, 1, width);
+
+	in->readPixels(dw.min.y, dw.max.y);
+    }
+    catch(const exception &e)
+    {
+	cerr << e.what() << endl;
+
+	if(in) delete in;
+
+	return SQE_R_BADFILE;
+    }
 
     finfo.images++;
-    finfo.image[currentImage].compression = "";
-    finfo.image[currentImage].colorspace = "";
+
+    switch(in->compression())
+    {
+	case Imf::NO_COMPRESSION:
+	    finfo.image[currentImage].compression = "-";
+	break;
+
+	case Imf::RLE_COMPRESSION:
+	    finfo.image[currentImage].compression = "RLE";
+	break;
+
+	case Imf::ZIPS_COMPRESSION:
+	    finfo.image[currentImage].compression = "ZIPS";
+	break;
+
+	case Imf::ZIP_COMPRESSION:
+	    finfo.image[currentImage].compression = "ZIP";
+	break;
+
+	case Imf::PIZ_COMPRESSION:
+	    finfo.image[currentImage].compression = "PIZ";
+	break;
+
+	case Imf::PXR24_COMPRESSION:
+	    finfo.image[currentImage].compression = "PXR24";
+	break;
+
+	case Imf::NUM_COMPRESSION_METHODS:
+	    finfo.image[currentImage].compression = "Different methods";
+	break;
+	
+	default:
+	    finfo.image[currentImage].compression = "Unknown";
+    }
+
+    finfo.image[currentImage].colorspace = "RGBA";
+    finfo.image[currentImage].bpp = 32;
+    finfo.image[currentImage].w = width;
+    finfo.image[currentImage].h = height;
+
+    line = -1;
+
+    delete in;
 
     return SQE_OK;
 }
@@ -127,21 +197,27 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    RGB rgb;
     RGBA rgba;
+    
+    line++;
 
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
+    for(s32 x = 0; x < finfo.image[currentImage].w; x++)
+    {
+	rgba = RgbaToRGBA(pixels[line][x]);
+	memcpy(scan+x, &rgba, sizeof(RGBA));
+    }
 
     return SQE_OK;
 }
 
 void fmt_codec::fmt_read_close()
 {
-    frs.close();
-
     finfo.meta.clear();
     finfo.image.clear();
+
+    pixels.resizeErase(1, 1);
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
@@ -153,6 +229,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 1 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -167,6 +244,18 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
 
     if(!fws.good())
         return SQE_W_NOFILE;
+
+    fws.close();
+
+    out = new RgbaOutputFile(file.c_str(), image.w, image.h, WRITE_RGBA);
+
+    if(!out)
+	return SQE_W_NOMEMORY;
+
+    hs = new Rgba [image.w];
+
+    if(!hs)
+	return SQE_W_NOMEMORY;
 
     return SQE_OK;
 }
@@ -183,18 +272,30 @@ s32 fmt_codec::fmt_write_next_pass()
 
 s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 {
+    for(s32 i = 0;i < writeimage.w;i++)
+    {
+	hs[i].r = scan[i].r;
+	hs[i].g = scan[i].g;
+	hs[i].b = scan[i].b;
+	hs[i].a = scan[i].a;
+    }
+
+    out->setFrameBuffer(hs, 1, 0);
+
+    out->writePixels(1);
 
     return SQE_OK;
 }
 
 void fmt_codec::fmt_write_close()
 {
-    fws.close();
+    if(out) delete out;
+    if(hs) delete hs;
 }
 
 bool fmt_codec::fmt_writable() const
 {
-    return false;
+    return true;
 }
 
 bool fmt_codec::fmt_readable() const
@@ -270,4 +371,9 @@ RGBA RgbaToRGBA(struct Rgba imagePixel)
 				  s8 (Imath::clamp ( g * 84.66f, 0.f, 255.f ) ),
 				  s8 (Imath::clamp ( b * 84.66f, 0.f, 255.f ) ),
 				  s8 (Imath::clamp ( a * 84.66f, 0.f, 255.f ) ) );
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("exr");
 }

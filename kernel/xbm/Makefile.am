@@ -6,4 +6,4 @@ libSQ_codec_xbm_la_SOURCES = fmt_codec_xbm.cpp fmt_codec_xbm_defs.h
 
 libSQ_codec_xbm_la_LDFLAGS = -release 0.7.0
 
-LIBS = ../fileio.lo
+libSQ_codec_xbm_la_LIBADD = ../fileio.lo

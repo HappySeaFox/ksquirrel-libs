@@ -485,8 +485,17 @@ void fmt_codec::fmt_write_close()
     fws.close();
 }
 
-void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *)
-{}
+void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+{
+    opt->interlaced = false;
+    opt->compression_scheme = CompressionInternal;
+    opt->compression_min = 0;
+    opt->compression_max = 0;
+    opt->compression_def = 0;
+    opt->passes = 1;
+    opt->needflip = false;
+    opt->palette_flags = 0 | fmt_image::pure32;
+}
 
 bool fmt_codec::fmt_writable() const
 {
@@ -496,4 +505,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

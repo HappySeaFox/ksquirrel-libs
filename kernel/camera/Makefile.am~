@@ -1,0 +1,15 @@
+INCLUDES = -I.. -I../include
+
+lib_LTLIBRARIES = libSQ_codec_camera.la
+
+libSQ_codec_camera_la_SOURCES = fmt_codec_camera.cpp fmt_codec_camera_defs.h dcraw.c dcraw.h
+
+libSQ_codec_camera_la_LDFLAGS = -release 0.9.0
+
+if CAMERA_NO_JPEG
+libSQ_codec_camera_la_LIBADD = -lm
+else
+libSQ_codec_camera_la_LIBADD = -ljpeg -lm
+endif
+
+LIBS = ../fileio.lo ../fmt_utils.lo

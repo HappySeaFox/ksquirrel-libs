@@ -31,6 +31,12 @@
 
 #include "fmt_utils.h"
 
+/*
+ *
+ * Radiance HDR image
+ *
+ */
+
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
 
@@ -59,7 +65,7 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("");
+    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,23,1,0,78,78,78,174,174,174,70,70,70,202,202,202,254,230,162,254,254,254,222,222,222,242,242,242,178,178,178,2,2,2,162,194,123,21,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,88,73,68,65,84,120,218,99,16,4,129,9,12,12,12,34,46,46,46,142,69,32,70,90,90,154,99,251,4,40,67,80,0,194,112,113,1,50,132,141,33,128,65,52,20,12,130,25,68,151,46,93,181,52,106,21,152,177,116,85,84,20,144,177,106,233,210,40,84,17,176,26,16,3,166,11,110,14,200,82,176,201,140,96,119,8,48,0,0,54,0,37,21,228,176,219,56,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
 s32 fmt_codec::fmt_read_init(const std::string &file)
@@ -113,13 +119,32 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
+    u32 r, g, b, e, i, j;
+
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
     if(!read_scan(scanline, finfo.image[currentImage].w))
 	return SQE_R_BADFILE;
 
-    
-    
+    for(j = 0, i = 0; j < (u32)finfo.image[currentImage].w * 4; j += 4, i++)
+    {
+        float t;
+
+        e = scanline[j + 3];
+        r = scanline[j + 0];
+        g = scanline[j + 1];
+        b = scanline[j + 2];
+
+        //t = (float)pow(2.f, ((ILint)e) - 128);
+        if (e != 0)
+	    e = (e - 1) << 23;
+
+        t = *(float *)&e;
+
+        (scan + i)->r = u8((r / 255.0f) * t);
+        (scan + i)->g = u8((g / 255.0f) * t);
+        (scan + i)->b = u8((b / 255.0f) * t);
+    }
 
     return SQE_OK;
 }
@@ -143,6 +168,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 1 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -198,30 +224,30 @@ bool fmt_codec::fmt_readable() const
 
 bool fmt_codec::read_scan(u8 *scanline, const s32 w)
 {
-	u8 *runner;
-	s32 r, g, b, e, read, shift;
+	u8 *runner, c;
+	u32 r, g, b, e, read, shift;
 
-	if(!frs.readK(&r, sizeof(u8))) return false;
-	if(!frs.readK(&g, sizeof(u8))) return false;
-	if(!frs.readK(&b, sizeof(u8))) return false;
-	if(!frs.readK(&e, sizeof(u8))) return false;
+	if(!frs.readK(&c, sizeof(u8))) return false; r = c;
+	if(!frs.readK(&c, sizeof(u8))) return false; g = c;
+	if(!frs.readK(&c, sizeof(u8))) return false; b = c;
+	if(!frs.readK(&c, sizeof(u8))) return false; e = c;
 
 	//check if the scanline is in the new format
 	//if so, e, r, g, g are stored separated and are
 	//rle-compressed independently.
 	if (r == 2 && g == 2)
 	{
-		s32 length = (b << 8) | e;
-		u8 c;
-		s32 j, t, k;
+		u32 length = (b << 8) | e;
+		u32 j, t, k;
 
-		if (length > w)
+		if (length > (u32)w)
 			length = w; //fix broken files
 
 		for(k = 0; k < 4; ++k)
 		{
 			runner = scanline + k;
 			j = 0;
+
 			while (j < length)
 			{
 				if(!frs.readK(&c, sizeof(u8))) return false;
@@ -267,22 +293,22 @@ bool fmt_codec::read_scan(u8 *scanline, const s32 w)
 	read = 0;
 	runner = scanline;
 
-	while(read < w)
+	while(read < (u32)w)
 	{
 		if (read != 0)
 		{
-		    if(!frs.readK(&r, sizeof(u8))) return false;
-		    if(!frs.readK(&g, sizeof(u8))) return false;
-		    if(!frs.readK(&b, sizeof(u8))) return false;
-		    if(!frs.readK(&e, sizeof(u8))) return false;
+		    if(!frs.readK(&c, sizeof(u8))) return false; r = c;
+		    if(!frs.readK(&c, sizeof(u8))) return false; g = c;
+		    if(!frs.readK(&c, sizeof(u8))) return false; b = c;
+		    if(!frs.readK(&c, sizeof(u8))) return false; e = c;
 		}
 
 		//if all three mantissas are 1, then this is a rle
 		//count dword
 		if (r == 1 && g == 1 && b == 1)
 		{
-			s32 length = e;
-			s32 j;
+			u32 length = e;
+			u32 j;
 
 			for (j = length << shift; j > 0; --j)
 			{
@@ -318,7 +344,7 @@ bool fmt_codec::getHdrHead()
 	s8 a, b;
 	s8 x[2], y[2];
 	s8 buff[80];
-	s32 count = 0;
+	u32 count = 0;
 
 	if(!frs.readK(hdr.sig, sizeof(hdr.sig)-1)) return false;
 
@@ -331,12 +357,12 @@ bool fmt_codec::getHdrHead()
 	//TODO: read header contents into variables
 	//(EXPOSURE, orientation, xyz correction, ...)
 
-	if(!frs.readK(&a, sizeof(u8)))
+	if(!frs.readK(&a, sizeof(s8)))
 		return false;
 
 	while(!done)
 	{
-		if(!frs.readK(&b, sizeof(u8))) return false;
+		if(!frs.readK(&b, sizeof(s8))) return false;
 
 		if (b == '\n' && a == '\n')
 			done = true;
@@ -345,13 +371,13 @@ bool fmt_codec::getHdrHead()
 	}
 
 	//read dimensions (note that this assumes a somewhat valid image)
-	if(!frs.readK(&a, sizeof(u8))) return false;
+	if(!frs.readK(&a, sizeof(s8))) return false;
 
 	while (a != '\n')
 	{
 		buff[count] = a;
 
-		if(!frs.readK(&a, sizeof(u8))) return false;
+		if(!frs.readK(&a, sizeof(s8))) return false;
 
 		++count;
 	}
@@ -361,4 +387,9 @@ bool fmt_codec::getHdrHead()
 	sscanf(buff, "%s %d %s %d", x, &hdr.width, y, &hdr.height);
 
 	return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

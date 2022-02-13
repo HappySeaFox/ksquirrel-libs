@@ -94,7 +94,7 @@ s32 fmt_codec::fmt_read_next()
 
     comment[0x50] = '\0';
 
-    frs.seekg(0x400, ios_base::beg);
+    frs.seekg(0x400, ios::beg);
 
     if(!frs.readK(&sct, sizeof(sct_header))) return SQE_R_BADFILE;
 
@@ -121,7 +121,7 @@ s32 fmt_codec::fmt_read_next()
 
     stringstream ss(buf);
 
-    ss.setf(ios_base::hex);
+    ss.setf(ios::hex);
 
     ss >> finfo.image[currentImage].h;
 
@@ -129,7 +129,7 @@ s32 fmt_codec::fmt_read_next()
 
     stringstream ss1(buf);
 
-    ss1.setf(ios_base::hex);
+    ss1.setf(ios::hex);
 
     ss1 >> finfo.image[currentImage].w;
 
@@ -159,7 +159,7 @@ s32 fmt_codec::fmt_read_next()
     finfo.meta[0].group = "SCT Comment";
     finfo.meta[0].data = comment;
 
-    frs.seekg(0x800, ios_base::beg);
+    frs.seekg(0x800, ios::beg);
 
     return (frs.good()) ? SQE_OK : SQE_R_BADFILE;
 }
@@ -241,6 +241,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 0 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -287,4 +288,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

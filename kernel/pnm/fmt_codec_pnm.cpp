@@ -49,7 +49,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.6.3");
+    return std::string("0.6.4");
 }
     
 std::string fmt_codec::fmt_quickinfo()
@@ -59,7 +59,7 @@ std::string fmt_codec::fmt_quickinfo()
 	
 std::string fmt_codec::fmt_filter()
 {
-    return std::string("*.ppm *.pgm *.pbm *.pnm ");
+    return std::string("*.pnm *.pgm *.pbm *.ppm ");
 }
 	    
 std::string fmt_codec::fmt_mime()
@@ -361,6 +361,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_def = 0;
     opt->passes = 1;
     opt->needflip = false;
+    opt->palette_flags = 0 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -381,7 +382,9 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
 
 s32 fmt_codec::fmt_write_next()
 {
-    return SQE_OK;
+    fws << "P6" << endl << writeimage.w << " " << writeimage.h << endl << 255 << endl;
+
+    return fws.good() ? SQE_OK : SQE_W_ERROR;
 }
 
 s32 fmt_codec::fmt_write_next_pass()
@@ -391,6 +394,12 @@ s32 fmt_codec::fmt_write_next_pass()
 
 s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 {
+    for(s32 i = 0;i < writeimage.w;i++)
+    {
+	if(!fws.writeK(scan+i, sizeof(RGB)))
+	    return SQE_W_ERROR;
+    }
+
     return SQE_OK;
 }
 
@@ -401,10 +410,15 @@ void fmt_codec::fmt_write_close()
 
 bool fmt_codec::fmt_writable() const
 {
-    return false;
+    return true;
 }
 
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("pnm");
 }

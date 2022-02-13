@@ -41,6 +41,7 @@ class fmt_codec : public fmt_codec_base
         virtual std::string     fmt_filter();
         virtual std::string     fmt_mime();
         virtual std::string     fmt_pixmap();
+        virtual std::string     fmt_extension(const s32 bpp);
 
 	virtual bool    fmt_readable() const;
         virtual s32     fmt_read_init(const std::string &file);
@@ -61,6 +62,8 @@ class fmt_codec : public fmt_codec_base
     private:
         Array2D<Rgba> pixels;
 	std::string file;
+	RgbaOutputFile	*out;
+	Rgba		*hs;
 };
 
 extern "C" fmt_codec_base* fmt_codec_create()

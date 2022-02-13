@@ -69,7 +69,7 @@ std::string fmt_codec::fmt_pixmap()
     return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,202,202,202,70,70,70,222,222,222,178,178,178,174,174,174,254,254,254,254,254,202,78,78,78,242,242,242,2,2,202,40,206,154,3,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,98,73,68,65,84,120,218,99,232,0,1,7,6,6,6,69,65,65,65,33,83,16,35,45,45,77,104,178,3,132,33,209,161,0,97,8,10,54,48,48,52,41,65,0,131,214,42,48,88,196,208,190,124,121,249,170,170,85,69,12,234,203,151,175,170,42,95,94,196,208,85,5,18,169,130,138,128,164,224,106,186,96,186,148,96,230,128,44,21,20,4,90,193,4,230,55,48,0,0,134,19,45,152,122,245,14,26,0,0,0,0,73,69,78,68,174,66,96,130");
 }
 
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     fptr = fopen(file.c_str(), "rb");
 
@@ -210,9 +210,10 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->passes = 1;
+    opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -228,9 +229,18 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
     return SQE_OK;
 }
 
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
 s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 {
-
     return SQE_OK;
 }
 
@@ -268,4 +278,9 @@ bool skip_comments(FILE *fp)
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

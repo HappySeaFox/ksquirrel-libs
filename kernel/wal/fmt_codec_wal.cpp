@@ -123,7 +123,7 @@ s32 fmt_codec::fmt_read_next()
 
     finfo.image.push_back(fmt_image());
 
-    frs.seekg(wal.offset[currentImage], ios_base::beg);
+    frs.seekg(wal.offset[currentImage], ios::beg);
 
     if(!frs.good())
 	return SQE_R_BADFILE;
@@ -179,6 +179,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 0 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -226,4 +227,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

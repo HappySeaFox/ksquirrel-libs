@@ -62,7 +62,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.2.0");
+    return std::string("0.2.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -229,6 +229,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 0 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -244,6 +245,18 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
     if(!fws.good())
         return SQE_W_NOFILE;
 
+    fws.close();
+
+    out = new RgbaOutputFile(file.c_str(), image.w, image.h, WRITE_RGBA);
+
+    if(!out)
+	return SQE_W_NOMEMORY;
+
+    hs = new Rgba [image.w];
+
+    if(!hs)
+	return SQE_W_NOMEMORY;
+
     return SQE_OK;
 }
 
@@ -257,15 +270,27 @@ s32 fmt_codec::fmt_write_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
+s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 {
+    for(s32 i = 0;i < writeimage.w;i++)
+    {
+	hs[i].r = scan[i].r;
+	hs[i].g = scan[i].g;
+	hs[i].b = scan[i].b;
+	hs[i].a = scan[i].a;
+    }
+
+    out->setFrameBuffer(hs, 1, 0);
+
+    out->writePixels(1);
 
     return SQE_OK;
 }
 
 void fmt_codec::fmt_write_close()
 {
-    fws.close();
+    if(out) delete out;
+    if(hs) delete hs;
 }
 
 bool fmt_codec::fmt_writable() const
@@ -346,4 +371,9 @@ RGBA RgbaToRGBA(struct Rgba imagePixel)
 				  s8 (Imath::clamp ( g * 84.66f, 0.f, 255.f ) ),
 				  s8 (Imath::clamp ( b * 84.66f, 0.f, 255.f ) ),
 				  s8 (Imath::clamp ( a * 84.66f, 0.f, 255.f ) ) );
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("exr");
 }

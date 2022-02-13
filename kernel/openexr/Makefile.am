@@ -8,4 +8,4 @@ libSQ_codec_openexr_la_SOURCES = fmt_codec_openexr.cpp fmt_codec_openexr_defs.h
 
 libSQ_codec_openexr_la_LDFLAGS = -release 0.2.1
 
-LIBS = -L. -lIlmImf -lImath -lHalf -lIex ../fileio.lo
+libSQ_codec_openexr_la_LIBADD = -L. -lIlmImf -lImath -lHalf -lIex ../fileio.lo

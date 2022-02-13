@@ -78,7 +78,7 @@ std::string fmt_codec::fmt_pixmap()
 }
     
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
-s32 fmt_codec::fmt_read_init(std::string file)
+s32 fmt_codec::fmt_read_init(const std::string &file)
 {
     frs.open(file.c_str(), ios::binary | ios::in);
     
@@ -541,9 +541,11 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->passes = 1;
+    opt->needflip = false;
+    opt->palette_flags = 1 | fmt_image::pure32;
 }
 
-s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -559,9 +561,18 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
     return SQE_OK;
 }
 
+s32 fmt_codec::fmt_write_next()
+{
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next_pass()
+{
+    return SQE_OK;
+}
+
 s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 {
-
     return SQE_OK;
 }
 
@@ -578,4 +589,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

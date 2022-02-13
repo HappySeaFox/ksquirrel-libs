@@ -48,7 +48,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.1.0-a1");
+    return std::string("0.1.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -122,45 +122,44 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    s32 count = 0;
-    u8 c, run;
+    s32 i = 0, j;
+    u8 count, run, c;
     
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
-    while(count < finfo.image[currentImage].w)
+    while(i < finfo.image[currentImage].w)
     {
-	if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
+	if(!frs.readK(&count, 1)) return SQE_R_BADFILE;
 
-	if(c == 0)
+	if(count == 0)
 	{
 	    frs.readK(&c, 1);
+
 	    if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
-	    printf("BREAK %d\n", count);
-	    break;
+	    
+	    continue; // ugly hack
 	}
-	else if(c & 0x80)
+	else if(count & 0x80)
 	{
-	    c &= ~(0x80);
+	    count &= ~(0x80);
 
 	    if(!frs.readK(&run, 1)) return SQE_R_BADFILE;
 
-	    for(s32 i = 0;i < c;i++)
+	    for(j = 0;j < count;j++)
 	    {
-		memcpy(scan+count, pal+run, sizeof(RGB));
-		count++;
+		memcpy(scan+i, pal+run, sizeof(RGB));
+		i++;
 	    }
 	}
 	else
 	{
-	    count += c;
-
-	    for(s32 i = 0;i < c;i++)
+	    for(j = 0;j < count;j++)
 	    {
 		if(!frs.readK(&run, 1)) return SQE_R_BADFILE;
 
-		memcpy(scan+count, pal+run, sizeof(RGB));
-		
-		count++;
+		memcpy(scan+i, pal+run, sizeof(RGB));
+
+		i++;
 	    }
 	}
     }
@@ -185,6 +184,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_def = 0;
     opt->passes = 1;
     opt->needflip = false;
+    opt->palette_flags = 1 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -213,7 +213,7 @@ s32 fmt_codec::fmt_write_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
 {
     return SQE_OK;
 }
@@ -231,4 +231,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

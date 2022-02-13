@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.0-pre5], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.0-pre6], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre5)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre6)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -38,28 +38,102 @@ AC_TYPE_SIZE_T
 AC_FUNC_REALLOC
 AC_FUNC_STAT
 
-sq_have_jpeg="yes"
-sq_have_png="yes"
-sq_have_xwd="yes"
-sq_have_tiff="yes"
-sq_have_camera="yes"
+dnl (3) freetype {-lfreetype} [-DHAVE_LIBFREETYPE]
 
-AC_CHECK_LIB([jpeg], [main], [], [sq_have_jpeg="no"])
-#AC_CHECK_LIB([png], [png_create_read_struct], [], [sq_have_png="no"])
+SQ_FT_CFLAGS=""
+SQ_FT_LDFLAGS=""
 
-AC_CHECK_HEADERS([jpeglib.h], [], [sq_have_jpeg="no"])
-AC_CHECK_HEADERS([netinet/in.h], [], [sq_have_camera="no"])
-AC_CHECK_HEADERS([png.h], [], [sq_have_png="no"])
-AC_CHECK_HEADERS([X11/XWDFile.h], [], [sq_have_xwd="no"])
-AC_CHECK_HEADERS([tiffio.h tiff.h], [], [sq_have_tiff="no"])
+sq_have_freetype="no"
+sq_have_jpeg="no"
+sq_have_png="no"
+sq_have_xwd="no"
+sq_have_tiff="no"
+sq_have_camera="no"
 
+# Check for freetype
+
+_cppflags=$CPPFLAGS
+_ldflags=$LDFLAGS
+
+if [ test -n "$FREETYPE_DIR" ]; then
+	AC_PATH_PROG(FREETYPE_CONFIG, freetype-config, ,[$FREETYPE_DIR/bin:$PATH])
+else
+	AC_PATH_PROG(FREETYPE_CONFIG, freetype-config)
+fi
+
+if [ test -n "$FREETYPE_CONFIG" ]; then
+	if [ test -n "$FREETYPE_DIR" ]; then
+		freetype_cflags="`$FREETYPE_CONFIG --cflags` -I$FREETYPE_DIR/include"
+		freetype_libs=`$FREETYPE_CONFIG --libs`
+	else
+		freetype_cflags=`$FREETYPE_CONFIG --cflags`
+		freetype_libs=`$FREETYPE_CONFIG --libs`
+	fi
+else
+	if [ test -n "$FREETYPE_DIR" ]; then
+		freetype_cflags="-I$FREETYPE_DIR/include/freetype2 -I$FREETYPE_DIR/include"
+		freetype_libs="-L$FREETYPE_DIR/lib -lfreetype"
+	else
+		freetype_cflags=""
+		freetype_libs="-lfreetype"
+	fi
+fi
+
+CPPFLAGS="$freetype_cflags $CPPFLAGS"
+LDFLAGS="$LDFLAGS $freetype_libs"
+
+AC_CHECK_LIB(freetype, FT_Init_FreeType, [
+	SQ_FT_LDFLAGS="$freetype_libs"
+	sq_have_freetype="yes"
+],[	sq_have_freetype="no"])
+
+AC_CHECK_HEADER(ft2build.h, [
+	SQ_FT_CFLAGS="$freetype_cflags"
+	sq_have_freetype="yes"
+],[	sq_have_freetype="no"])
+
+CPPFLAGS=$_cppflags
+LDFLAGS=$_ldflags
+
+AC_SUBST([SQ_FT_CFLAGS], $SQ_FT_CFLAGS)
+AC_SUBST([SQ_FT_LDFLAGS], $SQ_FT_LDFLAGS)
+
+# Check for headers & libs
+
+# JPEG
+AC_CHECK_HEADERS([jpeglib.h], [
+		    AC_CHECK_LIB([jpeg], [main], [sq_have_jpeg="yes"], [sq_have_jpeg="no"])
+		    ],
+
+		    [sq_have_jpeg="no"])
+
+# PNG
+AC_CHECK_HEADER([png.h], [
+		    AC_CHECK_LIB([png], [png_read_rows], [sq_have_png="yes"], [sq_have_png="no"], -lz -lm)
+		    ],
+		    
+		    [sq_have_png="no"])
+
+# TIFF
+AC_CHECK_HEADERS([tiff.h], [
+		    AC_CHECK_LIB([tiff], [TIFFOpen], [sq_have_tiff="yes"], [sq_have_png="no"])
+		    ],
+
+		    [sq_have_tiff="no"])
+
+AC_CHECK_HEADERS([netinet/in.h],  [sq_have_camera="yes"], [sq_have_camera="no"])
+AC_CHECK_HEADERS([X11/XWDFile.h], [sq_have_xwd="yes"],    [sq_have_xwd="no"])
+
+AC_CONFIG_SUBDIRS([contrib/libjasper])
+AC_CONFIG_SUBDIRS([contrib/libopenexr])
+
+if test $sq_have_freetype = yes; then
 AC_CONFIG_SUBDIRS([contrib/libwmf])
 AC_CONFIG_SUBDIRS([contrib/libpixman])
 AC_CONFIG_SUBDIRS([contrib/cairo])
 AC_CONFIG_SUBDIRS([contrib/libsvg])
 AC_CONFIG_SUBDIRS([contrib/libsvg-cairo])
-AC_CONFIG_SUBDIRS([contrib/libjasper])
-AC_CONFIG_SUBDIRS([contrib/libopenexr])
+fi
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([doc/Makefile])
@@ -87,10 +161,8 @@ AC_CONFIG_FILES([kernel/iff/Makefile])
 AC_CONFIG_FILES([kernel/utah/Makefile])
 AC_CONFIG_FILES([kernel/cut/Makefile])
 AC_CONFIG_FILES([kernel/rawrgb/Makefile])
-AC_CONFIG_FILES([kernel/wmf/Makefile])
 AC_CONFIG_FILES([kernel/wbmp/Makefile])
 AC_CONFIG_FILES([kernel/sun/Makefile])
-AC_CONFIG_FILES([kernel/svg/Makefile])
 AC_CONFIG_FILES([kernel/jpeg2000/Makefile])
 AC_CONFIG_FILES([kernel/openexr/Makefile])
 AC_CONFIG_FILES([kernel/koala/Makefile])
@@ -99,28 +171,28 @@ AC_CONFIG_FILES([kernel/mdl/Makefile])
 AC_CONFIG_FILES([kernel/hdr/Makefile])
 AC_CONFIG_FILES([kernel/sct/Makefile])
 AC_CONFIG_FILES([kernel/lif/Makefile])
-
-if test $sq_have_png = yes; then
+AC_CONFIG_FILES([kernel/mtv/Makefile])
+AC_CONFIG_FILES([kernel/avs/Makefile])
+AC_CONFIG_FILES([kernel/msp/Makefile])
+AC_CONFIG_FILES([kernel/mac/Makefile])
+AC_CONFIG_FILES([kernel/svg/Makefile])
+AC_CONFIG_FILES([kernel/wmf/Makefile])
 AC_CONFIG_FILES([kernel/png/Makefile])
-fi
-
-if test $sq_have_jpeg = yes; then
 AC_CONFIG_FILES([kernel/jpeg/Makefile])
-fi
+AC_CONFIG_FILES([kernel/xwd/Makefile])
+AC_CONFIG_FILES([kernel/tiff/Makefile])
+AC_CONFIG_FILES([kernel/camera/Makefile])
 
 AM_CONDITIONAL(CAMERA_NO_JPEG, [ test "x$sq_have_jpeg" = "xno" ])
 
-if test $sq_have_xwd = yes; then
-AC_CONFIG_FILES([kernel/xwd/Makefile])
-fi
-
-if test $sq_have_tiff = yes; then
-AC_CONFIG_FILES([kernel/tiff/Makefile])
-fi
-
-if test $sq_have_camera = yes; then
-AC_CONFIG_FILES([kernel/camera/Makefile])
-fi
+AM_CONDITIONAL(SQ_HAVE_JPEG,    [ test "x$sq_have_jpeg" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_PNG,     [ test "x$sq_have_png" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_XWD,     [ test "x$sq_have_xwd" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_TIFF,    [ test "x$sq_have_tiff" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_CAMERA,  [ test "x$sq_have_camera" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_SVG,     [ test "x$sq_have_freetype" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_WMF,     [ test "x$sq_have_freetype" = "xyes" ])
+AM_CONDITIONAL(SQ_HAVE_FREETYPE,[ test "x$sq_have_freetype" = "xyes" ])
 
 AC_OUTPUT
 
@@ -141,7 +213,7 @@ Installation options:
 Libraries:
 ----------"
 
-sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wmf wbmp sun svg jpeg2000 openexr koala wal mdl hdr sct lif"
+sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wbmp sun jpeg2000 openexr koala wal mdl hdr sct lif mtv avs msp mac"
 sq_disabled=""
 
 if test $sq_have_jpeg = yes; then sq_enabled=`echo -n $sq_enabled jpeg `; else sq_disabled=`echo -n $sq_disabled jpeg `; fi
@@ -149,9 +221,12 @@ if test $sq_have_png = yes; then sq_enabled=`echo -n $sq_enabled png `; else sq_
 if test $sq_have_xwd = yes; then sq_enabled=`echo -n $sq_enabled xwd `; else sq_disabled=`echo -n $sq_disabled xwd `; fi
 if test $sq_have_tiff = yes; then sq_enabled=`echo -n $sq_enabled tiff `; else sq_disabled=`echo -n $sq_disabled tiff `; fi
 if test $sq_have_camera = yes; then sq_enabled=`echo -n $sq_enabled camera `; else sq_disabled=`echo -n $sq_disabled camera `; fi
+if test $sq_have_freetype = yes; then sq_enabled=`echo -n $sq_enabled wmf `; else sq_disabled=`echo -n $sq_disabled wmf `; fi
+if test $sq_have_freetype = yes; then sq_enabled=`echo -n $sq_enabled svg `; else sq_disabled=`echo -n $sq_disabled svg `; fi
 
-echo "Enabled:  $sq_enabled"
-echo "Disabled: $sq_disabled"
-echo
-echo "Now run 'make' to compile libraries"
-echo
+echo "
+  Enabled:  $sq_enabled
+  Disabled: $sq_disabled
+
+Now run 'make' to compile libraries
+ "

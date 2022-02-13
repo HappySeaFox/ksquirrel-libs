@@ -12,4 +12,4 @@ else
 libSQ_codec_camera_la_LIBADD = -ljpeg -lm
 endif
 
-LIBS = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_camera_la_LIBADD += ../fileio.lo ../fmt_utils.lo

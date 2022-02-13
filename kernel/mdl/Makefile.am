@@ -6,4 +6,4 @@ libSQ_codec_mdl_la_SOURCES = fmt_codec_mdl.cpp fmt_codec_mdl_defs.h
 
 libSQ_codec_mdl_la_LDFLAGS = -release 0.1.0
 
-LIBS = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_mdl_la_LIBADD = ../fileio.lo ../fmt_utils.lo

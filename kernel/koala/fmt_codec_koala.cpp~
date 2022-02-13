@@ -38,24 +38,31 @@
  *
  */
 
-const u8 c64pal[48] =
+struct color_t
 {
-        0,   0,   0,       // Black
-        255, 255, 255,     // White
-        170,  17,  17,     // Red
-        12, 204, 204,      // Cyan
-        221,  51, 221,     // Purple
-        0,  187,  0,       // Green
-        0,   0, 204,       // Blue
-        255, 255, 140,     // Yellow
-        204, 119,  34,     // Orange
-        136,  68,   0,     // Brown
-        255, 153, 136,     // Light red
-        92,  92,  92,      // Gray 1
-        170, 170, 170,     // Gray 2
-        140, 255, 178,     // Light green
-        39, 148, 255,      // Light blue
-        196, 196, 196      // Gray 3
+    u8 r;
+    u8 g;
+    u8 b;
+};
+
+const RGB c64pal[16] =
+{
+        RGB(   0,   0,   0 ),      // Black
+        RGB( 255, 255, 255 ),      // White
+        RGB( 170,  17,  17 ),      // Red
+        RGB(  12, 204, 204 ),      // Cyan
+        RGB( 221,  51, 221 ),      // Purple
+        RGB(  0,  187,  0  ),      // Green
+        RGB(   0,   0, 204 ),      // Blue
+        RGB( 255, 255, 140 ),      // Yellow
+        RGB( 204, 119,  34 ),      // Orange
+        RGB( 136,  68,   0 ),      // Brown
+        RGB( 255, 153, 136 ),      // Light red
+        RGB(  92,  92,  92 ),      // Gray 1
+        RGB( 170, 170, 170 ),      // Gray 2
+        RGB( 140, 255, 178 ),      // Light green
+        RGB(  39, 148, 255 ),      // Light blue
+        RGB( 196, 196, 196 )       // Gray 3
 };
 
 fmt_codec::fmt_codec() : fmt_codec_base()
@@ -66,7 +73,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.1.0");
+    return std::string("0.2.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -168,7 +175,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
-    for(s32 x = 0;x < KOALA_WIDTH;x++)
+    for(s32 x = 0;x < KOALA_WIDTH / 2;x++)
     {
         index = (x / 4) * 8 + (line % 8) + (line / 8) * KOALA_WIDTH;
         colorindex = (x / 4) + (line / 8) * 40;
@@ -194,13 +201,8 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
             break;
         }
 
-	u32 pi = (foundcolor << 4) | foundcolor;
-
-//	memcpy(scan+x, c64pal+pi*3, sizeof(RGB));
-
-	scan[x].r = c64pal[pi*3];
-	scan[x].g = c64pal[pi*3 + 1];
-	scan[x].b = c64pal[pi*3 + 2];
+	memcpy(scan+x*2, c64pal+foundcolor, sizeof(RGB));
+	memcpy(scan+x*2+1, c64pal+foundcolor, sizeof(RGB));
     }
 
     return SQE_OK;
@@ -223,6 +225,7 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->compression_max = 0;
     opt->compression_def = 0;
     opt->needflip = false;
+    opt->palette_flags = 1 | fmt_image::pure32;
 }
 
 s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt)
@@ -270,4 +273,9 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
 }

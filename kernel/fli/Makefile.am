@@ -6,4 +6,4 @@ libSQ_codec_fli_la_SOURCES = fmt_codec_fli.cpp fmt_codec_fli_defs.h
 
 libSQ_codec_fli_la_LDFLAGS = -release 0.3.2
 
-LIBS = ../fileio.lo
+libSQ_codec_fli_la_LIBADD = ../fileio.lo

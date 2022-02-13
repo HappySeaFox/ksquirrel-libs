@@ -6,4 +6,4 @@ libSQ_codec_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h svg2mem.cpp 
 
 libSQ_codec_svg_la_LDFLAGS = -release 0.1.1
 
-LIBS = -lfreetype -lxml2 -lfontconfig -L. -lsvg-cairo -lsvg -lcairo -lpixman ../fileio.lo
+libSQ_codec_svg_la_LIBADD = @SQ_FT_LDFLAGS@ -lxml2 -L. -lsvg-cairo -lsvg -lcairo -lpixman ../fileio.lo

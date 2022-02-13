@@ -29,15 +29,12 @@
 struct lif_header
 {
     s8       id[8];          // "Willy 7"
-    u32      version;        // Version Number (260)
-    u32      flags;          // Usually 50
-    u32      width;
-    u32      height;
+    s32      version;        // Version Number (260)
+    s32      flags;          // Usually 50
+    s32      width;
+    s32      height;
     u32      paletteCRC;     // CRC of palettes for fast comparison.
     u32      imageCRC;       // CRC of the image.
-    u32      palOffset;      // Offset to the palette (not used).
-    u32      teamEffect0;    // Team effect offset 0
-    u32      teamEffect1;    // Team effect offset 1
 
 }PACKED;
 

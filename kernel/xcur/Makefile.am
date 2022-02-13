@@ -6,4 +6,4 @@ libSQ_codec_xcur_la_SOURCES = fmt_codec_xcur.cpp fmt_codec_xcur_defs.h
 
 libSQ_codec_xcur_la_LDFLAGS = -release 0.4.0
 
-LIBS = ../fileio.lo
+libSQ_codec_xcur_la_LIBADD = ../fileio.lo

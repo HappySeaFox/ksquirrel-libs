@@ -6,4 +6,4 @@ libSQ_codec_utah_la_SOURCES = fmt_codec_utah.cpp fmt_codec_utah_defs.h
 
 libSQ_codec_utah_la_LDFLAGS = -release 0.1.1
 
-LIBS = ../fileio.lo
+libSQ_codec_utah_la_LIBADD = ../fileio.lo
