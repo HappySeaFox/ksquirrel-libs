@@ -60,7 +60,7 @@ class fmt_codec : public fmt_codec_base
         virtual void    fmt_write_close();
 
     private:
-        Array2D<Rgba> pixels;
+        Array2D<Rgba> *pixels;
 	std::string file, ref;
 	RgbaOutputFile	*out;
 	Rgba		*hs;

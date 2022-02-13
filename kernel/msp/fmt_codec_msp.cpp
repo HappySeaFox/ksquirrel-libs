@@ -241,7 +241,8 @@ void fmt_codec::fmt_read_close()
 
     scanmap.clear();
 
-    if(bytes) delete bytes;
+    delete [] bytes;
+    bytes = NULL;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)

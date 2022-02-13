@@ -96,7 +96,9 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    
+
+    wbmp.bitmap = NULL;
+
     return SQE_OK;
 }
 
@@ -202,8 +204,8 @@ void fmt_codec::fmt_read_close()
 {
     frs.close();
 
-    if(wbmp.bitmap)
-        delete [] wbmp.bitmap;
+    delete [] wbmp.bitmap;
+    wbmp.bitmap = NULL;
 
     finfo.meta.clear();
     finfo.image.clear();

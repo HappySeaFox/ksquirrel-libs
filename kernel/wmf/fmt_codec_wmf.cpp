@@ -147,8 +147,8 @@ void fmt_codec::fmt_read_close()
     finfo.meta.clear();
     finfo.image.clear();
 
-    if(buf)
-        delete [] buf;
+    delete [] buf;
+    buf = NULL;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
@@ -189,7 +189,7 @@ s32 fmt_codec::fmt_write_next_pass()
     return SQE_OK;
 }
 
-s32 fmt_codec::fmt_write_scanline(RGBA *scan)
+s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
 {
     return SQE_OK;
 }

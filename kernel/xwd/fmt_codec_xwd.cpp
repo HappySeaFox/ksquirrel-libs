@@ -84,7 +84,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
         return SQE_R_NOFILE;
 
     currentImage = -1;
-    pal = 0;
+    pal = NULL;
 
     finfo.animated = false;
 
@@ -209,8 +209,8 @@ void fmt_codec::fmt_read_close()
 {
     frs.close();
 
-    if(pal)
-	delete [] pal;
+    delete [] pal;
+    pal = NULL;
 
     finfo.meta.clear();
     finfo.image.clear();

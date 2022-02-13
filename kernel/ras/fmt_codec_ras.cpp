@@ -82,6 +82,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
     rle = false;
     isRGB = false;
+    buf = NULL;
 
     finfo.animated = false;
 
@@ -311,8 +312,8 @@ void fmt_codec::fmt_read_close()
 {
     frs.close();
 
-    if(buf)
-	delete [] buf;
+    delete [] buf;
+    buf = NULL;
 
     finfo.meta.clear();
     finfo.image.clear();

@@ -78,8 +78,9 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 	return SQE_R_NOFILE;
 
     currentImage = -1;
-    starttab = 0;
-    lengthtab = 0;
+    starttab = NULL;
+    lengthtab = NULL;
+    channel[0] = channel[1] = channel[2] = channel[3] = NULL;
 
     finfo.animated = false;
 
@@ -124,8 +125,6 @@ s32 fmt_codec::fmt_read_next()
     if(sfh.bpc == 2 || sfh.ColormapID > 0)
 	return SQE_R_NOTSUPPORTED;
 
-    channel[0] = channel[1] = channel[2] = channel[3] = NULL;
-
     for(s32 i = 0;i < 4;i++)
     {
         channel[i] = new s8 [sfh.x];
@@ -137,17 +136,11 @@ s32 fmt_codec::fmt_read_next()
     if(sfh.StorageFormat == 1)
     {
 	s32 sz = sfh.y * sfh.z, i;
-        lengthtab = (u32 *)calloc(sz, sizeof(ulong));
-	starttab  = (u32 *)calloc(sz, sizeof(ulong));
+        lengthtab = new u32 [sz];
+	starttab  = new u32 [sz];
     
-        if(!lengthtab)
-    	    return SQE_R_NOMEMORY;
-
-        if(!starttab)
-	{
-	    free(lengthtab);
+        if(!lengthtab || !starttab)
 	    return SQE_R_NOMEMORY;
-	}
 
 	frs.seekg(512, ios::beg);
 
@@ -333,16 +326,16 @@ void fmt_codec::fmt_read_close()
 {
     frs.close();
 
-    if(starttab)
-	free(starttab);
+    delete [] starttab;
+    starttab = NULL;
 
-    if(lengthtab)
-	free(lengthtab);
+    delete [] lengthtab;
+    lengthtab = NULL;
 
     for(s32 i = 0;i < 4;i++)
     {
-        if(channel[i])
-            delete [] channel[i];
+        delete [] channel[i];
+        channel[i] = NULL;
     }
 
     finfo.meta.clear();

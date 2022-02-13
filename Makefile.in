@@ -246,6 +246,9 @@ target_vendor = @target_vendor@
 SUBDIRS = kernel doc
 AUTOMAKE_OPTIONS = foreign 
 MAINTAINERCLEANFILES = subdirs configure.in acinclude.m4 configure.files 
+EXTRA_DIST = examples/w3.bmp examples/qtapp/main.cpp examples/qtapp/myqt.cpp examples/qtapp/myqt.h examples/qtapp/qtapp.pro \
+examples/qtgl/main.cpp  examples/qtgl/myqgl.cpp  examples/qtgl/myqgl.h  examples/qtgl/qtgl.pro
+
 #>- all: all-recursive
 #>+ 1
 all: docs-am  all-recursive
@@ -447,7 +450,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/admin
+	$(mkdir_p) $(distdir)/admin $(distdir)/examples $(distdir)/examples/qtapp $(distdir)/examples/qtgl
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -691,9 +694,6 @@ uninstall-info: uninstall-info-recursive
 	tags tags-recursive uninstall uninstall-am uninstall-info-am
 
 
-$(top_srcdir)/configure.in: configure.in.in $(top_srcdir)/subdirs
-	cd $(top_srcdir) && $(MAKE) -f admin/Makefile.common configure.in ;
-
 $(top_srcdir)/subdirs:
 	cd $(top_srcdir) && $(MAKE) -f admin/Makefile.common subdirs
 
@@ -713,7 +713,7 @@ install-data-local:
 
 
 #>+ 2
-KDE_DIST=reconfigure stamp-h.in predistclean ksquirrel-libs.spec configure.gnu configure.ac Makefile.in aclocal.m4 Makefile.dist acinclude.m4 Makefile.am configure VERSION 
+KDE_DIST=stamp-h.in subdirs configure.ac Makefile.in reconfigure predistclean ksquirrel-libs.spec configure.gnu aclocal.m4 Makefile.dist configure Makefile.am acinclude.m4 conf2993.sh VERSION 
 
 #>+ 2
 docs-am:

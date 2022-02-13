@@ -62,13 +62,14 @@ struct mngstuff
 /* ******************************************************************** */
 
 /* memory allocation; data must be zeroed */
-mng_ptr mymngalloc(mng_uint32 size)
+mng_ptr mymngalloc(mng_size_t size)
 {
+    // libmng requires calloc...
     return (mng_ptr)calloc(1, size);
 }
 
 /* memory deallocation */
-void mymngfree(mng_ptr p, mng_uint32 /*size*/)
+void mymngfree(mng_ptr p, mng_size_t /*size*/)
 {
     free(p);
 }
@@ -197,7 +198,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.3.3");
+    return std::string("0.3.4");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -241,7 +242,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 
     finfo.animated = false;
 
-    /* allocate our stream data structure */
+    // allocate our stream data structure
     mymng = new mngstuff;
 
     if(!mymng)
@@ -363,11 +364,8 @@ void fmt_codec::fmt_read_close()
 
     mng_cleanup(&mng);
 
-    if(priv.frame)
-    {
-        delete priv.frame;
-        priv.frame = NULL;
-    }
+    delete [] priv.frame;
+    priv.frame = NULL;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)

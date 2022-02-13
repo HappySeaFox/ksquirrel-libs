@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.0-pre9], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.0], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre9)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -368,7 +368,6 @@ Makefile
 doc/Makefile
 doc/html/Makefile
 doc/sources/Makefile
-examples/Makefile
 kernel/Makefile
 kernel/aaa/Makefile
 kernel/bmp/Makefile

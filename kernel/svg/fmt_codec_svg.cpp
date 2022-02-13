@@ -48,7 +48,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.1.1");
+    return std::string("0.1.2");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -58,7 +58,7 @@ std::string fmt_codec::fmt_quickinfo()
 
 std::string fmt_codec::fmt_filter()
 {
-    return std::string("*.svg ");
+    return std::string("*.svg *.svgz ");
 }
 
 std::string fmt_codec::fmt_mime()

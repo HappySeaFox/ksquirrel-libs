@@ -48,9 +48,8 @@
 
 bool zerror;
 
-void my_error_exit(png_struct *, const char *mes)
+void my_error_exit(png_struct *, const char *)
 {
-    cerr << "libSQ_read_png: " << mes << endl;
     zerror = true;
 }
 

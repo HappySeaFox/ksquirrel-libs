@@ -27,7 +27,7 @@ QPixmap MyQT::loadImage()
 	    qWarning("Can't load BMP library.");
 	    qApp->quit();
 	}
-	
+
 	int 		i = 0;
 	fmt_info	finfo;
 	RGBA		*image;
@@ -44,7 +44,7 @@ QPixmap MyQT::loadImage()
 	}
 
 	const char *s = "../w3.bmp";
-	
+
 	if(!QFile::exists(s))
 	{
 	    qWarning("Can't find example image.");

@@ -66,7 +66,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.2.1");
+    return std::string("0.2.2");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -146,6 +146,7 @@ s32 fmt_codec::fmt_read_next()
 
     image.w = KOALA_WIDTH;
     image.h = KOALA_HEIGHT;
+    image.bpp = 8;
     image.compression = "-";
     image.colorspace = fmt_utils::colorSpaceByBpp(8);
 

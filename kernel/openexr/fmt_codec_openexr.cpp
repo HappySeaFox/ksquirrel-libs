@@ -95,6 +95,7 @@ s32 fmt_codec::fmt_read_init(const std::string &fl)
     currentImage = -1;
     read_error = false;
 
+    pixels = NULL;
     file = fl;
 
     finfo.animated = false;
@@ -115,6 +116,8 @@ s32 fmt_codec::fmt_read_next()
 
     RgbaInputFile *in = NULL;
 
+    pixels = new Array2D<Rgba>;
+
     try
     {
 	in = new RgbaInputFile(file.c_str());
@@ -124,9 +127,9 @@ s32 fmt_codec::fmt_read_next()
 	width  = dw.max.x - dw.min.x + 1;
 	height = dw.max.y - dw.min.y + 1;
 
-	pixels.resizeErase(height, width);
+	pixels->resizeErase(height, width);
 
-	in->setFrameBuffer(&pixels[0][0] - dw.min.x - dw.min.y * width, 1, width);
+	in->setFrameBuffer(&(*pixels)[0][0] - dw.min.x - dw.min.y * width, 1, width);
 
 	in->readPixels(dw.min.y, dw.max.y);
     }
@@ -134,7 +137,7 @@ s32 fmt_codec::fmt_read_next()
     {
 	cerr << e.what() << endl;
 
-	if(in) delete in;
+	delete in;
 
 	return SQE_R_BADFILE;
     }
@@ -203,7 +206,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
     for(s32 x = 0; x < im->w; x++)
     {
-	rgba = RgbaToRGBA(pixels[line][x]);
+	rgba = RgbaToRGBA((*pixels)[line][x]);
 	memcpy(scan+x, &rgba, sizeof(RGBA));
     }
 
@@ -215,7 +218,8 @@ void fmt_codec::fmt_read_close()
     finfo.meta.clear();
     finfo.image.clear();
 
-    pixels.resizeErase(1, 1);
+    delete pixels;
+    pixels = NULL;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
@@ -244,6 +248,9 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
         return SQE_W_NOFILE;
 
     fws.close();
+
+    out = NULL;
+    hs = NULL;
 
     out = new RgbaOutputFile(file.c_str(), image.w, image.h, WRITE_RGBA);
 
@@ -287,8 +294,11 @@ s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 
 void fmt_codec::fmt_write_close()
 {
-    if(out) delete out;
-    if(hs) delete hs;
+    delete out;
+    out = NULL;
+
+    delete hs;
+    hs = NULL;
 }
 
 bool fmt_codec::fmt_writable() const

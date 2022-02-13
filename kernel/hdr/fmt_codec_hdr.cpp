@@ -157,7 +157,8 @@ void fmt_codec::fmt_read_close()
     finfo.meta.clear();
     finfo.image.clear();
 
-    if(scanline) delete scanline;
+    delete [] scanline;
+    scanline = NULL;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)

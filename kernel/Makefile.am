@@ -1,6 +1,6 @@
 SUBDIRS = aaa avs bmp cut fli hdr ico iff jbig koala lif mac mdl msp mtv pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah wal wbmp xbm xcur xpm xwd
 
-EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_types.h generate link
+EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_types.h generate link include/*.h
 
 if SQ_HAVE_CAMERA
 SUBDIRS += camera

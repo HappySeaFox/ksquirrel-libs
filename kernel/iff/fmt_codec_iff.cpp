@@ -85,7 +85,9 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    pal = 0;
+    pal = NULL;
+    tile = NULL;
+    dline = NULL;
 
     return SQE_OK;
 }
@@ -97,7 +99,6 @@ unsigned n_width;
 unsigned plane_size;
 unsigned src_size;
 unsigned width = 0, height = 0, planes = 0, depth = 0, comp = 0;
-
 
 s32 fmt_codec::fmt_read_next()
 {
@@ -165,7 +166,10 @@ s32 fmt_codec::fmt_read_next()
 
     if(!tile)
 	return SQE_R_NOMEMORY;
-	
+
+    for(s32 i = 0;i < bmhd.Bitplanes;i++)
+	tile[i] = NULL;
+
     for(s32 i = 0;i < bmhd.Bitplanes;i++)
     {
 	tile[i] = new u8 [bmhd.Width];
@@ -181,7 +185,7 @@ s32 fmt_codec::fmt_read_next()
 
     image.w = bmhd.Width;
     image.h = bmhd.Height;
-	image.bpp = 8;
+    image.bpp = 8;
 
     printf("%dx%d@%d, transparent: %d\n", bmhd.Width, bmhd.Height, bmhd.Bitplanes, bmhd.Transparency);
 
@@ -310,22 +314,21 @@ void fmt_codec::fmt_read_close()
     finfo.meta.clear();
     finfo.image.clear();
 
-    if(pal)
-	delete [] pal;
+    delete [] pal;
 
     if(tile)
     {
 	for(s32 i = 0;i < bmhd.Bitplanes;i++)
 	{
-	    if(tile[i])
-		delete [] tile[i];
+	    delete [] tile[i];
 	}
 
 	delete [] tile;
+        tile = NULL;
     }
 
-    if(dline)
-	delete [] dline;
+    delete [] dline;
+    dline = NULL;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)

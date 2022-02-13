@@ -80,6 +80,9 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     if(!frs.readK(&xcur_h, sizeof(XCUR_HEADER))) return SQE_R_BADFILE;
 
     tocs = new XCUR_CHUNK_DESC [xcur_h.ntoc];
+    
+    if(!tocs)
+        return SQE_R_NOMEMORY;
 
     if(!frs.readK(tocs, sizeof(XCUR_CHUNK_DESC) * xcur_h.ntoc)) return SQE_R_BADFILE;
 
@@ -156,8 +159,8 @@ void fmt_codec::fmt_read_close()
 {
     frs.close();
 
-    if(tocs)
-	delete [] tocs;
+    delete [] tocs;
+    tocs = NULL;
 
     finfo.meta.clear();
     finfo.image.clear();

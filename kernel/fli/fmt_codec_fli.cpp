@@ -40,7 +40,8 @@
  *
  */
 
-static const s32 MAX_FRAME = 256;
+// maximum number of frames in FLI is 1024
+#define MAX_FRAME 1024
 
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
