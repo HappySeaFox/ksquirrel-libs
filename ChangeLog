@@ -1,0 +1,555 @@
+ksquirrel-0.8.0 and ksquirrel-libs-0.8.0
+****************************************
+* new runtime options:
+    --nodirectorybasket
+    --noimagebasket
+    --nocategories
+    --nomountview
+* added Konqueror intergation module
+* added printing feature in image window
+* added codec manager, which will allow to
+  enable/disable image codecs (requires root password)
+* fixed licensing issues in source code
+* fixed MIME types in .desktop files
+* time counting in image window is more fair
+
+ksquirrel-libs:
+* added EPS, PSP
+* bugfix in PNM decoder on P3 PNMs
+* bugfix in CAMERA codec, when KSquirrel couldn't open raw fotos
+
+ksquirrel-0.7.5
+****************
+* more bugfixes in tabs
+* more improvements in selection rectangle in image window
+* selection rectangle is now drawn by OpenGL
+* saving to clipboard now doesn't mix red and blue channels
+* other small bugfixes
+* added translations: Turkish, Polish, Italian, British, Ukranian, Czech
+
+ksquirrel-0.7.4 (bugfix release)
+********************************
+* filtering and color balance in image window doesn't loose rotation angle
+* saving in image window doesn't loose rotation angle (flipping is still lost)
+* prevent autoresizing when tab count is 1
+* external tools for non-local URLs now work
+  (but not all programs accepts URLs, GQview for example)
+* external tools in image window now don't depend on navigator
+* navigator now has focus at startup
+* slider is changed when switching between tabs
+
+ksquirrel-0.7.3 and ksquirrel-libs-0.7.3
+*****************************************
+* command line arguments now work better
+* improvements in preview window
+* cusomizable double click in image window
+* select a region in image window and press Y to crop image
+* added tabs in image window (off by default) with Opera-like navigation
+* 100% zoom now doesn't use linear interpolation
+  (image is displayed "as is")
+* added service menu for Dolphin
+* added German translation
+
+ksquirrel-libs:
+* added DDS
+* JPEG2000 decoder is much faster now
+
+ksquirrel-0.7.2
+****************
+* lazy thumbnail generation now can generate additional rows
+* improvements in treeview
+* F10 to repeat last operation with selected files (copy/move/link)
+* it is highly recommended that you won't have FAM running,
+  see http://oss.sgi.com/bugzilla/show_bug.cgi?id=158 for more
+* Added folder basket
+
+ksquirrel-libs:
+* SVG codec now uses rsvg-convert
+* fixed segfault in GIF codec (in rare cases)
+* added DICOM (requires medcon)
+* added APNG (see http://wiki.mozilla.org/APNG_Specification, http://en.wikipedia.org/wiki/APNG)
+
+ksquirrel-0.7.1try5
+*********************
+* lazy thumbnail generation (like in DigiKam)
+* single click to highlight file, double click
+  to open
+* drag operation now can show number of dragged files
+  and first two thumbnails
+* fixed problems with file naming in converter and image window
+
+ksquirrel-0.7.1try4
+*********************
+* thumbnail loader now uses EXIF thumbnails if present
+* thumbnail rotation using exif
+* small fixes in thumbnail loader
+* small fixes thumbnail cache master
+
+ksquirrel-0.7.1try3
+********************
+* context menu in folder tree
+* folder tree now accepts drops
+* previous directory now selected during navigating
+* current page in sidebar is now saved
+* "Show hidden files" is also saved
+* Sorting order is also saved :)
+
+ksquirrel-0.7.1 and ksquirrel-libs-0.7.1
+******************************************
+
+ksquirrel:
+* context menu in file manager now have proper content (it worked in KDE 3.3, but in 3.5 it didn't)
+* kio-slaves support (including smb:/, tar:/ etc.)
+* archive extractor now uses kio-slaves (see previous). In general, it supports
+   zip, ar, tar.gz, tar.bz2, iso, rar, 7zip. To add support of rar and 7zip please install
+   kio_rar and kio_p7zip (search http://kde-apps.org)
+* thumbnail creation on non-local filesystems (for ex. smb:/ or tar:/)
+* statusbar improvements
+* hotkeys in image window now don't depend on current keyboard layout
+* history combobox now shows mime types
+* bugfixes in slideshow
+* new thumbnails' cache directory. Please remove old thumbnails from ~/.ksquirrel/thumbnails
+* image rotation using EXIF in thumbnail loader and image viewer
+* KIPI plugins now could be loaded on demand
+* F2 to rename files
+* thumbnail loader now corresponds thumbnail spec from freedesktop.org
+* other small bugfixes
+
+ksquirrel-libs:
+* added XFIG (transfig package is required)
+* added Degas PI3
+* TTF codec is designed for freetype 2.2.1 (it should work at least in Debian Etch)
+* CAMERA codec now uses dcraw v8.77 without modifications, which doesn't violate dcraw license
+* bugfixes in scripts
+
+ksquirrel-0.7.0try5
+*********************
+* navigator is now hidden when running with file argument
+
+ksquirrel-0.7.0try4
+*********************
+* fixed file selection when passing filename through command line
+
+ksquirrel-0.7.0try3
+*********************
+* animated widget in toolbar now can be disabled (Options->Main)
+* splash screen security improvements
+
+ksquirrel-0.7.0try2
+*********************
+* file path via command line parameter now works, e.g.
+ # ksquirrel /home/me/1.png
+* new autoconf test for OpenGL
+* small fix in image window toolbar (in 'Selection' popup menu)
+* fixed toolbar height in image window
+
+ksquirrel-0.7.0 and ksquirrel-libs-0.7.0
+********************************************
+
+ksquirrel:
+* filtering using selection is now available in image window
+* fixed flicker of thumbnail loading progressbar
+* fixed segfault on directory execution with "Return" button
+* RAR archives are now supported ("unrar" program is required)
+* fixed -l option
+* fixed crashing when no image plugins were found
+
+ksquirrel-0.7.0-pre2 and ksquirrel-libs-0.7.0-pre2
+********************************************
+
+This is last preview release.
+
+ksquirrel:
+* multiple directory view: Shift+click to recursively toggle current
+  item and all subitems; Ctrl+click to recursively set current
+  item and all subitems on; Alt+click to recursively set current
+  item and all subitems off
+* GQView mode removed till better times
+* added preview widget
+* new slideshow
+* bugfixes in slideshow mechanism
+* bugfix in mouse clicking (in list view and icon view)
+* current image now can be filtered (filetring using current selection will be available in 0.7.0)
+
+ksquirrel-libs:
+* added IFF, MAC, PICT, PI1, XIM, UTAH, LEAF, NEO (via NetPBM package)
+* small fix in configure.ac
+
+ksquirrel-0.7.0-pre1 and ksquirrel-libs-0.7.0-pre1
+********************************************
+ksquirrel:
+* added KIPI support
+* multiple directory view
+* automatic image fit in image window
+* some codecs now have options (DjVu, SVG, CAMERA...). Visit Plugins information dialog.
+* edit tools removed. use KIPI instead :) Convertion tool is still available
+* current image can be placed to clipboard
+* current images can be "saved as..."
+* bugfixes in "GQView" mode
+* mount view now can mount/unmount
+* thumbnail loading now ~15% faster
+* improvements in interface switching
+* sidebar: added image basket
+* sidebar: removed file actions (use context menu in navigator)
+* new DCOP parameters, see README
+* bugfixes
+
+ksquirrel-libs:
+* fixed segfault on GIF and some other libraries on some systems
+* CAMERA codec now uses dcraw 8.61
+* added settings support to CAMERA, SVG
+* added DjVu (just single page via settings).
+* added AutoCAD DXF (+settings)
+* added GIMP XCF (+settings)
+* small fixes in configure script
+* configure output now more informatible
+
+ksquirrel-0.6.3 and ksquirrel-libs-0.6.3
+********************************************
+
+ksquirrel:
+* interface improvements, now KSquirrel can look like GQview
+* small fix in reloading libraries from disk
+* added categories
+
+ksquirrel-0.6.2 and ksquirrel-libs-0.6.2
+********************************************
+ksquirrel and ksquirrel-libs now should correspond Debian policy.
+
+ksquirrel-libs:
+* some changes in API
+
+ksquirrel:
+* fixed segfault if the file format is not supported
+* new option: "Don't show tooltips when the main window is inactive"
+* "L" key ("Ignore, if the image is less than window") in image window now works
+* added Russian handbook
+* single-page images now eat less memory
+
+ksquirrel-0.6.1: bugfix release, minor changes
+*****************************************************
+
+ksquirrel:
+* updated .desktop files. MIME types inserted.
+* "Nice" zoom now default zoom type
+* "OpenGL information" moved to separate dialog
+* "./configure.gnu --disable-ksmall" to disable ksquirrel-small in compile time
+* small fix in rotate dialog, pixmap now erased correctly
+
+ksquirrel-libs:
+* some codecs are disabled as buggy (use --enable-devel to enable them)
+* ksquirrel-libs now installs development library and header files. Now ksquirel-libs
+  must be installed BEFORE KSquirrel.
+* updated documentation
+
+ksquirrel-0.6.0-final and ksquirrel-libs-0.6.0-final
+************************************************************
+
+ksquirrel:
+* small fix in animating mechanism
+* fixed F1/F4 bug in image window (only in pre9)
+* fixed small memory leak
+* closing image window now stops slideshow (if running)
+* fixed flicker in image window in fullscreen state with hidden toolbar
+* help widget now saves current page
+* fixes in help widget
+* If the image is broken, "broken" image will appear (like in GQview)
+* image window: right click = context menu, middle click = toggle fullscreen,
+   left click = start drag, left click+SHIFT = select zoom area
+* small fix in maximum/minimum zoom 
+* improved Xinerama support (I hope)
+* small improvements in file manager
+* added new options:
+  - show images progressively
+  - hide toolbar in fullscreen
+  - ability to choose number of image pages to be loaded (in edit tools too)
+* added sidebar with
+   - file/image actions
+   - file tree
+   - view of currently mounted partitions
+* small memory optimizations in file manager
+* changing thumbnails' size now a little bit faster
+* fixed small bug in DCOP connection, which could cause strange behaviour of file manager
+* menu layout changes
+* small fix in version checker
+* small fix in setting background image in image window
+* new toolbar in image window
+* fixes in external tools
+* saving geometry now works properly
+* CTRL+T to recreate selected thumbnails + bugfixes
+* code cleanups, comments
+
+ksquirrel-libs:
+* SVG: added ".svgz" extension
+* MNG: small fix in data types
+* KOALA: small fix in bitdepth (bitdepth was always '0')
+
+ksquirrel-0.6.0-pre9 and ksquirrel-libs 0.6.0-pre9
+************************************************************
+
+ksquirrel:
+* small fixes in manual pages
+* library loader now doesn't check +x permissions
+* --enable-final for configure now works
+* ksquirrel-small: bugfixes
+* filter tool: added red-eye removal
+* filter tool: small fix in pixmap updating
+* edit tools: improvements in preview image
+* edit tools: small fix with alpha channel for preview image
+* experimental "Nice zoom" ('N' to toggle)
+* new toolbar in image window
+* improvements in loading mechanism, now KSquirrel will store only ONE frame in video memory. Is doesn't depend on whether image is animated or not
+* ksquirrel-small now doesn't share settings with KSquirrel, but some settings (like zoom limit, background color etc. are still shared (and read-only))
+* fixed small memory leak
+* code cleanups
+
+ksquirrel-libs:
+* XCUR: fixed segfault
+* PNM: small fix (on pgm images)
+* SGI: small improvements
+* CAMERA: new file extensions added
+* added font support (ttf, pfa, pfb...)
+* added MNG, JNG (reading)
+* added PXR (reading)
+* added JBIG (slow, reading))
+* code cleanups
+* no more static libraries. Now SVG, GIF, OPENEXR, WMF and JPEG2000 are optional.
+[from 0.6.0-pre8 u1 + new ones]
+* new options for configure script:
+     --disable-gif
+     --disable-camera
+     --disable-wmf
+     --disable-svg
+     --disable-openexr
+     --disable-jpeg2000
+     --disable-mng
+     --disable-ttf
+
+ksquirrel-0.6.0-pre8 and ksquirrel-libs 0.6.0-pre7
+************************************************************
+
+ksquirrel:
+* edit tools: fixed bug in writing images
+* edit tools: preview image now works
+* edit tools: new writing options
+* filter tool: added 20 filters
+* resize tool: removed all previous resize methods, added new ones: Box, Triangle, Bell, B-Spline, Lanczos3, Mitchell
+* some interface changes in filter tool
+* code cleanups
+* source code now hardly commented
+* added man page
+* added new binary: ksquirrel-small. It is "light" version of KSquirrel - without filemanager, External tools, Filters,
+  Edit tools etc. It takes only one command line argument - path to file. For example:
+
+[localhost@krasu]$ ksquirrel-small /mnt/c/images/cat.png
+
+ksquirrel-libs:
+* internal changes
+
+ksquirrel-0.6.0-pre7 and ksquirrel-libs-0.6.0-pre6
+************************************************************
+
+ksquirrel:
+* fixed segfault when printing multipaged images
+* fixed small bug in "Recreate selected thumbnails" action in thumbnail view
+* fixed wrong header naming in "External tools" menu
+* fixed small bug in print tool, in "Alignment" frame
+* fixed bug with size() of version checker
+* fixed compile problems on some Qt versions, which don't support STL (like Slackware's one)
+* added filter tool (only "Negative" and "swap RGB" are currently supported, new filters coming soon)
+* added slideshow and advanced slideshow (Ctrl+S, Ctrl+Alt+S)
+* added mc-like file selection with '+' and '-'
+* added "Select All" and "Deselect" actions in menu
+* added some new options
+* added unique application support (KSquirrel now can have only one running instance)
+* print tool: "Custom fill" now works
+* print tool: added transparency support
+* now you needn't delete old config file - KSquirrel will do it for you
+* edit tools now look like simple wizards (hope TiamaT will draw new squirrels soon...)
+* libraries information was moved from Options to "Plugins information" dialog
+* some menu layout changes
+* code cleanups
+
+ksquirrel-libs:
+* some changes in API
+* added MTV Ray-Tracer (reading, writing)
+* added AVS X (reading, writing)
+* added PNM (writing)
+* LIF: many bugfixes
+* SVG: removed useless "-lfontconfig" dependency, which could create compile problems on some systems (like Slackware)
+* PNG: fixed autoconf problems on some systems (like Slackware)
+
+ksquirrel-0.6.0-pre6 and ksquirrel-libs-0.6.0-pre5
+************************************************************
+
+ksquirrel:
+* resize tool now works (four resize methods: nearest, bilinear, tiles, hyper)
+* colorize tool now works
+* rotate tool now works (has some small bugs in algorithm)
+* print tool now partially works (only "One image per one page")
+
+ksquirrel-libs:
+* added JPEG2000 (reading)
+* added OpenEXR (reading)
+* added Quake2 WAL texture (reading)
+* added HalfLife model (reading)
+* added KOALA (reading)
+* added HDR (reading)
+* added LIF (reading)
+* added SCT (reading)
+* CUT decoder now not-alpha
+
+ksquirrel-0.6.0-pre5
+************************************************************
+
+ksquirrel:
+* added DCOP interface, which was removed in early 0.2.8 :) Check README for list of parameters
+* new version checker (old one removed)
+
+
+ksquirrel-0.6.0-pre4
+************************************************************
+
+ksquirrel:
+* new autoconf test for GL library. old one could fail on some systems.
+* image window: some changes in toolbar and context menu.
+
+
+ksquirrel-0.6.0-pre3
+************************************************************
+
+ksquirrel:
+* small fix in tootips for thumbnails
+* small fix in toolbar in image window
+* some changes in main toolbar
+* resize, rotate, colorize and print tools are available in preview mode
+  (will read, but won't write images)
+* added thumbnail cache manipulator
+
+ksquirrel-libs:
+* some changes in API. pre2 and pre3 are not compatible.
+* added SVG (reading, requires libxml2, freetype)
+* TGA: small fix (in v0.7.1 flipping was ON by default, in v0.7.2 flipping is determined by image header)
+* XPM: small fix in decoding mechanism
+* new mime icons
+
+
+ksquirrel-0.6.0-pre2
+************************************************************
+
+* please, remove old config file ~/.kde/share/config/ksquirrelrc and old libraries before installation
+* some changes in thumbnail view
+
+ksquirrel-libs:
+* changed library path /usr/lib/squirrel =>/usr/lib/ksquirrel-libs
+* fully migrated to C++ (stdc++)
+* added WMF (reading)
+* added SUN Icon (reading)
+* added WBMP (reading)
+* added TIFF (writing)
+* added photos from different cameras (CRW, ...)
+* added some examples (QT, QT+OpenGL)
+
+
+ksquirrel-0.6.0-pre1
+************************************************************
+
+* moved back to Right Click = mouse selection, Middle Click = context menu
+* added file actions in Navigator - Copy, Paste, Cut, etc.
+* added -t option: find all supported images and create thumbnails. For example
+     # ksquirrel -t /home/ckult/images/
+* "External Tools" now based on .desktop files
+* fixed crashing when command line is not empty
+* improved Drag'n'Drop support
+* image converter now available (select files and press Ctrl+K), but not all libraries support write functions
+     
+ksquirrel-libs:
+* added interface for write functions
+* added write features for PNG, JPEG, BMP
+* PNG: fixed problems with interlaced images, fixed memory leak
+* XPM: fixed problems with multiline comments
+* ICO: added support of bit depth 24 and 32
+* PSD: fixed problems with RGB images, that have 3 channels instead of 4
+* GIF: added comments support (comment extensions)
+* PNM: fixed problems with Windows-like line breaks (\r\n)
+
+
+ksquirrel-0.5.0(final)
+******************************************************************
+
+* added nice tickmarks around the image (press K to toggle)
+* Middle click (or 'M') for context menu
+* F5 to recreate selected thumbnails
+
+* fixed little repainting problem
+* fixed startup problem, if /usr/lib/squirrel doesn't exist.
+* fixed problem with making image window built-in/separate
+* fixed small problem with decoding corrupted files
+
+ksquirrel-libs:
+* GIF decoder is much better now (fixed problems with transparency)
+* added X cursors
+* added PSD(RGB,CMYK,Grayscale,Indexed)
+* added FLI Animation
+* added thumbnail generator for FLI, GIF
+* small fixes in PNM, BMP libraries
+
+
+ksquirrel-0.5.0-preview4
+******************************************************************
+
+critical/important:
+* fixed crushing on item execution (SIGALRM signal, or "Alarm clock")
+* fixed awful lines (http://ksquirrel.sf.net/IMG/errors.png)
+* support of multipaged images (GIF, ICO, etc.)
+* Now my e-mail is ksquirrel at tut.by
+* moved back to PNG thumbnails. Please, rm -rf ~/.ksquirrel/thumbnails/
+
+ksquirrel-libs:
+* GIF (beta, including animated)
+* interlaced PNG's
+* fixed random crushing on some PNGs
+* about 15 formats are done
+
+other:
+* some interface improvements
+* improvements in 'Image Properties'
+* new 'fullscreen' method (KDE-related)
+* "Quick Browser" now can be moved and resized
+* other small fixes
+
+>>> Remember that ksquirrel-libs-0.5.0-pre3 and pre4 ARE NOT compatible!
+
+
+ksquirrel-0.5.0-preview3 for KDE 3.2 and JPEG library for preview3
+******************************************************************
+
+Please be patient - preview3 contains only one library, anyway, it's just a preview.
+
+>> critical or important:
+* fixed wrong displaying of huge images (more than 2048x2048); now doesn't depend on GL_MAX_TEXTURE_SIZE =)
+* fixed crashing on thumbnail view
+* fixed awful memory leak, shame on myself !! =)
+* moved to JPEG thumbnails (remove old ones from ~/.ksquirrel/thumbnails !)
+* detecting images by content (like Trolltech's QImage)
+* removed "Look like ..." - useless stuff
+* please check README for new keyboard shortcuts.
+
+>> other:
+* now "make -f Makefile.dist" to recreate configure and other scripts
+* configure was generated with autoconf 2.59, Makefiles - with automake 1.8.5
+* fixed wrong url selection in treeview
+* fixed wrong gridX value selection in SQ_FileThumbView
+* fixed wrong filter selection on startup
+* added library's filters support
+* added pending thumbnails (sand-glass)
+* added extended thumbnails
+* added configurable zoom limit
+* added tooltips with thumbnail info
+* double click in Navigator opens current url in default browser
+* image displaying is now faster
+* determining archives by MIME, not by extension (._zip wasn't been handled :-(( )
+* some changes in 'Options' dialog
+* removed GL_LINEAR filter due to new displaying alghoritm
+* other small fixes.
+

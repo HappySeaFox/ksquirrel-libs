@@ -36,6 +36,12 @@
 #include <cstdio>
 #endif
 
+#ifdef CODEC_EPS
+#include <cstdio>
+#include <sstream>
+#include <cmath>
+#endif
+
 #include "ksquirrel-libs/fmt_types.h"
 #include "ksquirrel-libs/fileio.h"
 #include "ksquirrel-libs/error.h"
@@ -76,6 +82,8 @@
 #include "../xpm/codec_fig.xpm"
 #elif defined CODEC_LJPEG
 #include "../xpm/codec_ljpeg.xpm"
+#elif defined CODEC_EPS
+#include "../xpm/codec_eps.xpm"
 #else
 #include "../xpm/codec_pnm.xpm"
 #endif
@@ -314,6 +322,19 @@ void fmt_codec::options(codec_options *o)
     o->writestatic = false;
     o->writeanimated = false;
     o->needtempfile = true;
+#elif defined CODEC_EPS
+    o->version = "0.1.0";
+    o->name = "Encapsulated PostScript";
+    o->filter = "*.eps ";
+    o->config = "";
+    o->mime = "";
+    o->mimetype = "image/x-eps";
+    o->pixmap = codec_eps;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
 #else
     o->version = "0.6.4";
     o->name = "Portable aNy Map";
@@ -363,9 +384,7 @@ void fmt_codec::fill_default_settings()
     m_settings["black"] = val;
     val.iVal = 99; // values 100...1000 are accepted. 99 means no threshold
     m_settings["threshold"] = val;
-
-    val.type = settings_value::v_double;
-    val.dVal = 1.0;
+    val.iVal = 1;
     m_settings["brightness"] = val;
 
     val.type = settings_value::v_string;
@@ -415,6 +434,105 @@ void fmt_codec::fill_default_settings()
 }
 #endif
 
+#ifdef CODEC_EPS
+
+/*
+ *  Stolen from KImageIO EPS plugin from kdelibs-3.4.0, which is
+ *  under GNU LGPL
+ */
+
+#define BUFLEN 200
+
+#define BBOX "%%BoundingBox:"
+#define BBOX_LEN strlen(BBOX)
+
+static bool seekToCodeStart(ifstreamK *io, size_t &ps_offset, size_t &ps_size)
+{
+    char buf[4]; // We at most need to read 4 bytes at a time
+    ps_offset = 0L;
+    ps_size = 0L;
+
+    if(!io->readK(buf, 2)) // Read first two bytes
+        return false;
+
+    if(buf[0]=='%' && buf[1]=='!') // Check %! magic
+    {
+    }
+    else if(buf[0] == char(0xc5) && buf[1] == char(0xd0)) // Check start of MS-DOS EPS magic
+    {   // May be a MS-DOS EPS file
+        if(!io->readK(buf+2, 2)) // Read further bytes of MS-DOS EPS magic
+            return false;
+
+        if(buf[2] == char(0xd3) && buf[3] == char(0xc6)) // Check last bytes of MS-DOS EPS magic
+        {
+            if(!io->readK(buf, 4)) // Get offset of PostScript code in the MS-DOS EPS file.
+                return false;
+
+            ps_offset // Offset is in little endian
+                = ((unsigned char) buf[0])
+                + ((unsigned char) buf[1] << 8)
+                + ((unsigned char) buf[2] << 16)
+                + ((unsigned char) buf[3] << 24);
+
+            if (!io->readK(buf, 4)) // Get size of PostScript code in the MS-DOS EPS file.
+                return false;
+
+            ps_size // Size is in little endian
+                = ((unsigned char) buf[0])
+                + ((unsigned char) buf[1] << 8)
+                + ((unsigned char) buf[2] << 16)
+                + ((unsigned char) buf[3] << 24);
+
+            if(!io->seekg(ps_offset, ios::beg)) // Get offset of PostScript code in the MS-DOS EPS file.
+                return false;
+
+            if(!io->readK(buf, 2)) // Read first two bytes of what should be the Postscript code
+                return false;
+
+            if(buf[0] != '%' || buf[1] != '!') // Check %! magic
+                return false;
+        }
+        else
+            return false;
+    }
+    else
+        return false;
+
+    return true;
+}
+
+static bool bbox(ifstreamK *io, int *x1, int *y1, int *x2, int *y2)
+{
+        char buf[BUFLEN+1];
+
+        bool ret = false;
+
+        while(io->getline(buf, BUFLEN).good() && strlen(buf))
+        {
+                if(strncmp(buf, BBOX, BBOX_LEN) == 0)
+                {
+                        // Some EPS files have non-integer values for the bbox
+                        // We don't support that currently, but at least we parse it
+                        float _x1, _y1, _x2, _y2;
+
+                        if(sscanf(buf, "%*s %f %f %f %f", &_x1, &_y1, &_x2, &_y2) == 4)
+                        {
+                                *x1 = (int)_x1;
+                                *y1 = (int)_y1;
+                                *x2 = (int)_x2;
+                                *y2 = (int)_y2;
+
+                                ret = true;
+                                break;
+                        }
+                }
+        }
+
+        return ret;
+}
+
+#endif
+
 s32 fmt_codec::read_init(const std::string &file)
 {
     fptr = 0;
@@ -438,9 +556,8 @@ s32 fmt_codec::read_init(const std::string &file)
     black,
     different,
     highlights,
-    flipping;
-
-    double brightness;
+    flipping,
+    brightness;
 
     std::string icc_file;
 
@@ -523,11 +640,11 @@ s32 fmt_codec::read_init(const std::string &file)
         threshold = 99; // revert to default
 
     it = m_settings.find("brightness");
-    brightness = (it == m_settings.end() || (*it).second.type != settings_value::v_double) ?
-                    1.0 : (*it).second.dVal;
+    brightness = (it == m_settings.end() || (*it).second.type != settings_value::v_int) ?
+                    1 : (*it).second.iVal;
 
-    if(brightness < 0 || brightness > 255)
-        brightness = 1.0;
+    if(brightness < 1 || brightness > 255)
+        brightness = 1;
 
     it = m_settings.find("icc_file");
     icc_file = (it == m_settings.end() || (*it).second.type != settings_value::v_string) ?
@@ -576,7 +693,7 @@ s32 fmt_codec::read_init(const std::string &file)
     params.push_back("-s");
     params.push_back(ss);
 
-    sprintf(ss, "%.1f", brightness);
+    sprintf(ss, "%d", brightness);
     params.push_back("-b");
     params.push_back(ss);
 
@@ -928,6 +1045,91 @@ s32 fmt_codec::read_init(const std::string &file)
 
     fptr = fopen(tmp.c_str(), "rb");
 
+#elif defined CODEC_EPS
+
+    /*
+     *  EPS code was grabbed from KImageIO plugin for kdelibs-3.4.0. It is under LGPL.
+     */
+
+    FILE * ghostfd;
+    int x1, y1, x2, y2;
+
+    std::string cmdBuf;
+
+    size_t ps_offset, ps_size;
+
+    ifstreamK io;
+    io.open(file.c_str(), ios::in);
+
+    if(!io.good())
+        return SQE_R_NOFILE;
+
+    // find start of PostScript code
+    if (!seekToCodeStart(&io, ps_offset, ps_size))
+        return SQE_R_BADFILE;
+
+    // find bounding box
+    if(!bbox(&io, &x1, &y1, &x2, &y2))
+        return SQE_R_BADFILE;
+
+    x2 -= x1;
+    y2 -= y1;
+
+    double xScale = 1.0;
+    double yScale = 1.0;
+    bool needsScaling = false;
+    int wantedWidth = x2;
+    int wantedHeight = y2;
+
+    std::stringstream str(cmdBuf);
+
+    str << EPS2PPM << " -sOutputFile=";
+    str << tmp;
+    str << " -q -g";
+    str << wantedWidth << "x" << wantedHeight;
+    str << " -dSAFER -dPARANOIDSAFER -dNOPAUSE -sDEVICE=ppm -c "
+            "0 0 moveto "
+            "1000 0 lineto "
+            "1000 1000 lineto "
+            "0 1000 lineto "
+            "1 1 254 255 div setrgbcolor fill "
+            "0 0 0 setrgbcolor - -c showpage quit";
+
+    ghostfd = popen(str.str().c_str(), "w");
+
+    if(ghostfd == 0)
+        return SQE_R_BADFILE;
+
+    fprintf(ghostfd, "\n%d %d translate\n", int(-floorf(x1*xScale)), int(-floorf(y1*yScale)));
+
+    if(needsScaling)
+        fprintf(ghostfd, "%g %g scale\n", xScale, yScale);
+
+    io.seekg(0, ios::beg);
+
+    char bbuf[4096];
+
+    if(ps_offset > 0) // We have an offset
+        io.seekg(ps_offset, ios::beg);
+
+    std::string buffer;
+
+    while(!io.eof())
+    {
+        io.read(bbuf, sizeof(bbuf));
+        buffer.append(bbuf, io.gcount());
+    }
+
+    // If we have no MS-DOS EPS file or if the size seems wrong, then choose the buffer size
+    if (ps_size <= 0 || ps_size > buffer.size())
+        ps_size = buffer.size();
+
+    fwrite(buffer.c_str(), sizeof(char), ps_size, ghostfd);
+
+    pclose(ghostfd);
+
+    fptr = fopen(tmp.c_str(), "rb");
+
 #else
 
     fptr = fopen(file.c_str(), "rb");
@@ -1031,7 +1233,7 @@ s32 fmt_codec::read_next()
 	strcpy(format, "%1d");
 	koeff = 1.0;
     }
-    
+
     image.compression = "-";
     image.colorspace = ((pnm == 1 || pnm == 4) ? "Monochrome":"Color indexed");
 
@@ -1044,7 +1246,7 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 {
     RGB		rgb;
     u8	        bt;
-    s32		i;
+    s32		i, a;
     fmt_image *im = image(currentImage);
     fmt_utils::fillAlpha(scan, im->w);
 
@@ -1052,16 +1254,14 @@ s32 fmt_codec::read_scanline(RGBA *scan)
     {
 	case 1:
         {
-	    s32 d;
-
 	    for(i = 0;i < im->w;i++)
 	    {
-		fscanf(fptr, format, &d);
+		fscanf(fptr, format, &a);
 		if(sq_ferror(fptr)) return SQE_R_BADFILE;
 
-		d = (s32)(d * koeff);
+		a = (s32)(a * koeff);
 
-		memcpy(scan+i, palmono+d, sizeof(RGB));
+		memcpy(scan+i, palmono+a, sizeof(RGB));
     	    }
 
 	    if(!skip_flood(fptr))
@@ -1071,16 +1271,14 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 
 	case 2:
 	{
-	    s32 d;
-
 	    for(i = 0;i < im->w;i++)
 	    {
-		fscanf(fptr, format, &d);
+		fscanf(fptr, format, &a);
 		if(sq_ferror(fptr)) return SQE_R_BADFILE;
 
-		d = (s32)(d * koeff);
+		a = (s32)(a * koeff);
 
-		memset(scan+i, d, sizeof(RGB));
+		memset(scan+i, a, sizeof(RGB));
 	    }
 	    
 	    if(!skip_flood(fptr))
@@ -1091,9 +1289,9 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 	case 3:
     	    for(i = 0;i < im->w;i++)
 	    {
-		fscanf(fptr, format, (s32*)&rgb.r);
-		fscanf(fptr, format, (s32*)&rgb.g);
-		fscanf(fptr, format, (s32*)&rgb.b);
+		fscanf(fptr, format, &a); rgb.r = a;
+		fscanf(fptr, format, &a); rgb.g = a;
+		fscanf(fptr, format, &a); rgb.b = a;
 		if(sq_ferror(fptr)) return SQE_R_BADFILE;
 
 		memcpy(scan+i, &rgb, sizeof(RGB));
@@ -1109,7 +1307,6 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 		if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQE_R_BADFILE;
 
 		memcpy(scan+i, &rgb, sizeof(RGB));
-//		(scan+i)->r = rgb.
     	    }
 	break;
 

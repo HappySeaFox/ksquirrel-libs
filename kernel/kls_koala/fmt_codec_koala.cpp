@@ -72,7 +72,7 @@ void fmt_codec::options(codec_options *o)
     o->name = "Commodore 64 Koala";
     o->filter = "*.koa *.kla ";
     o->config = "";
-    o->mime = "";
+    o->mime = "\x0000\x0060";
     o->mimetype = "image/x-koala";
     o->pixmap = codec_koala;
     o->readable = true;

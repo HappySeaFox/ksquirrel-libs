@@ -4,6 +4,7 @@ INCLUDES = -I../include
 CFLAGS = -O4
 
 bin_PROGRAMS = ksquirrel-libs-dcraw
+bin_SCRIPTS  = ksquirrel-libs-camera2ppm
 
 ksquirrel_libs_dcraw_SOURCES = dcraw.c
 

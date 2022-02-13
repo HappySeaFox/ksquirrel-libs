@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #par="--exec-prefix=/usr --prefix=/usr --libdir=/usr/lib/ksquirrel"
-par="--prefix=/usr"
+par="--disable-rpath --prefix=/usr"
 
 echo "*** Doing configure $* $par ..."
 

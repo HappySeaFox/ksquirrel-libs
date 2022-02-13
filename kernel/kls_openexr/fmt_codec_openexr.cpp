@@ -215,6 +215,18 @@ void fmt_codec::read_close()
     pixels = 0;
 }
 
+/*
+ *  This function is taken from exr plugin for KImageIO, kdelibs-3.4.0:
+ *
+ * KImageIO Routines to read (and perhaps in the future, write) images
+ * in the high dynamic range EXR format.
+ * Copyright (c) 2003, Brad Hards <bradh@frogmouth.net>
+ *
+ * This library is distributed under the conditions of the GNU LGPL.
+ *
+ * $Id: exr.cpp,v 1.4 2004/11/22 03:48:27 mueller Exp $
+ */
+
 /* 
  * utility function
  *

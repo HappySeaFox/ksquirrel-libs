@@ -1,11 +1,20 @@
-* ksquirrel-libs is under GNU LIBRARY GENERAL PUBLIC LICENSE (see LICENSE)
-* JBIG library statically links against jbig-kit (which is under GPL) by (C) Markus Kuhn
-* CAMERA library install its own dcraw version 8.60. dcraw is by (C) Dave Coffin
-* MNG library uses libmng, see mng_LICENSE for more
-* TTF library statically uses ftview from ftdemos-2.1.10,
+* ksquirrel-libs is under GNU LIBRARY GENERAL PUBLIC LICENSE (see LICENSE), except the following parts:
+
+* JBIG library statically links against jbig-kit (which is under GPL, see LICENSE.GPL) by (C) Markus Kuhn
+* MNG dynamically links against libmng, see LICENSE.MNG for more
+* LJPEG library statically uses ljpg, see LICENSE.LJPEG for more
+* DDS plugin is taken from KImageIO plugin from kdelibs 3.4.0 (which is under GPL)
+* EPS plugin is taken from KImageIO plugin from kdelibs 3.4.0 (which is under LGPL)
+* PSP plugin is taken from DevIL (which is under LGPL)
+* TTF library dynamically links against libfreetype, and
+  statically uses ftview from ftdemos-2.1.10, there are no LICENSE issues
+  in ftdemos package, but it is still copyrighted
         Copyright 1996-2000, 2003, 2004, 2005 by
         (C) D. Turner, R.Wilhelm, and W. Lemberg
-        and dynamically links against libfreetype
+* XCF library statically uses xcf2pnm (which is under GPL)
+* PNG library uses its own version of libpng to support APNG images, see LICENSE.PNG
+
+other issues:
 * DJVU library uses "ddjvu" executable (via fork) from http://djvu.sf.net
 * DXF  library uses "vec2web" executable (via fork) from http://ribbonsoft.org
 * TIFF library dynamically links against libtiff
@@ -14,7 +23,36 @@
 * PNG  library dynamically links against libpng
 * WMF  library dynamically links against libwmf
 * OPENEXR library dynamically links against OpenEXR libraries
-* JPEG2000 library dynamically links against jasper
+* JPEG2000 library dynamically links against jasper, most code in this library
+  was taken from jasper.c from jasper distribution, which is under JASPER LICENSE,
+  see LICENSE.JASPER for more
 * SVG library uses "rsvg-convert" executable (via fork)
-* LJPEG library statically uses ljpg
-* DDS plugin is taken from KImageIO plugin from kdelibs 3.4.0
+* CAMERA library installs its own dcraw version 8.79. dcraw is by (C) Dave Coffin,
+  which is free redistributable if no source code modification were applied:
+
+/*
+   dcraw.c -- Dave Coffin's raw photo decoder
+   Copyright 1997-2007 by Dave Coffin, dcoffin a cybercom o net
+
+   This is a command-line ANSI C program to convert raw photos from
+   any digital camera on any computer running any operating system.
+
+   No license is required to download and use dcraw.c.  However,
+   to lawfully redistribute dcraw, you must either (a) offer, at
+   no extra charge, full source code* for all executable files
+   containing RESTRICTED functions, (b) distribute this code under
+   the GPL Version 2 or later, (c) remove all RESTRICTED functions,
+   re-implement them, or copy them from an earlier, unrestricted
+   Revision of dcraw.c, or (d) purchase a license from the author.
+
+   The functions that process Foveon images have been RESTRICTED
+   since Revision 1.237.  All other code remains free for all uses.
+
+   *If you have not modified dcraw.c in any way, a link to my
+   homepage qualifies as "full source code".
+
+   $Revision: 1.394 $
+   $Date: 2007/11/04 02:18:54 $
+ */
+
+And here is dcraw home page: http://cybercom.net/~dcoffin/dcraw/

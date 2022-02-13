@@ -1,8 +1,8 @@
 How to install 'ksquirrel-libs' package:
 
    a) from sources
-   # tar jxfv ksquirrel-libs-0.7.0.tar.bz2
-   # cd ksquirrel-libs-0.7.0/
+   # tar jxfv ksquirrel-libs-0.8.0.tar.bz2
+   # cd ksquirrel-libs-0.8.0/
  * # su -c './required-etch'
    # ./configure.gnu (not ./configure !)
    # make
@@ -12,9 +12,9 @@ How to install 'ksquirrel-libs' package:
   This will install all required packages with aptitude.
 
    b) from binary packages
-RPM  # rpm -ihv ksquirrel-libs-0.7.0.rpm
-TGZ  # installpkg ksquirrel-libs-0.7.0.tgz
-DEB  # dpkg -i ksquirrel-libs-0.7.0.deb
+RPM  # rpm -ihv ksquirrel-libs-0.8.0.rpm
+TGZ  # installpkg ksquirrel-libs-0.8.0.tgz
+DEB  # dpkg -i ksquirrel-libs-0.8.0.deb
 
 --------------------------------------------------------------
 

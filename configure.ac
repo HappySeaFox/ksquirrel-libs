@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.7.5], [ksquirrel.iv@gmail.com])
+AC_INIT([ksquirrel-libs], [0.8.0], [ksquirrel.iv@gmail.com])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.5)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.8.0)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -82,6 +82,18 @@ AC_ARG_ENABLE(gif,
               [     case "${enableval}" in
                        yes) sq_codec_gif="yes" ;;
                        no)  sq_codec_gif="no" ;;
+                       *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
+                    esac]
+             )
+
+sq_codec_eps="yes"
+sq_have_eps="no"
+
+AC_ARG_ENABLE(eps,
+              [AS_HELP_STRING([--disable-eps], [don't compile eps codec  [default=no]])],
+              [     case "${enableval}" in
+                       yes) sq_codec_eps="yes" ;;
+                       no)  sq_codec_eps="no" ;;
                        *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
                     esac]
              )
@@ -299,6 +311,19 @@ if [ test -n "$RSVG" ]; then
         sq_have_svg="yes"
         AC_SUBST(RSVG)
 else missing_prog SVG rsvg-convert
+fi
+
+fi
+
+# EPS
+if test $sq_codec_eps = yes; then
+
+AC_PATH_PROG(EPS2PPM, gs)
+
+if [ test -n "$EPS2PPM" ]; then
+        sq_have_eps="yes"
+        AC_SUBST(EPS2PPM)
+else missing_prog EPS gs
 fi
 
 fi
@@ -588,7 +613,7 @@ fi
 
 SQ_LOCAL_RPATH="-L../ksquirrel-libs -lksquirrel-libs"
 AC_SUBST(SQ_LOCAL_RPATH)
-SQ_RELEASE="-version-info 7:4:7"
+SQ_RELEASE="-version-info 8:0:8"
 AC_SUBST(SQ_RELEASE)
 
 ################### for xcf codec ##############
@@ -703,6 +728,8 @@ kernel/kls_pict/Makefile
 kernel/kls_ljpeg/ksquirrel-libs-ljpeg2ppm-s
 kernel/kls_ljpeg/ljpeg2ppm/Makefile
 kernel/kls_ljpeg/Makefile
+kernel/kls_eps/Makefile
+kernel/kls_psp/Makefile
 kernel/ksquirrel-libs/Makefile
 ksquirrellibs.pc
 ])
@@ -715,6 +742,7 @@ AM_CONDITIONAL(CAMERA_NO_JPEG,  [ test $sq_have_jpeg      = no  ])
 AM_CONDITIONAL(SQ_HAVE_JPEG,    [ test $sq_have_jpeg      = yes ])
 AM_CONDITIONAL(SQ_HAVE_XWD,     [ test $sq_have_xwd       = yes ])
 AM_CONDITIONAL(SQ_HAVE_TIFF,    [ test $sq_have_tiff      = yes ])
+AM_CONDITIONAL(SQ_HAVE_EPS,     [ test $sq_have_eps       = yes ])
 
 AM_CONDITIONAL(SQ_HAVE_CAMERA,  [ test $sq_codec_camera   = yes ])
 AM_CONDITIONAL(SQ_HAVE_SVG,     [ test $sq_codec_svg      = yes -a $sq_have_svg       = yes ])
@@ -763,7 +791,7 @@ Libraries:
 sq_enabled=""
 sq_disabled=""
 sq_manual=""
-sq_total="30"
+sq_total="31"
 sq_devel=""
 sq_devel_message=""
 
@@ -782,7 +810,8 @@ if test $sq_have_gif = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=
 if test $sq_have_djvu = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled djvu `;   else sq_disabled=`echo -n $sq_disabled djvu `;   fi
 if test $sq_have_dxf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled dxf `;    else sq_disabled=`echo -n $sq_disabled dxf `;    fi
 if test $sq_have_fig = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled fig `;    else sq_disabled=`echo -n $sq_disabled fig `;    fi
-if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;   fi
+if test $sq_codec_xcf = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;   fi
+if test $sq_codec_eps = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled eps `;    else sq_disabled=`echo -n $sq_disabled eps `;   fi
 
 if test $sq_have_neo = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled neo `;    else sq_disabled=`echo -n $sq_disabled neo `;    fi
 if test $sq_have_pi1 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi1 `;    else sq_disabled=`echo -n $sq_disabled pi1 `;    fi

@@ -1,6 +1,21 @@
-# KDE tags expanded automatically by am_edit - $Revision: 1.7 $ 
+# KDE tags expanded automatically by am_edit - $Revision: 483858 $ 
 #>+ 2
 docs-am:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -98,7 +113,7 @@ bcheck-am:
 	        echo "int main() {return 0;}" > $$i.bchecktest.cc ; \
 	        echo "#include \"$$i\"" >> $$i.bchecktest.cc ; \
 	        echo "$$i"; \
-	        if ! $(CXX) $(DEFS) -I. -I$(srcdir) -I$(top_builddir) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(KDE_CXXFLAGS)  --dump-class-hierarchy -c $$i.bchecktest.cc; then \
+	        if ! $(CXX) $(DEFS) -I. -I$(srcdir) -I$(top_builddir) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(KDE_CXXFLAGS)  --dump-class-hierarchy -c $$i.bchecktest.cc; then \
 	            rm -f $$i.bchecktest.cc; exit 1; \
 	        fi ; \
 	        echo "" >> $$i.bchecktest.cc.class; \
@@ -123,10 +138,6 @@ no-final:
 #>+ 3
 no-final-install:
 	$(MAKE) install-am
-
-#>+ 3
-cvs-clean:
-	$(MAKE) admindir=$(top_srcdir)/admin -f $(top_srcdir)/admin/Makefile.common cvs-clean
 
 #>+ 3
 kde-rpo-clean:
