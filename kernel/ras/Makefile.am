@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_ras.la
-libSQ_read_ras_la_SOURCES = read_ras.cpp read_ras.h
+lib_LTLIBRARIES = libSQ_codec_ras.la
 
-EXTRA_DIST = read_ras.cpp read_ras.h
+libSQ_codec_ras_la_SOURCES = fmt_codec_ras.cpp fmt_codec_ras_defs.h
 
-libSQ_read_ras_la_LDFLAGS = -release 0.5.3
+libSQ_codec_ras_la_LDFLAGS = -release 0.6.3
 
 LIBS = 

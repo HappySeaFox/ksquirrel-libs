@@ -22,43 +22,161 @@
 #ifndef KSQUIRREL_LIBS_FIO_H
 #define KSQUIRREL_LIBS_FIO_H
 
-#include <stdio.h>
+#include <fstream>
 
-bool sq_fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
+using namespace std;
+
+
+////////////////////////////////
+//                            //
+// Binary-oriented file i/o   //
+//                            //
+////////////////////////////////
+
+
+// read binary data
+class ifstreamK : public ifstream
 {
-    size_t r = fread(ptr, size, nmemb, stream);
+    public:
+	ifstreamK();
 
-    if(ferror(stream) || feof(stream) || r != nmemb)
-	return false;
+	bool readK(void *data, int size);
+	bool getS(char *, const int);
+	bool readCHex(u32 &hex);
+
+	// big-endian-oriented reading
+	bool be_getchar(unsigned char *c);
+	bool be_getshort(unsigned short *s);
+	bool be_getlong(unsigned int *l);
 	
-    return true;
+	void close();
+};
+
+// write binary data
+class ofstreamK : public ofstream
+{
+    public:
+	ofstreamK();
+
+	bool writeK(void *data, int size);
+};
+
+// ksquirrel-libs won't define this value, so it will be
+// successfully compiled. But KSquirrel (or other viewers) should
+// define this value to prevent ld error '... already defined ...'.
+//
+// For example:
+// 
+// #define SQ_FIO_NO_IMPLEMENT
+// #include "fmt_codec_base.h"
+//
+#ifndef SQ_FIO_NO_IMPLEMENT
+
+// implement read methods
+ifstreamK::ifstreamK() : ifstream()
+{}
+
+bool ifstreamK::readK(void *data, int size)
+{
+    read((char *)data, size);
+
+    return good();
 }
 
-bool sq_fgetc(FILE *f, unsigned char *c)
+bool ifstreamK::getS(char *s, const int sz)
 {
-    int e = fgetc(f);
+    getline(s, sz);
 
-    if(ferror(f) || feof(f))
+    return good();
+}
+
+bool ifstreamK::be_getchar(unsigned char *c)
+{
+    return readK(c, 1);
+}
+
+bool ifstreamK::be_getshort(unsigned short *s)
+{
+    unsigned char buf[2];
+
+    if(!readK(buf, 2))
 	return false;
 
-    *c = e;
-
-    return true;
-}
-
-bool sq_fgets(char *s, int size, FILE *stream)
-{
-    char *r = fgets(s, size, stream);
+    *s = (buf[0] << 8) + buf[1];
     
-    if(ferror(stream) || feof(stream) || !r)
+    return good();
+}
+
+bool ifstreamK::be_getlong(unsigned int *l)
+{
+    unsigned char buf[4];
+
+    if(!readK(buf,4))
 	return false;
 
-    return true;
+    *l = (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3]);
+
+    return good();
 }
 
-bool sq_ferror(FILE *f)
+void ifstreamK::close()
 {
-    return (ferror(f) || feof(f));
+    ifstream::close();
+    
+    clear();
 }
+
+bool ifstreamK::readCHex(u32 &hex)
+{
+    s8 prefix1, prefix2;
+    s8 h[9], c;
+    u32 i = 0;
+
+    if(!readK(&prefix1, sizeof(s8)))
+	return false;
+
+    if(!readK(&prefix2, sizeof(s8)))
+	return false;
+
+    if(prefix1 != '0' || prefix2 != 'x')
+	return false;
+
+    while(true)
+    {
+	if(!readK(&c, sizeof(s8)))
+	    return false;
+
+	if(c < '0' || c > '9')
+	{
+	    if(c != 'A' && c != 'B' && c != 'C' && c != 'D' && c != 'E' && c != 'F')
+	    {
+		seekg(-1, ios::cur);
+		break;
+	    }
+	}
+
+	h[i++] = c;
+    }
+
+    h[i] = '\0';
+
+    hex = strtol(h, NULL, 16);
+
+    return good();
+}
+
+
+// implement write methods
+ofstreamK::ofstreamK() : ofstream()
+{}
+	
+bool ofstreamK::writeK(void *data, int size)
+{
+    write((char *)data, size);
+
+    return good();
+}
+
+#endif
 
 #endif

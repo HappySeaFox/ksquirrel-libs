@@ -1,8 +1,0 @@
-#!/bin/sh
-
-par='--libdir=/usr/lib/squirrel'
-
-gmake -f Makefile.dist &&
-echo "Doing ./configure $par ..." &&
-echo &&
-./configure $par

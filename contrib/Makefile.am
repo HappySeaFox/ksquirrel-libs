@@ -1,5 +1,3 @@
-####### kdevelop will overwrite this part!!! (begin)##########
-
-SUBDIRS = libungif
+SUBDIRS = libungif libwmf
 
 install: 

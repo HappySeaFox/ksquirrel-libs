@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_png.la
-libSQ_read_png_la_SOURCES = read_png.cpp read_png.h
+lib_LTLIBRARIES = libSQ_codec_png.la
 
-EXTRA_DIST = read_png.cpp read_png.h
+libSQ_codec_png_la_SOURCES = fmt_codec_png.cpp fmt_codec_png_defs.h
 
-libSQ_read_png_la_LDFLAGS = -release 1.0.3
+libSQ_codec_png_la_LDFLAGS = -release 1.1.3
 
 LIBS = -lpng

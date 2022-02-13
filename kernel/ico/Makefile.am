@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_ico.la
-libSQ_read_ico_la_SOURCES = read_ico.cpp read_ico.h
+lib_LTLIBRARIES = libSQ_codec_ico.la
 
-EXTRA_DIST = read_ico.cpp read_ico.h
+libSQ_codec_ico_la_SOURCES = fmt_codec_ico.cpp fmt_codec_ico_defs.h
 
-libSQ_read_ico_la_LDFLAGS = -release 0.3.2
+libSQ_codec_ico_la_LDFLAGS = -release 0.4.2
 
 LIBS = 

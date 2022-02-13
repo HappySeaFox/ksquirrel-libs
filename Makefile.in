@@ -93,6 +93,8 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+CAMERA_NO_JPEG_FALSE = @CAMERA_NO_JPEG_FALSE@
+CAMERA_NO_JPEG_TRUE = @CAMERA_NO_JPEG_TRUE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -188,6 +190,7 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -645,7 +648,7 @@ dist-hook:
 .NOEXPORT:
 
 #>+ 2
-KDE_DIST=stamp-h.in Makefile.in ksquirrel-libs.spec aclocal.m4 Makefile.dist configure2 Makefile.am acinclude.m4 VERSION 
+KDE_DIST=stamp-h.in Makefile.in reconfigure ksquirrel-libs.spec configure.gnu aclocal.m4 Makefile.dist Makefile.am acinclude.m4 VERSION 
 
 #>+ 2
 docs-am:

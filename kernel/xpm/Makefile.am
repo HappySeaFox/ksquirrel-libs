@@ -1,10 +1,13 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_xpm.la
-libSQ_read_xpm_la_SOURCES = read_xpm.cpp read_xpm.h
+lib_LTLIBRARIES = libSQ_codec_xpm.la
+libSQ_codec_xpm_la_SOURCES = fmt_codec_xpm.cpp fmt_codec_xpm_defs.h xpm_utils.h
 
-EXTRA_DIST = read_xpm.cpp read_xpm.h rgb.h xpm_utils.h
+libSQ_codec_xpm_la_LDFLAGS = -release 0.6.2
 
-libSQ_read_xpm_la_LDFLAGS = -release 0.5.2
+EXTRA_DIST = rgbmap
 
 LIBS = 
+
+install-data-am:
+	$(INSTALL) --mode=0644 rgbmap $(DESTDIR)$(libdir)

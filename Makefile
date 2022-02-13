@@ -84,15 +84,17 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run aclocal-1.8
+ACLOCAL = ${SHELL} /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/missing --run aclocal-1.8
 AMDEP_FALSE = #
 AMDEP_TRUE = 
-AMTAR = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run tar
+AMTAR = ${SHELL} /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run automake-1.8
+AUTOCONF = ${SHELL} /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/missing --run automake-1.8
 AWK = gawk
+CAMERA_NO_JPEG_FALSE = 
+CAMERA_NO_JPEG_TRUE = #
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -ansi -W -Wall -Wchar-subscripts -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -O2   -Wformat-security -Wmissing-format-attribute
@@ -103,7 +105,7 @@ CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -Wnon-virtual-dtor -Wno-long-long -Wundef -Wall -W -Wpointer-arith -Wwrite-strings -ansi -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -Wcast-align -Wconversion -Wchar-subscripts -O2 -Wformat-security -Wmissing-format-attribute -fno-exceptions -fno-check-new -fno-common
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"ksquirrel-libs\" -DPACKAGE_TARNAME=\"ksquirrel-libs\" -DPACKAGE_VERSION=\"0.6.0\" -DPACKAGE_STRING=\"ksquirrel-libs\ 0.6.0\" -DPACKAGE_BUGREPORT=\"ksquirrel@tut.by\" -DPACKAGE=\"ksquirrel-libs\" -DVERSION=\"0.6.0\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DSTDC_HEADERS=1 -DHAVE_LIMITS_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRINGS_H=1 -DHAVE_STDIO_H=1 -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1 -DHAVE_STDLIB_H=1 -DHAVE_REALLOC=1 -DLSTAT_FOLLOWS_SLASHED_SYMLINK=1 -DHAVE_MEMSET=1 -DHAVE_MEMCPY=1 -DHAVE_SETJMP=1 -D_SYS_WAIT_H=1 -DHAVE_LIBJPEG=1 -DHAVE_JPEGLIB_H=1 -DHAVE_JCONFIG_H=1 -DHAVE_JERROR_H=1 -DHAVE_JMORECFG_H=1 -DHAVE_PNG_H=1 -DHAVE_X11_XWDFILE_H=1 -DHAVE_TIFFIO_H=1 -DHAVE_TIFF_H=1 
+DEFS = -DPACKAGE_NAME=\"ksquirrel-libs\" -DPACKAGE_TARNAME=\"ksquirrel-libs\" -DPACKAGE_VERSION=\"0.6.0-pre2\" -DPACKAGE_STRING=\"ksquirrel-libs\ 0.6.0-pre2\" -DPACKAGE_BUGREPORT=\"ksquirrel@tut.by\" -DPACKAGE=\"ksquirrel-libs\" -DVERSION=\"0.6.0-pre2\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DSTDC_HEADERS=1 -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1 -DHAVE_STDLIB_H=1 -DHAVE_REALLOC=1 -DLSTAT_FOLLOWS_SLASHED_SYMLINK=1 -DHAVE_LIBJPEG=1 -DHAVE_JPEGLIB_H=1 -DHAVE_JCONFIG_H=1 -DHAVE_JERROR_H=1 -DHAVE_JMORECFG_H=1 -DHAVE_NETINET_IN_H=1 -DHAVE_PNG_H=1 -DHAVE_X11_XWDFILE_H=1 -DHAVE_TIFFIO_H=1 -DHAVE_TIFF_H=1 
 DEPDIR = .deps
 ECHO = echo
 ECHO_C = 
@@ -130,16 +132,16 @@ LIBS = -ljpeg
 LIBTOOL = $(SHELL) $(top_builddir)/libtool --silent
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/missing --run makeinfo
 NOOPT_CFLAGS = -O0
 NOOPT_CXXFLAGS = -O0
 OBJEXT = o
 PACKAGE = ksquirrel-libs
 PACKAGE_BUGREPORT = ksquirrel@tut.by
 PACKAGE_NAME = ksquirrel-libs
-PACKAGE_STRING = ksquirrel-libs 0.6.0
+PACKAGE_STRING = ksquirrel-libs 0.6.0-pre2
 PACKAGE_TARNAME = ksquirrel-libs
-PACKAGE_VERSION = 0.6.0
+PACKAGE_VERSION = 0.6.0-pre2
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SET_MAKE = 
@@ -147,7 +149,7 @@ SHELL = /bin/sh
 STRIP = strip
 USE_EXCEPTIONS = -fexceptions
 USE_RTTI = 
-VERSION = 0.6.0
+VERSION = 0.6.0-pre2
 WOVERLOADED_VIRTUAL = 
 ac_ct_AR = ar
 ac_ct_CC = gcc
@@ -177,8 +179,8 @@ host_os = linux-gnu
 host_vendor = pc
 includedir = ${prefix}/include
 infodir = ${prefix}/info
-install_sh = /home/ckult/MyProjects/ksquirrel-libs/admin/install-sh
-libdir = /usr/lib/squirrel
+install_sh = /home/ckult/tmp/ksquirrel/ksquirrel-libs-0.6.0-pre2/admin/install-sh
+libdir = /usr/lib/ksquirrel-libs
 libexecdir = ${exec_prefix}/libexec
 localstatedir = ${prefix}/var
 mandir = ${prefix}/man
@@ -188,6 +190,7 @@ prefix = /usr/local
 program_transform_name = s,x,x,
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
+subdirs =  contrib/libwmf
 sysconfdir = ${prefix}/etc
 target = i686-pc-linux-gnu
 target_alias = 
@@ -645,7 +648,7 @@ dist-hook:
 .NOEXPORT:
 
 #>+ 2
-KDE_DIST=stamp-h.in Makefile.in ksquirrel-libs.spec aclocal.m4 Makefile.dist configure2 Makefile.am acinclude.m4 VERSION 
+KDE_DIST=stamp-h.in Makefile.in reconfigure ksquirrel-libs.spec configure.gnu aclocal.m4 Makefile.dist Makefile.am acinclude.m4 VERSION 
 
 #>+ 2
 docs-am:

@@ -3,7 +3,7 @@ How to install 'ksquirrel-libs' package:
    a) from sources
    # tar zxfv ksquirrel-libs-0.6.0.tar.gz
    # cd ksquirrel-libs-0.6.0/
-   # ./configure --libdir=/usr/lib/squirrel # remember, that /usr/lib/squirrel is a strictly defined path!
+   # ./configure.gnu
    # make
    # su -c 'make install'
    

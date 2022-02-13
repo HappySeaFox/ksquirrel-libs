@@ -1,0 +1,71 @@
+/*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
+
+    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation;
+    either version 2 of the License, or (at your option) any later
+    version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+
+    You should have received a copy of the GNU Library General Public License
+    as32 with this library; see the file COPYING.  If not, write to
+    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+    Boston, MA 02111-1307, USA.
+*/
+
+#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_XCUR_H
+#define KSQUIRREL_LIBS_CLASS_DEFINITION_XCUR_H
+
+#include "fmt_codec_base.h"
+
+class fmt_codec : public fmt_codec_base
+{
+    public:
+
+	fmt_codec();
+	~fmt_codec();
+
+	virtual std::string	fmt_version();
+	virtual std::string	fmt_quickinfo();
+	virtual std::string	fmt_filter();
+	virtual std::string	fmt_mime();
+	virtual std::string	fmt_pixmap();
+
+	virtual s32	fmt_init(std::string file);
+	virtual s32	fmt_next();
+	virtual s32	fmt_next_pass();
+	virtual s32	fmt_read_scanline(RGBA *scan);
+	virtual s32	fmt_readimage(std::string file, RGBA **image, std::string &dump);
+	virtual void	fmt_close();
+
+	virtual bool	fmt_writable() const;
+	virtual void	fmt_getwriteoptions(fmt_writeoptionsabs *);
+	virtual s32	fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt);
+
+    private:
+	s32 currentToc;
+	bool lastToc;
+
+	XCUR_HEADER xcur_h;
+	XCUR_CHUNK_DESC *tocs;
+	XCUR_CHUNK_HEADER xcur_chunk;
+	XCUR_CHUNK_IMAGE xcur_im;
+};
+
+extern "C" fmt_codec_base* fmt_codec_create()
+{
+    return (new fmt_codec);
+}
+
+extern "C" void fmt_codec_destroy(fmt_codec_base *p)
+{
+    delete p;
+}
+
+#endif

@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_xwd.la
-libSQ_read_xwd_la_SOURCES = read_xwd.cpp read_xwd.h
+lib_LTLIBRARIES = libSQ_codec_xwd.la
 
-EXTRA_DIST = read_xwd.cpp read_xwd.h
+libSQ_codec_xwd_la_SOURCES = fmt_codec_xwd.cpp fmt_codec_xwd_defs.h
 
-libSQ_read_xwd_la_LDFLAGS = -release 0.3.3
+libSQ_codec_xwd_la_LDFLAGS = -release 0.4.3
 
 LIBS =

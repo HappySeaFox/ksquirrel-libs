@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_sgi.la
-libSQ_read_sgi_la_SOURCES = read_sgi.cpp read_sgi.h
+lib_LTLIBRARIES = libSQ_codec_sgi.la
 
-EXTRA_DIST = read_sgi.cpp read_sgi.h
+libSQ_codec_sgi_la_SOURCES = fmt_codec_sgi.cpp fmt_codec_sgi_defs.h
 
-libSQ_read_sgi_la_LDFLAGS = -release 0.8.3
+libSQ_codec_sgi_la_LDFLAGS = -release 0.9.4
 
 LIBS = 

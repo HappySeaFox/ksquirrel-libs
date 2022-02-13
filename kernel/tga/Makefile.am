@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_tga.la
-libSQ_read_tga_la_SOURCES = read_tga.cpp read_tga.h
+lib_LTLIBRARIES = libSQ_codec_tga.la
 
-EXTRA_DIST = read_tga.cpp read_tga.h
+libSQ_codec_tga_la_SOURCES = fmt_codec_tga.cpp fmt_codec_tga_defs.h
 
-libSQ_read_tga_la_LDFLAGS = -release 0.6.1
+libSQ_codec_tga_la_LDFLAGS = -release 0.7.1
 
 LIBS = 

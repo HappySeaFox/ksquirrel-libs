@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_bmp.la
-libSQ_read_bmp_la_SOURCES = read_bmp.cpp read_bmp.h
+lib_LTLIBRARIES = libSQ_codec_bmp.la
 
-EXTRA_DIST = read_bmp.cpp read_bmp.h
+libSQ_codec_bmp_la_SOURCES = fmt_codec_bmp.cpp fmt_codec_bmp_defs.h
 
-libSQ_read_bmp_la_LDFLAGS = -release 1.0.2
+libSQ_codec_bmp_la_LDFLAGS = -release 1.1.2
 
 LIBS = 

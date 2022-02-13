@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_tiff.la
-libSQ_read_tiff_la_SOURCES = read_tiff.cpp read_tiff.h
+lib_LTLIBRARIES = libSQ_codec_tiff.la
 
-EXTRA_DIST = read_tiff.cpp read_tiff.h
+libSQ_codec_tiff_la_SOURCES = fmt_codec_tiff.cpp fmt_codec_tiff_defs.h
 
-libSQ_read_tiff_la_LDFLAGS = -release 0.9.1
+libSQ_codec_tiff_la_LDFLAGS = -release 1.0.1
 
 LIBS = -ltiff

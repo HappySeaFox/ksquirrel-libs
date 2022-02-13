@@ -1,21 +1,27 @@
 Important
 ---------
-
-if you you want JPEG, PNG and TIFF support,
-please install libpng, libjpeg and libtiff. You should also install devel packages.
-XWD library requires X11/XWDFile.h.
+* if you you want JPEG, PNG, and TIFF support,
+  please install libpng, libjpeg, and libtiff. You should also install devel packages.
+* XWD library requires X11/XWDFile.h.
+* WMF library requires freetype2 and freetype2-devel
 
 About
 -----
-
 * ksquirrel-libs is a set of image decoders.
 * It contains regular libraries for KSquirrel.
-* It contains different image decoders for JPEG, PNG, BMP, TIFF etc.
+* It contains different image decoders for JPEG, PNG, BMP, TIFF, PSD, GIF etc.
   You can use ksquirrel-libs in other projects, just write your
-  own mechanism that could use libraries.
+  own mechanism that could use the libraries.
 * You can find latest version of ksquirrel-libs at http://ksquirrel.sf.net.
+* You can find some interesting examples in "examples" directory
+        qgl   - using ksquirrel-libs with QT and OpenGL (QGLWidget)
+        qtapp - using ksquirrel-libs with QT            (QLabel)
+
+	To compile them cd to "examples" and run make
+
+* You can simply use it in your viewer or any other program
+* rawrgb library is a good example how to write new codec
 
 Version
 -------
-
-Current version: 0.5.0-pre4
+Current version: 0.6.0-pre2

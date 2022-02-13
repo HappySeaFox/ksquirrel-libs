@@ -1,43 +1,44 @@
 #!/bin/sh
 
+if [ "x$1" = "x" ]; then echo "Need argument" && exit 0 ; fi
+
 name=$1
 mkdir $name
 cd $name
 
 create_build()
 {
-cat << EOF > compile-c
-#!/bin/sh
-
-rm -f libSQ_read_$1.so
-gcc -Wall -Werror -O2 -D__USE_GNU -fPIC -c read_$1.c
-gcc -Wall -Werror -O2 -shared read_$1.o -o libSQ_read_$1.so
-rm -f read_$1.o
-EOF
-
 cat << EOF > compile-c++
 #!/bin/sh
 
 rm -f libSQ_read_$1.so
-g++ -Wall -Werror -O2 -fPIC -c read_$1.cpp
-g++ -Wall -Werror -O2 -shared read_$1.o -o libSQ_read_$1.so
-rm -f read_$1.o
+
+g++ -Wall -Werror -O2 -fPIC -c fmt_codec_$1.cpp
+
+g++ -Wall -Werror -O2 -shared fmt_codec_$1.o -o libSQ_read_$1.so
+
+rm -f fmt_codec_$1.o
+
 EOF
 
-chmod +x compile-c compile-c++
+chmod +x compile-c++
 } # function
 
 cat << EOF > Makefile.am
-INCLUDES = -I.. -I.
-lib_LTLIBRARIES = libSQ_read_$name.la
-libSQ_read_${name}_la_SOURCES = read_$name.cpp read_$name.h
-libSQ_read_${name}_la_LIBDADD = 
-EXTRA_DIST = read_$name.cpp read_$name.h
-libSQ_read_${name}_la_LDFLAGS = -release 1.0.0
+INCLUDES = -I.. -I../include
+
+lib_LTLIBRARIES = libSQ_codec_${name}.la
+
+libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h
+
+libSQ_codec_${name}_la_LIBDADD = 
+
+libSQ_codec_${name}_la_LDFLAGS = -release 0.1.0
+
 LIBS = 
 EOF
 
-cat << EOF > read_$name.h
+cat << EOF > fmt_codec_${name}.h
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
     Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
@@ -59,35 +60,84 @@ cat << EOF > read_$name.h
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_READ_IMAGE_$name
-#define KSQUIRREL_READ_IMAGE_$name
+#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_${name}_H
+#define KSQUIRREL_LIBS_CLASS_DEFINITION_${name}_H
 
-#include "defs.h"
-#include "err.h"
-#include "fio.h"
+#include "fmt_codec_base.h"
 
-extern "C" {
+class fmt_codec : public fmt_codec_base
+{
+    public:
 
-const char*	fmt_version();
-const char*	fmt_quickinfo();
-const char*	fmt_filter();
-const char*	fmt_mime();
-const char*	fmt_pixmap();
+        fmt_codec();
+        ~fmt_codec();
 
-int 	fmt_init(fmt_info *finfo, const char *file);
-int	fmt_read_scanline(fmt_info *finfo, RGBA *scan);
-int	fmt_readimage(const char*, RGBA **scan, char *dump);
-void	fmt_close();
+        virtual std::string     fmt_version();
+        virtual std::string     fmt_quickinfo();
+        virtual std::string     fmt_filter();
+        virtual std::string     fmt_mime();
+        virtual std::string     fmt_pixmap();
 
-int    fmt_next(fmt_info *finfo);
-int    fmt_next_pass(fmt_info *finfo);
+        virtual s32     fmt_init(std::string file);
+        virtual s32     fmt_next();
+        virtual s32     fmt_next_pass();
+        virtual s32     fmt_read_scanline(RGBA *scan);
+        virtual s32     fmt_readimage(std::string file, RGBA **image, std::string &dump);
+        virtual void    fmt_close();
 
+        virtual bool    fmt_writable() const;
+        virtual void    fmt_getwriteoptions(fmt_writeoptionsabs *);
+        virtual s32     fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt);
+
+    private:
+	// define variables you need here
+};
+
+extern "C" fmt_codec_base* fmt_codec_create()
+{
+    return (new fmt_codec);
 }
+
+extern "C" void fmt_codec_destroy(fmt_codec_base *p)
+{
+    delete p;
+}
+
+#endif
+
+EOF
+
+cat << EOF > fmt_codec_${name}_defs.h
+/*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
+
+    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation;
+    either version 2 of the License, or (at your option) any later
+    version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+
+    You should have received a copy of the GNU Library General Public License
+    along with this library; see the file COPYING.  If not, write to
+    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+    Boston, MA 02111-1307, USA.
+*/
+
+#ifndef KSQUIRREL_READ_IMAGE_${name}
+#define KSQUIRREL_READ_IMAGE_${name}
+
+// define constants here
 
 #endif
 EOF
 
-cat << EOF > read_$name.cpp
+cat << EOF > fmt_codec_${name}.cpp
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
     Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
@@ -109,183 +159,208 @@ cat << EOF > read_$name.cpp
     Boston, MA 02111-1307, USA.
 */
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <setjmp.h>
+#include <csetjmp>
+#include <sstream>
+#include <iostream>
 
-#include "read_$name.h"
+#include "fmt_types.h"
+#include "fmt_codec_${name}_defs.h"
+#include "fmt_codec_${name}.h"
 
-FILE *fptr;
-int bytes, currentImage;
+#include "error.h"
 
-const char* fmt_version()
+// uncomment, if you need fmt_utils
+//#define SQ_HAVE_FMT_UTILS
+//#include "fmt_utils.h"
+
+fmt_codec::fmt_codec() : fmt_codec_base()
+{}
+
+fmt_codec::~fmt_codec()
+{}
+
+std::string fmt_codec::fmt_version()
 {
-    return (const char*)"0.1";
+    return std::string("0.1.0");
 }
 
-const char* fmt_quickinfo()
+std::string fmt_codec::fmt_quickinfo()
 {
-    return (const char*)"";
+    return std::string("");
 }
 
-const char* fmt_filter()
+std::string fmt_codec::fmt_filter()
 {
-    return (const char*)"*.$name ";
+    return std::string("*. ");
 }
 
-const char* fmt_mime()
+std::string fmt_codec::fmt_mime()
 {
-/*  QRegExp pattern  */
-    return (const char*)"";
+    return std::string();
 }
 
-const char* fmt_pixmap()
+std::string fmt_codec::fmt_pixmap()
 {
-    return (const char*)"";
+    return std::string("");
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+s32 fmt_codec::fmt_init(std::string file)
 {
-    if(!finfo)
-        return SQERR_NOMEMORY;
-	
-    fptr = fopen(file, "rb");
+    frs.open(file.c_str(), ios::binary | ios::in);
 
-    if(!fptr)
+    if(!frs.good())
         return SQERR_NOFILE;
-	
+
     currentImage = -1;
+
+    finfo.animated = false;
+    finfo.images = 0;
 
     return SQERR_OK;
 }
 
-int fmt_next(fmt_info *finfo)
+s32 fmt_codec::fmt_next()
 {
     currentImage++;
 
-    if(!finfo)
-        return SQERR_NOMEMORY;
+    if(currentImage)
+        return SQERR_NOTOK;
 
-    if(!finfo->image)
-	return SQERR_NOMEMORY;
-
-    memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
-
-    /* You can setup number of passes here, or later */
-    finfo->image[currentImage].passes = 1;
-
-    /* Move to the next image here */
+    finfo.image.push_back(fmt_image());
 
 
-    /* Compute total bytes needed for the image */
-    bytes = finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA);
-    
-    /* Determine image type (RGB, RGBA, YUV, etc.) */
-    char type[25];
-    strcpy(type, "RGB"); /* Usually image is in RGB format */
-    
-    finfo->images++;
 
-    /* Write dump */
-    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump)-1,
 
-	"%s\n%dx%d\n%d\n%s\n?COMPRESSION?\n%d\n",
+    s32 bytes = finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA);
 
-	fmt_quickinfo(),
-	finfo->image[currentImage].w,
-	finfo->image[currentImage].h,
-	finfo->image[currentImage].bpp,
-	type,
-	bytes);
+    finfo.images++;
+
+    stringstream s;
+
+    s   << fmt_quickinfo() << "\n"
+        << finfo.image[currentImage].w << "x"
+        << finfo.image[currentImage].h << "\n"
+        << finfo.image[currentImage].bpp << "\n"
+        << "??" << "\n" // color model (RGB/RGBA/YUV/Color indexed ...)
+        << "??" << "\n"       // compression (RLE/-/JPEG ...)
+        << bytes;
+
+    finfo.image[currentImage].dump = s.str();
 
     return SQERR_OK;
 }
 
-int fmt_next_pass(fmt_info *)
+s32 fmt_codec::fmt_next_pass()
 {
     return SQERR_OK;
 }
 
-int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
+s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
-    memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
+    RGB rgb;
+    RGBA rgba;
+
+    memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
+
 
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char *dump)
+s32 fmt_codec::fmt_readimage(std::string file, RGBA **image, std::string &dump)
 {
-    FILE 	*m_fptr;
-    int 	w, h, bpp;
-    jmp_buf	jmp;
+    s32                 w, h, bpp;
+    s32                 m_bytes;
+    jmp_buf             jmp;
+    ifstreamK           m_frs;
 
-    m_fptr = fopen(file, "rb");
-				        
-    if(!m_fptr)
+    m_frs.open(file.c_str(), ios::binary | ios::in);
+
+    if(!m_frs.good())
         return SQERR_NOFILE;
 
     if(setjmp(jmp))
     {
-	fclose(m_fptr);
-	return SQERR_BADFILE;
+        m_frs.close();
+        return SQERR_BADFILE;
     }
 
-    /* Do something like fmt_next() here */
-    /* ... */
+/*
+    w = 
+    h = 
+    bpp = 
+*/
+    m_bytes = w * h * sizeof(RGBA);
 
-    w = width;
-    h = height;
-    bpp = bpp;
+    stringstream s;
 
-    int m_bytes = w * h * sizeof(RGBA);
+    s   << fmt_quickinfo() << "\n"
+        << w << "\n"
+        << h << "\n"
+        << bpp << "\n"
+        << "??" << "\n"
+        << "??" << "\n"
+        << 1 << "\n"
+        << m_bytes;
 
-    /*
-	Dump has the following format: "%QUICK_INFO\n%WIDTH\n%HEIGHT\n
-        %BPP\n%COLOR_TYPE\n%COMPRESSION\n%NUMBER_OF_IMAGES\n%TOTAL_BYTES_NEEDED"
-    */
-    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
-	fmt_quickinfo(),
-	w,
-	h,
-	bpp,
-	"RGB",
-	1,
-	m_bytes);
+    dump = s.str();
 
     *image = (RGBA*)realloc(*image, m_bytes);
-						
+
     if(!*image)
     {
-        fprintf(stderr, "libSQ_read_$name: Image is null!\n");
-	longjmp(jmp, 1);
+        longjmp(jmp, 1);
     }
 
     memset(*image, 255, m_bytes);
 
     /*  reading ... */
-    
-    for(int h2 = 0;h2 < h;h2++)
+
+    for(s32 h2 = 0;h2 < h;h2++)
     {
-	RGBA 	*scan = *image + h2 * w;
+        RGBA    *scan = *image + h2 * w;
+
 
     }
-    
-    /* Do something like fmt_close() here */
-    fclose(m_fptr);
 
-    /* Everything OK */
+    m_frs.close();
+
     return SQERR_OK;
 }
 
-void fmt_close()
+void fmt_codec::fmt_close()
 {
-    fclose(fptr);
+    frs.close();
+
+    finfo.meta.clear();
+    finfo.image.clear();
 }
+
+void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+{
+    opt->interlaced = false;
+    opt->compression_scheme = CompressionNo;
+    opt->compression_min = 0;
+    opt->compression_max = 0;
+    opt->compression_def = 0;
+    opt->color_space = SpaceInternal;
+}
+
+s32 fmt_codec::fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt)
+{
+    return SQERR_OK;
+}
+
+bool fmt_codec::fmt_writable() const
+{
+    return false;
+}
+
 EOF
 
 if [ "$2" = "-build" ]; then create_build $name; else echo; fi
 
 echo
 echo "All done!"
+echo
+echo "Don't forget to insert your copyrights"
 echo

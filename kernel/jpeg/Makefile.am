@@ -1,10 +1,9 @@
-INCLUDES = -I..
+INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_read_jpeg.la
-libSQ_read_jpeg_la_SOURCES = read_jpeg.cpp read_jpeg.h
+lib_LTLIBRARIES = libSQ_codec_jpeg.la
 
-EXTRA_DIST = read_jpeg.cpp read_jpeg.h
+libSQ_codec_jpeg_la_SOURCES = fmt_codec_jpeg.cpp fmt_codec_jpeg_defs.h
 
-libSQ_read_jpeg_la_LDFLAGS = -release 1.2.3
+libSQ_codec_jpeg_la_LDFLAGS = -release 1.3.3
 
 LIBS = -ljpeg
