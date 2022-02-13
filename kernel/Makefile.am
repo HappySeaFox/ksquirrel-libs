@@ -58,9 +58,41 @@ if SQ_HAVE_DXF
 SUBDIRS += kls_dxf
 endif
 
+if SQ_HAVE_NEO
+SUBDIRS += kls_neo
+endif
+
+if SQ_HAVE_LEAF
+SUBDIRS += kls_leaf
+endif
+
+if SQ_HAVE_PI1
+SUBDIRS += kls_pi1
+endif
+
+if SQ_HAVE_XIM
+SUBDIRS += kls_xim
+endif
+
+if SQ_HAVE_UTAH
+SUBDIRS += kls_utah
+endif
+
+if SQ_HAVE_PICT
+SUBDIRS += kls_pict
+endif
+
+if SQ_HAVE_MAC
+SUBDIRS += kls_mac
+endif
+
+if SQ_HAVE_IFF
+SUBDIRS += kls_iff
+endif
+
 # unstable/buggy codecs - for developers only
 if SQ_DEVEL
-SUBDIRS += kls_mac kls_msp kls_iff kls_utah
+SUBDIRS += kls_msp
 endif
 
 # install headers

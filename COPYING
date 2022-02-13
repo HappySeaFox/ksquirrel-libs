@@ -16,3 +16,4 @@
 * OPENEXR library dynamically links against OpenEXR libraries
 * JPEG2000 library dynamically links against jasper
 * SVG library dynamically links against libsvg
+* LBM library statically uses lbm2ppm.c source code by (C) Laurent Clevy

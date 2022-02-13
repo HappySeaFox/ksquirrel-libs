@@ -19,7 +19,7 @@ MyQT::~MyQT()
 
 QPixmap MyQT::loadImage()
 {
-	QLibrary lib("/usr/lib/ksquirrel-libs/libSQ_codec_bmp.so");
+	QLibrary lib("/usr/lib/ksquirrel-libs/libkls_bmp.so");
 	lib.load();
 
 	if(!lib.isLoaded())

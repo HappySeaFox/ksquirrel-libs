@@ -1,0 +1,3 @@
+#!/bin/sh
+
+@UTAHTOPNM@ $1 > $2

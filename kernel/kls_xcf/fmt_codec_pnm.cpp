@@ -21,8 +21,13 @@
 
 #include <iostream>
 
-#if defined CODEC_DJVU || defined CODEC_CAMERA || defined CODEC_DXF || defined CODEC_XCF
 // we will use fork()
+#if defined CODEC_DJVU  \
+        || defined CODEC_CAMERA \
+        || defined CODEC_DXF    \
+        || defined CODEC_XCF    \
+        || defined CODEC_LBM    \
+        || defined CODEC_NETPBM
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -45,6 +50,26 @@
 #include "../xpm/codec_xcf.xpm"
 #elif defined CODEC_DXF
 #include "../xpm/codec_dxf.xpm"
+#elif defined CODEC_LBM
+#include "../xpm/codec_lbm.xpm"
+#elif defined CODEC_NEO
+#include "../xpm/codec_neo.xpm"
+#elif defined CODEC_FITS
+#include "../xpm/codec_fits.xpm"
+#elif defined CODEC_LEAF
+#include "../xpm/codec_leaf.xpm"
+#elif defined CODEC_PI1
+#include "../xpm/codec_pi1.xpm"
+#elif defined CODEC_XIM
+#include "../xpm/codec_xim.xpm"
+#elif defined CODEC_UTAH
+#include "../xpm/codec_utah.xpm"
+#elif defined CODEC_PICT
+#include "../xpm/codec_pict.xpm"
+#elif defined CODEC_IFF
+#include "../xpm/codec_iff.xpm"
+#elif defined CODEC_MAC
+#include "../xpm/codec_mac.xpm"
 #else
 #include "../xpm/codec_pnm.xpm"
 #endif
@@ -118,6 +143,126 @@ void fmt_codec::options(codec_options *o)
     o->config = std::string(XCF_UI);
     o->mime = "";
     o->pixmap = codec_xcf;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_LBM
+    o->version = "1.0.0";
+    o->name = "PC Deluxe Paint II LBM";
+    o->filter = "*.lbm ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_lbm;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_NEO
+    o->version = "1.0.0";
+    o->name = "Neochrome NEO";
+    o->filter = "*.neo ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_neo;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_FITS
+    o->version = "1.0.0";
+    o->name = "FITS";
+    o->filter = "*.fits ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_fits;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_LEAF
+    o->version = "1.0.0";
+    o->name = "ILEAF Image";
+    o->filter = "*.leaf ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_leaf;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_PI1
+    o->version = "1.0.0";
+    o->name = "Degas PI1";
+    o->filter = "*.pi1 ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_pi1;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_XIM
+    o->version = "1.0.0";
+    o->name = "X IMage";
+    o->filter = "*.xim ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_xim;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_UTAH
+    o->version = "1.0.0";
+    o->name = "UTAH RLE";
+    o->filter = "*.rle ";
+    o->config = "";
+    o->mime = "\x0052\x00CC";
+    o->pixmap = codec_utah;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_PICT
+    o->version = "1.0.0";
+    o->name = "Macintosh PICT";
+    o->filter = "*.pict ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_pict;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_IFF
+    o->version = "1.0.0";
+    o->name = "Interchange File Format";
+    o->filter = "*.iff *.ilbm *.lbm ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_iff;
+    o->readable = true;
+    o->canbemultiple = false;
+    o->writestatic = false;
+    o->writeanimated = false;
+    o->needtempfile = true;
+#elif defined CODEC_MAC
+    o->version = "1.0.0";
+    o->name = "Macintosh Paint";
+    o->filter = "*.mac ";
+    o->config = "";
+    o->mime = "";
+    o->pixmap = codec_mac;
     o->readable = true;
     o->canbemultiple = false;
     o->writestatic = false;
@@ -459,7 +604,7 @@ s32 fmt_codec::read_init(const std::string &file)
     if(ipage < 0 || ipage > 1000)
         ipage = 1;
 
-    s32 status;
+    int status;
 
     s8 subsample[20];
     s8 pagesp[20];
@@ -599,6 +744,27 @@ s32 fmt_codec::read_init(const std::string &file)
     }
 
     ::wait(&status); // TODO check for errors
+
+    if(WIFEXITED(status))
+        if(WEXITSTATUS(status))
+            return SQE_R_BADFILE;
+        else;
+    else
+        return SQE_R_BADFILE;
+
+    fptr = fopen(tmp.c_str(), "rb");
+
+#elif defined CODEC_NETPBM
+
+    int status;
+
+    if(!fork())
+    {
+        execlp(NETPBM_S, NETPBM_S, file.c_str(), tmp.c_str(), (char *)0);
+        exit(1);
+    }
+
+    ::wait(&status);
 
     if(WIFEXITED(status))
         if(WEXITSTATUS(status))

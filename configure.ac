@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.7.0-pre1], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.7.0-pre2], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.0-pre1)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.0-pre2)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -216,7 +216,7 @@ missing_prog()
     echo " $2 program was not found."
     echo " $1 codec will be disabled."
     echo " To add support of $1 codec please install"
-    echo " $2 binary program."
+    echo " $2 binary program or package."
     echo "*****************************************************"
     echo
 }
@@ -247,7 +247,7 @@ AC_CHECK_HEADERS([tiff.h], [
 
 # MNG
 
-if test $sq_codec_svg = yes; then
+if test $sq_codec_mng = yes; then
 AC_CHECK_HEADERS([libmng.h], [
 		    AC_CHECK_LIB([mng], [mng_get_totallayers], [sq_have_mng="yes"], [sq_have_mng="no" missing MNG libmng])
 		    ],
@@ -289,7 +289,7 @@ PKG_CHECK_MODULES([libpixman], libpixman,
                                             AC_CHECK_LIB([svg-cairo], [svg_cairo_create],
                                             [
                                                 sq_have_svg="yes"
-                                                SQ_SVG_CFLAGS="$libpixman_CFLAGS $libsvg_CFLAGS $cairo_CFLAGS ${libsvg_cairo_CFLAGS}"
+                                                SQ_SVG_CFLAGS="$libpixman_CFLAGS $libsvg_CFLAGS $cairo_CFLAGS $libsvg_cairo_CFLAGS"
                                                 SQ_SVG_LDFLAGS="$libpixman_LIBS $libsvg_LIBS $cairo_LIBS $libsvg_cairo_LIBS"
                                                 AC_SUBST(SQ_SVG_CFLAGS)
                                                 AC_SUBST(SQ_SVG_LDFLAGS)
@@ -427,16 +427,17 @@ if [ test -n "$FREETYPE_CONFIG" ]; then
         CPPFLAGS="$freetype_cflags $CPPFLAGS"
         LDFLAGS="$LDFLAGS $freetype_libs"
 
-        AC_CHECK_HEADER(ft2build.h, [
+        AC_CHECK_HEADER([ft2build.h], [
             AC_CHECK_HEADER([freetype/ftbitmap.h], [
-                AC_CHECK_LIB(freetype, FTC_ImageCache_New, [
+                AC_CHECK_LIB([freetype], [FTC_ImageCache], [
+                    AC_CHECK_LIB([freetype], [FT_Bitmap_New], [
+                        SQ_FT_LDFLAGS="$freetype_libs"
+                        SQ_FT_CFLAGS="$freetype_cflags"
+                            sq_have_ttf="yes"
+                        AC_SUBST(SQ_FT_CFLAGS)
+                        AC_SUBST(SQ_FT_LDFLAGS)
 
-                    SQ_FT_LDFLAGS="$freetype_libs"
-                    SQ_FT_CFLAGS="$freetype_cflags"
-                    sq_have_ttf="yes"
-                    AC_SUBST(SQ_FT_CFLAGS)
-                    AC_SUBST(SQ_FT_LDFLAGS)
-
+                    ],[ sq_have_ttf="no" missing TTF freetype])
                 ],[ sq_have_ttf="no" missing TTF freetype])
             ],[ sq_have_ttf="no" missing TTF freetype])
         ],[ sq_have_ttf="no" missing TTF freetype])
@@ -473,12 +474,94 @@ fi
 
 AC_CHECK_HEADERS([X11/XWDFile.h], [sq_have_xwd="yes"], [sq_have_xwd="no" missing XWD])
 
+###############  NetPBM binaries  ###############
+
+AC_MSG_CHECKING([netpbm binary programs])
+$ECHO
+
+sq_codec_neo="yes"
+sq_have_neo="no"
+if test $sq_codec_neo = yes; then
+    AC_PATH_PROG(NEOTOPPM, neotoppm)
+    if [ test -n "$NEOTOPPM" ]; then sq_have_neo="yes" AC_SUBST(NEOTOPPM)
+    else missing_prog NEO netpbm
+    fi
+fi
+
+sq_codec_leaf="yes"
+sq_have_leaf="no"
+if test $sq_codec_leaf = yes; then
+    AC_PATH_PROG(LEAFTOPPM, leaftoppm)
+    if [ test -n "$LEAFTOPPM" ]; then sq_have_leaf="yes" AC_SUBST(LEAFTOPPM)
+    else missing_prog LEAF netpbm
+    fi
+fi
+
+sq_codec_pi1="yes"
+sq_have_pi1="no"
+if test $sq_codec_pi1 = yes; then
+    AC_PATH_PROG(PI1TOPPM, pi1toppm)
+    if [ test -n "$PI1TOPPM" ]; then sq_have_pi1="yes" AC_SUBST(PI1TOPPM)
+    else missing_prog PI1 netpbm
+    fi
+fi
+
+sq_codec_xim="yes"
+sq_have_xim="no"
+if test $sq_codec_xim = yes; then
+    AC_PATH_PROG(XIMTOPPM, ximtoppm)
+    if [ test -n "$XIMTOPPM" ]; then sq_have_xim="yes" AC_SUBST(XIMTOPPM)
+    else missing_prog XIM netpbm
+    fi
+fi
+
+sq_codec_utah="yes"
+sq_have_utah="no"
+if test $sq_codec_utah = yes; then
+    AC_PATH_PROG(UTAHTOPNM, rletopnm)
+    if [ test -n "$UTAHTOPNM" ]; then sq_have_utah="yes" AC_SUBST(UTAHTOPNM)
+    else missing_prog UTAH netpbm
+    fi
+fi
+
+sq_codec_pict="yes"
+sq_have_pict="no"
+if test $sq_codec_pict = yes; then
+    AC_PATH_PROG(PICTTOPPM, picttoppm)
+    if [ test -n "$PICTTOPPM" ]; then sq_have_pict="yes" AC_SUBST(PICTTOPPM)
+    else missing_prog PICT netpbm
+    fi
+fi
+
+sq_codec_mac="yes"
+sq_have_mac="no"
+if test $sq_codec_mac = yes; then
+    AC_PATH_PROG(MACTOPBM, macptopbm)
+    if [ test -n "$MACTOPBM" ]; then sq_have_mac="yes" AC_SUBST(MACTOPBM)
+    else missing_prog MAC netpbm
+    fi
+fi
+
+sq_codec_iff="yes"
+sq_have_iff="no"
+if test $sq_codec_iff = yes; then
+    AC_PATH_PROG(ILBMTOPPM, ilbmtoppm)
+    if [ test -n "$ILBMTOPPM" ]; then sq_have_iff="yes" AC_SUBST(ILBMTOPPM)
+    else missing_prog IFF netpbm
+    fi
+fi
+
+#################################################
+
+
 SQ_LOCAL_RPATH="-L../ksquirrel-libs -lksquirrel-libs"
 AC_SUBST(SQ_LOCAL_RPATH)
 SQ_RELEASE="-version-info 7:0:7"
 AC_SUBST(SQ_RELEASE)
 
 ################### for xcf codec ##############
+
+AC_C_INLINE
 
 if test $sq_codec_xcf = yes; then
 
@@ -489,7 +572,6 @@ case $GCC::$CFLAGS in *-g* | *omit-frame-pointer* ) ;;
                       yes::*) CFLAGS="$CFLAGS -fomit-frame-pointer" ;;
 esac
 
-AC_C_INLINE
 AC_C_BIGENDIAN
 
 case $host_cpu in i?86 | x86_64 | powerpc)
@@ -528,8 +610,6 @@ kernel/kls_ico/Makefile
 kernel/kls_xcur/Makefile
 kernel/kls_psd/Makefile
 kernel/kls_fli/Makefile
-kernel/kls_iff/Makefile
-kernel/kls_utah/Makefile
 kernel/kls_cut/Makefile
 kernel/kls_rawrgb/Makefile
 kernel/kls_wbmp/Makefile
@@ -545,7 +625,6 @@ kernel/kls_lif/Makefile
 kernel/kls_mtv/Makefile
 kernel/kls_avs/Makefile
 kernel/kls_msp/Makefile
-kernel/kls_mac/Makefile
 kernel/kls_svg/Makefile
 kernel/kls_wmf/Makefile
 kernel/kls_png/Makefile
@@ -563,9 +642,26 @@ kernel/kls_djvu/Makefile
 kernel/kls_dxf/Makefile
 kernel/kls_xcf/Makefile
 kernel/kls_xcf/xcf2pnm/Makefile
+kernel/kls_mac/ksquirrel-libs-mac2ppm
+kernel/kls_mac/Makefile
+kernel/kls_iff/ksquirrel-libs-iff2ppm
+kernel/kls_iff/Makefile
+kernel/kls_neo/ksquirrel-libs-neo2ppm
+kernel/kls_neo/Makefile
+kernel/kls_pi1/ksquirrel-libs-pi12ppm
+kernel/kls_pi1/Makefile
+kernel/kls_xim/ksquirrel-libs-xim2ppm
+kernel/kls_xim/Makefile
+kernel/kls_leaf/ksquirrel-libs-leaf2ppm
+kernel/kls_leaf/Makefile
+kernel/kls_utah/ksquirrel-libs-utah2pnm
+kernel/kls_utah/Makefile
+kernel/kls_pict/ksquirrel-libs-pict2ppm
+kernel/kls_pict/Makefile
 kernel/ksquirrel-libs/Makefile
 ksquirrellibs.pc
 ])
+
 
 AM_CONDITIONAL(SQ_DEVEL,        [ test $sq_dev            = yes ])
 
@@ -588,6 +684,16 @@ AM_CONDITIONAL(SQ_HAVE_DJVU,    [ test $sq_codec_djvu     = yes -a $sq_have_djvu
 AM_CONDITIONAL(SQ_HAVE_DXF,     [ test $sq_codec_dxf      = yes -a $sq_have_dxf       = yes ])
 AM_CONDITIONAL(SQ_HAVE_XCF,     [ test $sq_codec_xcf      = yes ])
 
+# NetPBM
+AM_CONDITIONAL(SQ_HAVE_NEO,     [ test $sq_have_neo      = yes ])
+AM_CONDITIONAL(SQ_HAVE_XIM,     [ test $sq_have_xim      = yes ])
+AM_CONDITIONAL(SQ_HAVE_PI1,     [ test $sq_have_pi1      = yes ])
+AM_CONDITIONAL(SQ_HAVE_UTAH,    [ test $sq_have_utah     = yes ])
+AM_CONDITIONAL(SQ_HAVE_LEAF,    [ test $sq_have_leaf     = yes ])
+AM_CONDITIONAL(SQ_HAVE_PICT,    [ test $sq_have_pict     = yes ])
+AM_CONDITIONAL(SQ_HAVE_MAC,     [ test $sq_have_mac      = yes ])
+AM_CONDITIONAL(SQ_HAVE_IFF,     [ test $sq_have_iff      = yes ])
+
 AC_OUTPUT
 
 echo "
@@ -609,7 +715,7 @@ Libraries:
 sq_enabled=""
 sq_disabled=""
 sq_manual=""
-sq_total="30"
+sq_total="27"
 sq_devel=""
 sq_devel_message=""
 
@@ -628,7 +734,17 @@ if test $sq_have_gif = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=
 if test $sq_have_djvu = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled djvu `;   else sq_disabled=`echo -n $sq_disabled djvu `;   fi
 if test $sq_have_dxf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled dxf `;    else sq_disabled=`echo -n $sq_disabled dxf `;    fi
 if test $sq_codec_xcf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xcf `;    else sq_disabled=`echo -n $sq_disabled xcf `;    fi
-if test $sq_dev = yes;         then sq_total=`expr $sq_total + 4`; else sq_devel="mac msp iff utah" && sq_devel_message="(use --enable-devel to enable these codecs)"; fi
+
+if test $sq_have_neo = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled neo `;    else sq_disabled=`echo -n $sq_disabled neo `;    fi
+if test $sq_have_pi1 = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pi1 `;    else sq_disabled=`echo -n $sq_disabled pi1 `;    fi
+if test $sq_have_utah = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled utah `;    else sq_disabled=`echo -n $sq_disabled utah `;    fi
+if test $sq_have_xim = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xim `;    else sq_disabled=`echo -n $sq_disabled xim `;    fi
+if test $sq_have_leaf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled leaf `;    else sq_disabled=`echo -n $sq_disabled leaf `;    fi
+if test $sq_have_pict = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled pict `;    else sq_disabled=`echo -n $sq_disabled pict `;    fi
+if test $sq_have_iff = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled iff `;    else sq_disabled=`echo -n $sq_disabled iff `;    fi
+if test $sq_have_mac = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled mac `;    else sq_disabled=`echo -n $sq_disabled mac `;    fi
+
+if test $sq_dev = yes;         then sq_total=`expr $sq_total + 1`; else sq_devel="msp" && sq_devel_message="(use --enable-devel to enable these codecs)"; fi
 
 if test $sq_codec_camera = no;    then sq_manual=`echo -n $sq_manual camera`;   fi
 if test $sq_codec_gif = no;       then sq_manual=`echo -n $sq_manual gif`;      fi

@@ -62,7 +62,7 @@ void MyQGL::paintGL()
 void MyQGL::loadImage()
 {
 	// try to load BMP library
-	QLibrary lib("/usr/lib/ksquirrel-libs/libSQ_codec_bmp.so");
+	QLibrary lib("/usr/lib/ksquirrel-libs/libkls_bmp.so");
 	lib.load();
 
 	// no such library

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+@XIMTOPPM@ $1 > $2

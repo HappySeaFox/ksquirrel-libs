@@ -1,0 +1,3 @@
+#!/bin/sh
+
+@NEOTOPPM@ $1 > $2
