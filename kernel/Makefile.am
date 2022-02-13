@@ -1,66 +1,66 @@
-SUBDIRS = lib avs bmp cut fli hdr ico jbig koala lif mdl mtv pcx pix pnm psd pxr ras rawrgb sct sgi sun tga wal wbmp xbm xcur xpm xwd
+SUBDIRS = kls_lib kls_avs kls_bmp kls_cut kls_fli kls_hdr kls_ico kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcur kls_xpm kls_xwd
 
 EXTRA_DIST = fmt_defs.h error.h fileio.h fmt_codec_base.h fmt_utils.h fmt_types.h generate link include/*.h
 
 if SQ_HAVE_CAMERA
-SUBDIRS += camera
+SUBDIRS += kls_camera
 endif
 
 if SQ_HAVE_JPEG
-SUBDIRS += jpeg
+SUBDIRS += kls_jpeg
 endif
 
 if SQ_HAVE_PNG
-SUBDIRS += png
+SUBDIRS += kls_png
 endif
 
 if SQ_HAVE_TIFF
-SUBDIRS += tiff
+SUBDIRS += kls_tiff
 endif
 
 if SQ_HAVE_XWD
-SUBDIRS += xwd
+SUBDIRS += kls_xwd
 endif
 
 if SQ_HAVE_WMF
-SUBDIRS += wmf
+SUBDIRS += kls_wmf
 endif
 
 if SQ_HAVE_SVG
-SUBDIRS += svg
+SUBDIRS += kls_svg
 endif
 
 if SQ_HAVE_GIF
-SUBDIRS += gif
+SUBDIRS += kls_gif
 endif
 
 if SQ_HAVE_OPENEXR
-SUBDIRS += openexr
+SUBDIRS += kls_openexr
 endif
 
 if SQ_HAVE_JPEG2000
-SUBDIRS += jpeg2000
+SUBDIRS += kls_jpeg2000
 endif
 
 if SQ_HAVE_TTF
-SUBDIRS += ttf
+SUBDIRS += kls_ttf
 endif
 
 if SQ_HAVE_MNG
-SUBDIRS += mng
+SUBDIRS += kls_mng
 endif
 
 # unstable/buggy codecs - for developers only
 if SQ_DEVEL
-SUBDIRS += mac msp iff utah
+SUBDIRS += kls_mac kls_msp kls_iff kls_utah
 endif
 
 # install headers
 install-data-am:
-	$(mkinstalldirs) $(DESTDIR)$(includedir)/ksquirrel-libs
-	$(INSTALL_HEADER) fileio.h         $(DESTDIR)$(includedir)/ksquirrel-libs/fileio.h
-	$(INSTALL_HEADER) error.h          $(DESTDIR)$(includedir)/ksquirrel-libs/error.h
-	$(INSTALL_HEADER) fmt_utils.h      $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_utils.h
-	$(INSTALL_HEADER) fmt_types.h      $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_types.h
-	$(INSTALL_HEADER) fmt_defs.h       $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_defs.h
-	$(INSTALL_HEADER) fmt_codec_base.h $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_codec_base.h
+	$(mkinstalldirs) $(DESTDIR)$(pkgincludedir)
+	$(INSTALL_HEADER) fileio.h         $(DESTDIR)$(pkgincludedir)/fileio.h
+	$(INSTALL_HEADER) error.h          $(DESTDIR)$(pkgincludedir)/error.h
+	$(INSTALL_HEADER) fmt_utils.h      $(DESTDIR)$(pkgincludedir)/fmt_utils.h
+	$(INSTALL_HEADER) fmt_types.h      $(DESTDIR)$(pkgincludedir)/fmt_types.h
+	$(INSTALL_HEADER) fmt_defs.h       $(DESTDIR)$(pkgincludedir)/fmt_defs.h
+	$(INSTALL_HEADER) fmt_codec_base.h $(DESTDIR)$(pkgincludedir)/fmt_codec_base.h

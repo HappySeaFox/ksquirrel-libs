@@ -17,9 +17,7 @@ rm -f $KSQUIRREL_LIBS/*
 mkdir $KSQUIRREL_LIBS > /dev/null 2>&1
 
 for i in avs bmp camera cut fli gif hdr ico iff jbig jpeg jpeg2000 koala lif mac mdl mng msp mtv openexr pcx pix png pnm psd pxr ras rawrgb sct sgi sun svg tga tiff ttf utah wal wbmp wmf xbm xcur xpm xwd;
-do echo "Linking libSQ_codec_$i.so ..." && ln -s `pwd`/$i/.libs/libSQ_codec_$i.so $KSQUIRREL_LIBS;
+do echo "Linking libkls_$i.so ..." && ln -s `pwd`/kls_$i/.libs/libkls_$i.so $KSQUIRREL_LIBS;
 done
 
-ln -s `pwd`/xpm/rgbmap $KSQUIRREL_LIBS
-ln -s `pwd`/../VERSION $KSQUIRREL_LIBS/version
-ln -s `pwd`/lib/.libs/libksquirrel-libs.so $KSQUIRREL_LIBS
+ln -s `pwd`/kls_lib/.libs/libksquirrel-libs.so $KSQUIRREL_LIBS

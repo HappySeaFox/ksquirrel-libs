@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.1], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.2], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.1)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.2)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -373,7 +373,7 @@ fi
 
 AC_CHECK_HEADERS([X11/XWDFile.h], [sq_have_xwd="yes"],    [sq_have_xwd="no"])
 
-SQ_LOCAL_RPATH="-L../lib -lksquirrel-libs -rpath ${libdir}"
+SQ_LOCAL_RPATH="-L../kls_lib -lksquirrel-libs"
 AC_SUBST(SQ_LOCAL_RPATH)
 
 AC_CONFIG_FILES([
@@ -382,52 +382,52 @@ doc/Makefile
 doc/html/Makefile
 doc/sources/Makefile
 kernel/Makefile
-kernel/bmp/Makefile
-kernel/gif/Makefile
-kernel/pix/Makefile
-kernel/xbm/Makefile
-kernel/xpm/Makefile
-kernel/tga/Makefile
-kernel/sgi/Makefile
-kernel/ras/Makefile
-kernel/pnm/Makefile
-kernel/pcx/Makefile
-kernel/ico/Makefile
-kernel/xcur/Makefile
-kernel/psd/Makefile
-kernel/fli/Makefile
-kernel/iff/Makefile
-kernel/utah/Makefile
-kernel/cut/Makefile
-kernel/rawrgb/Makefile
-kernel/wbmp/Makefile
-kernel/sun/Makefile
-kernel/jpeg2000/Makefile
-kernel/openexr/Makefile
-kernel/koala/Makefile
-kernel/wal/Makefile
-kernel/mdl/Makefile
-kernel/hdr/Makefile
-kernel/sct/Makefile
-kernel/lif/Makefile
-kernel/mtv/Makefile
-kernel/avs/Makefile
-kernel/msp/Makefile
-kernel/mac/Makefile
-kernel/svg/Makefile
-kernel/wmf/Makefile
-kernel/png/Makefile
-kernel/jpeg/Makefile
-kernel/xwd/Makefile
-kernel/tiff/Makefile
-kernel/camera/Makefile
-kernel/pxr/Makefile
-kernel/ttf/Makefile
-kernel/ttf/ftview/Makefile
-kernel/mng/Makefile
-kernel/jbig/libjbig/Makefile
-kernel/jbig/Makefile
-kernel/lib/Makefile
+kernel/kls_bmp/Makefile
+kernel/kls_gif/Makefile
+kernel/kls_pix/Makefile
+kernel/kls_xbm/Makefile
+kernel/kls_xpm/Makefile
+kernel/kls_tga/Makefile
+kernel/kls_sgi/Makefile
+kernel/kls_ras/Makefile
+kernel/kls_pnm/Makefile
+kernel/kls_pcx/Makefile
+kernel/kls_ico/Makefile
+kernel/kls_xcur/Makefile
+kernel/kls_psd/Makefile
+kernel/kls_fli/Makefile
+kernel/kls_iff/Makefile
+kernel/kls_utah/Makefile
+kernel/kls_cut/Makefile
+kernel/kls_rawrgb/Makefile
+kernel/kls_wbmp/Makefile
+kernel/kls_sun/Makefile
+kernel/kls_jpeg2000/Makefile
+kernel/kls_openexr/Makefile
+kernel/kls_koala/Makefile
+kernel/kls_wal/Makefile
+kernel/kls_mdl/Makefile
+kernel/kls_hdr/Makefile
+kernel/kls_sct/Makefile
+kernel/kls_lif/Makefile
+kernel/kls_mtv/Makefile
+kernel/kls_avs/Makefile
+kernel/kls_msp/Makefile
+kernel/kls_mac/Makefile
+kernel/kls_svg/Makefile
+kernel/kls_wmf/Makefile
+kernel/kls_png/Makefile
+kernel/kls_jpeg/Makefile
+kernel/kls_xwd/Makefile
+kernel/kls_tiff/Makefile
+kernel/kls_camera/Makefile
+kernel/kls_pxr/Makefile
+kernel/kls_ttf/Makefile
+kernel/kls_ttf/ftview/Makefile
+kernel/kls_mng/Makefile
+kernel/kls_jbig/libjbig/Makefile
+kernel/kls_jbig/Makefile
+kernel/kls_lib/Makefile
 ksquirrellibs.pc
 ])
 
@@ -449,10 +449,6 @@ AM_CONDITIONAL(SQ_HAVE_TTF,     [ test $sq_codec_ttf      = yes -a $sq_have_ttf 
 AM_CONDITIONAL(SQ_HAVE_MNG,     [ test $sq_codec_mng      = yes -a $sq_have_mng       = yes ])
 
 AC_OUTPUT
-
-if test $libdir != "/usr/lib/ksquirrel-libs" -a $libdir != "/usr/lib/ksquirrel-libs/"; then libdir_warn="WARNING: libdir should be /usr/lib/ksquirrel-libs";
-else libdir_warn="";
-fi
 
 echo "
 KSquirrel-libs configuration:

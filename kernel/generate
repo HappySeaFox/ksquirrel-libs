@@ -15,13 +15,11 @@ cd $name
 cat << EOF > Makefile.am
 INCLUDES = -I.. -I../include
 
-lib_LTLIBRARIES = libSQ_codec_${name}.la
+lib_LTLIBRARIES = lib${name}.la
 
-libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h
+lib${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h
 
-libSQ_codec_${name}_la_LDFLAGS = -release 0.1.0
-
-libSQ_codec_${name}_la_LIBADD = ${SQ_LOCAL_RPATH}
+lib${name}_la_LDFLAGS = -version-info 0:0:0
 EOF
 
 cat << EOF > ../include/fmt_codec_${name}.h

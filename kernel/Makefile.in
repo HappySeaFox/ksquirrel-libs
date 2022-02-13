@@ -37,21 +37,21 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@SQ_HAVE_CAMERA_TRUE@am__append_1 = camera
-@SQ_HAVE_JPEG_TRUE@am__append_2 = jpeg
-@SQ_HAVE_PNG_TRUE@am__append_3 = png
-@SQ_HAVE_TIFF_TRUE@am__append_4 = tiff
-@SQ_HAVE_XWD_TRUE@am__append_5 = xwd
-@SQ_HAVE_WMF_TRUE@am__append_6 = wmf
-@SQ_HAVE_SVG_TRUE@am__append_7 = svg
-@SQ_HAVE_GIF_TRUE@am__append_8 = gif
-@SQ_HAVE_OPENEXR_TRUE@am__append_9 = openexr
-@SQ_HAVE_JPEG2000_TRUE@am__append_10 = jpeg2000
-@SQ_HAVE_TTF_TRUE@am__append_11 = ttf
-@SQ_HAVE_MNG_TRUE@am__append_12 = mng
+@SQ_HAVE_CAMERA_TRUE@am__append_1 = kls_camera
+@SQ_HAVE_JPEG_TRUE@am__append_2 = kls_jpeg
+@SQ_HAVE_PNG_TRUE@am__append_3 = kls_png
+@SQ_HAVE_TIFF_TRUE@am__append_4 = kls_tiff
+@SQ_HAVE_XWD_TRUE@am__append_5 = kls_xwd
+@SQ_HAVE_WMF_TRUE@am__append_6 = kls_wmf
+@SQ_HAVE_SVG_TRUE@am__append_7 = kls_svg
+@SQ_HAVE_GIF_TRUE@am__append_8 = kls_gif
+@SQ_HAVE_OPENEXR_TRUE@am__append_9 = kls_openexr
+@SQ_HAVE_JPEG2000_TRUE@am__append_10 = kls_jpeg2000
+@SQ_HAVE_TTF_TRUE@am__append_11 = kls_ttf
+@SQ_HAVE_MNG_TRUE@am__append_12 = kls_mng
 
 # unstable/buggy codecs - for developers only
-@SQ_DEVEL_TRUE@am__append_13 = mac msp iff utah
+@SQ_DEVEL_TRUE@am__append_13 = kls_mac kls_msp kls_iff kls_utah
 subdir = kernel
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -78,10 +78,13 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	uninstall-recursive nmcheck-recursive bcheck-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = lib avs bmp cut fli hdr ico jbig koala lif mdl mtv pcx \
-	pix pnm psd pxr ras rawrgb sct sgi sun tga wal wbmp xbm xcur \
-	xpm xwd camera jpeg png tiff wmf svg gif openexr jpeg2000 ttf \
-	mng mac msp iff utah
+DIST_SUBDIRS = kls_lib kls_avs kls_bmp kls_cut kls_fli kls_hdr kls_ico \
+	kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix \
+	kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi \
+	kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcur kls_xpm \
+	kls_xwd kls_camera kls_jpeg kls_png kls_tiff kls_wmf kls_svg \
+	kls_gif kls_openexr kls_jpeg2000 kls_ttf kls_mng kls_mac \
+	kls_msp kls_iff kls_utah
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -248,9 +251,11 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = lib avs bmp cut fli hdr ico jbig koala lif mdl mtv pcx pix \
-	pnm psd pxr ras rawrgb sct sgi sun tga wal wbmp xbm xcur xpm \
-	xwd $(am__append_1) $(am__append_2) $(am__append_3) \
+SUBDIRS = kls_lib kls_avs kls_bmp kls_cut kls_fli kls_hdr kls_ico \
+	kls_jbig kls_koala kls_lif kls_mdl kls_mtv kls_pcx kls_pix \
+	kls_pnm kls_psd kls_pxr kls_ras kls_rawrgb kls_sct kls_sgi \
+	kls_sun kls_tga kls_wal kls_wbmp kls_xbm kls_xcur kls_xpm \
+	kls_xwd $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
 	$(am__append_10) $(am__append_11) $(am__append_12) \
@@ -585,13 +590,13 @@ uninstall-info: uninstall-info-recursive
 
 # install headers
 install-data-am:
-	$(mkinstalldirs) $(DESTDIR)$(includedir)/ksquirrel-libs
-	$(INSTALL_HEADER) fileio.h         $(DESTDIR)$(includedir)/ksquirrel-libs/fileio.h
-	$(INSTALL_HEADER) error.h          $(DESTDIR)$(includedir)/ksquirrel-libs/error.h
-	$(INSTALL_HEADER) fmt_utils.h      $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_utils.h
-	$(INSTALL_HEADER) fmt_types.h      $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_types.h
-	$(INSTALL_HEADER) fmt_defs.h       $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_defs.h
-	$(INSTALL_HEADER) fmt_codec_base.h $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_codec_base.h
+	$(mkinstalldirs) $(DESTDIR)$(pkgincludedir)
+	$(INSTALL_HEADER) fileio.h         $(DESTDIR)$(pkgincludedir)/fileio.h
+	$(INSTALL_HEADER) error.h          $(DESTDIR)$(pkgincludedir)/error.h
+	$(INSTALL_HEADER) fmt_utils.h      $(DESTDIR)$(pkgincludedir)/fmt_utils.h
+	$(INSTALL_HEADER) fmt_types.h      $(DESTDIR)$(pkgincludedir)/fmt_types.h
+	$(INSTALL_HEADER) fmt_defs.h       $(DESTDIR)$(pkgincludedir)/fmt_defs.h
+	$(INSTALL_HEADER) fmt_codec_base.h $(DESTDIR)$(pkgincludedir)/fmt_codec_base.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
