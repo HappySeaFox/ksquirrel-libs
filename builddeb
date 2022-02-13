@@ -1,5 +1,7 @@
 #!/bin/sh
 
+vers=`cat B/DEBIAN/control | grep Version | sed s/'Version: '//`
+
 make install DESTDIR=`pwd`/B &&
 rm -f B/usr/lib/ksquirrel-libs/*.la &&
 rm -f B/usr/lib/*.la                &&
@@ -8,5 +10,5 @@ rm -f B/usr/lib/ksquirrel-libs/*.so.0 &&
 strip B/usr/lib/ksquirrel-libs/* &&
 strip B/usr/lib/*
 strip B/usr/bin/*
-dpkg-deb -b B ksquirrel-libs_0.7.3-1etch_i386.deb &&
+dpkg-deb -b B ksquirrel-libs_${vers}_i386.deb &&
 rm -rf B/usr

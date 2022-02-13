@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.7.3], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.7.4], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.3)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.7.4)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -588,7 +588,7 @@ fi
 
 SQ_LOCAL_RPATH="-L../ksquirrel-libs -lksquirrel-libs"
 AC_SUBST(SQ_LOCAL_RPATH)
-SQ_RELEASE="-version-info 7:3:7"
+SQ_RELEASE="-version-info 7:4:7"
 AC_SUBST(SQ_RELEASE)
 
 ################### for xcf codec ##############
