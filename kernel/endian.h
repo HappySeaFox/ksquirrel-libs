@@ -65,6 +65,16 @@ unsigned int lLE2BE(unsigned int a)
 }
 
 static
+unsigned char BE_getchar(FILE *inf)
+{
+    unsigned char c;
+
+    fread(&c,1,1,inf);
+
+    return c;
+}
+
+static
 unsigned short BE_getshort(FILE *inf)
 {
     unsigned char buf[2];
@@ -74,11 +84,12 @@ unsigned short BE_getshort(FILE *inf)
 }
 
 static
-unsigned long BE_getlong(FILE *inf)
+unsigned int BE_getlong(FILE *inf)
 {
     unsigned char buf[4];
  
     fread(buf,4,1,inf);
+
     return (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+(buf[3]<<0);
 }
 

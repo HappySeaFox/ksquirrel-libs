@@ -68,7 +68,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    finfo->passes = 1;
     pal = 0;
 
     return SQERR_OK;
@@ -91,7 +90,11 @@ int fmt_next(fmt_info *finfo)
         return SQERR_NOMEMORY;
 			
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
-			    
+
+    finfo->image[currentImage].passes = 1;
+    
+    skip_comments(fptr);
+
     // thanks zgv for error handling :) (http://svgalib.org)
     if(fgets(str, sizeof(str)-1, fptr) == NULL || strncmp(str, "#define ", 8) != 0)
 	return SQERR_BADFILE;
@@ -174,17 +177,17 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     {
 	fscanf(fptr, "%x%c", &bt, &c);
 	// @todo make faster
-	if(j==lscan-1 && (remain-0)<=0 && remain)break; index = (bt & 1);        memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-1)<=0 && remain)break; index = (bt & 2) >> 1;   memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-2)<=0 && remain)break; index = (bt & 4) >> 2;   memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-3)<=0 && remain)break; index = (bt & 8) >> 3;   memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-4)<=0 && remain)break; index = (bt & 16) >> 4;  memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-5)<=0 && remain)break; index = (bt & 32) >> 5;  memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-6)<=0 && remain)break; index = (bt & 64) >> 6;  memcpy(scan+counter, pal+(int)index, 3); counter++;
-	if(j==lscan-1 && (remain-7)<=0 && remain)break; index = (bt & 128) >> 7; memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-0)<=0 && remain)break; index = (bt & 1);           memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-1)<=0 && remain)break; index = (bt & 2) ? 1 : 0;   memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-2)<=0 && remain)break; index = (bt & 4) ? 1 : 0;   memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-3)<=0 && remain)break; index = (bt & 8) ? 1 : 0;   memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-4)<=0 && remain)break; index = (bt & 16) ? 1 : 0;  memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-5)<=0 && remain)break; index = (bt & 32) ? 1 : 0;  memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-6)<=0 && remain)break; index = (bt & 64) ? 1 : 0;  memcpy(scan+counter, pal+(int)index, 3); counter++;
+	if(j==lscan-1 && (remain-7)<=0 && remain)break; index = (bt & 128) ? 1 : 0; memcpy(scan+counter, pal+(int)index, 3); counter++;
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)
@@ -202,6 +205,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			
     long	tmp;
     char	str[256], *ptr;
+
+    skip_comments(m_fptr);
 
     // thanks zgv for error handling :) (http://svgalib.org)
     if(fgets(str, sizeof(str)-1, m_fptr) == NULL || strncmp(str, "#define ", 8) != 0)
@@ -311,4 +316,22 @@ int fmt_close()
 	free(pal);
 
     return SQERR_OK;
+}
+
+/*  skip a single line C-like comment  */
+void skip_comments(FILE *fp)
+{
+    char str[513];
+    long pos;
+
+    do
+    {
+        pos = ftell(fp);
+        fgets(str, 512, fp);
+
+        if(!strstr(str, "/*"))
+            break;
+    }while(true);
+
+    fsetpos(fp, (fpos_t*)&pos);
 }

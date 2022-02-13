@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "read_png.h"
+
 #include <png.h>
 
 #ifndef png_jmpbuf
@@ -156,10 +157,8 @@ int fmt_next(fmt_info *finfo)
 
     number_passes = png_set_interlace_handling(png_ptr);
     
-    printf("Passes: %d\n", number_passes);
-
-    finfo->interlaced = number_passes > 1;
-    finfo->passes = number_passes;
+    finfo->image[currentImage].interlaced = number_passes > 1;
+    finfo->image[currentImage].passes = number_passes;
 
     png_read_update_info(png_ptr, info_ptr);
 

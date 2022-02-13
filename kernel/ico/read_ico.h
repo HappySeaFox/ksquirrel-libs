@@ -45,8 +45,6 @@ struct ICO_HEADER
     unsigned short	idCount;
 }ATTR_;
 
-// ICO_DIRENTRY*
-
 struct BITMAPINFO_HEADER
 {
     unsigned long	Size;

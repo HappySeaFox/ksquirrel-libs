@@ -67,7 +67,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    finfo->passes = 1;
 
     return SQERR_OK;
 }
@@ -86,6 +85,8 @@ int fmt_next(fmt_info *finfo)
         return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+
+    finfo->image[currentImage].passes = 1;
 
     pfh.width = BE_getshort(fptr);
     pfh.height = BE_getshort(fptr);
@@ -148,7 +149,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)

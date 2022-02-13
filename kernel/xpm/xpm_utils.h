@@ -117,7 +117,7 @@ RGBA hex2rgb(const char *hex)
 	RGBA *trgba = BinSearch(named, 0, sizeof(named) / sizeof(XPM_NAMED_COLOR) - 1, hex);
 	if(!trgba)
 	{
-	    fprintf(stderr, "XPM decoder: WARNING: named color \"%s\" not found, assuming black color instead\n", hex);
+	    fprintf(stderr, "XPM decoder: WARNING: named color \"%s\" not found, assuming black instead\n", hex);
     	    rgba.r = rgba.g = rgba.b = 0;
 	    rgba.a = 255;
 	    return rgba;
@@ -173,18 +173,39 @@ RGBA* BinSearch(T A[], int low, int high, const char *key)
 /*  skip a single line C-like comment  */
 void skip_comments(FILE *fp)
 {
-    char str[256];
+    char str[513];
     long pos;
-    
+
     do
     {
 	pos = ftell(fp);
-	fgets(str, 256, fp);
-	
+	fgets(str, 512, fp);
+
 	if(!strstr(str, "/*"))
 	    break;
-    }while(1);
-    
+    }while(true);
+
+    fsetpos(fp, (fpos_t*)&pos);
+}
+
+/*  skip a single line, if it's empty  */
+void skip_empty_lines(FILE *fp)
+{
+    char str[513];
+    long pos;
+
+    do
+    {
+	pos = ftell(fp);
+	fgets(str, 512, fp);
+
+	if(*str == '\n' && *(str+1) == '\0')
+	    continue;
+	else
+	    break;
+
+    }while(true);
+
     fsetpos(fp, (fpos_t*)&pos);
 }
 

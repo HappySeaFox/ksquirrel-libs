@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.5.0-pre4], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.5.0], [ksquirrel@tut.by])
 AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.5.0-pre4)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.5.0)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -73,6 +73,9 @@ AC_CONFIG_FILES([kernel/ras/Makefile])
 AC_CONFIG_FILES([kernel/pnm/Makefile])
 AC_CONFIG_FILES([kernel/pcx/Makefile])
 AC_CONFIG_FILES([kernel/ico/Makefile])
+AC_CONFIG_FILES([kernel/xcur/Makefile])
+AC_CONFIG_FILES([kernel/psd/Makefile])
+AC_CONFIG_FILES([kernel/fli/Makefile])
 
 if test $sq_have_png = yes; then
 AC_CONFIG_FILES([kernel/png/Makefile])
@@ -104,12 +107,12 @@ KSquirrel-libs configuration:
   
 Installation options:
 ---------------------
-  libdir:               ${libdir}
+  libdir:               ${libdir} WARNING: libdir should always be "/usr/lib/squirrel"
   
 Libraries:
 ----------"
 
-sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico"
+sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli"
 sq_disabled=""
 
 if test $sq_have_jpeg = yes; then sq_enabled=`echo -n $sq_enabled jpeg `; else sq_disabled=`echo -n $sq_disabled jpeg `; fi

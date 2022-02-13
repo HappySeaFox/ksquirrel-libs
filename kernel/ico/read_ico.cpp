@@ -31,7 +31,7 @@ typedef unsigned char uchar;
 
 uchar			*bAND;
 ICO_HEADER		ifh;
-ICO_DIRENTRY		ide;
+ICO_DIRENTRY		*ide;
 BITMAPINFO_HEADER	bih;
 int			pixel;
 
@@ -42,7 +42,7 @@ int pal_entr;
 
 const char* fmt_version()
 {
-    return (const char*)"0.3.0";
+    return (const char*)"0.3.1";
 }
     
 const char* fmt_quickinfo()
@@ -76,12 +76,10 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    finfo->passes = 1;
 
-    memset(&ifh, 0, sizeof(ICO_HEADER));
-    
     pal = 0;
     pal_entr = 0;
+    bAND = 0;
 
     fread(&ifh, sizeof(ICO_HEADER), 1, fptr);
 
@@ -89,6 +87,16 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_BADFILE;
 	
 //    printf("ICO: count = %d\n", ifh.idCount);
+
+    ide = (ICO_DIRENTRY*)calloc(ifh.idCount, sizeof(ICO_DIRENTRY));
+    
+    if(!ide)
+	return SQERR_NOMEMORY;
+
+    fread(ide, sizeof(ICO_DIRENTRY), ifh.idCount, fptr);
+    
+    for(int i = 0;i < ifh.idCount;i++)
+    printf("colorcount: %d, bitcount: %d, bytes: %d\n", ide[i].bColorCount, ide[i].wBitCount, ide[i].dwBytes);
 
     return SQERR_OK;
 }
@@ -105,15 +113,16 @@ int fmt_next(fmt_info *finfo)
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
 
+    finfo->image[currentImage].passes = 1;
+
     RGBA	rgba;
     int		i, pos;
 
-    fread(&ide, sizeof(ICO_DIRENTRY), 1, fptr);
-    
+
 //    printf("ressize: %d\n", ide.dwBytes);
 
-    finfo->image[currentImage].w = ide.bWidth;
-    finfo->image[currentImage].h = ide.bHeight;
+    finfo->image[currentImage].w = ide[currentImage].bWidth;
+    finfo->image[currentImage].h = ide[currentImage].bHeight;
 //    finfo->images = ifh.idCount;
     
 /*
@@ -127,55 +136,17 @@ int fmt_next(fmt_info *finfo)
 	return SQERR_BADFILE;
 */
 
-    fseek(fptr, ide.dwImageOffset, SEEK_SET);
+    fseek(fptr, ide[currentImage].dwImageOffset, SEEK_SET);
     fread(&bih, sizeof(BITMAPINFO_HEADER), 1, fptr);
 
-    pos = ftell(fptr);
-
-//    fseek(fptr, finfo->image[currentImage].h * bih.Planes * bih.BitCount * finfo->image[currentImage].w / 8, SEEK_CUR);
-
-    int count = finfo->image[currentImage].w * finfo->image[currentImage].h;
-    int count2 = count / 8;
-
-    fseek(fptr, ide.dwBytes - sizeof(BITMAPINFO_HEADER) - count2, SEEK_CUR);
-
-    bAND = (uchar *)calloc(count, sizeof(uchar));
-
-    if(!bAND)
-        return SQERR_NOMEMORY;
-	
-    uchar realAND[count2];
-
-    fread(realAND, count2, 1, fptr);
-    
-    int r = 0;
-
-    for(i = 0;i < count2;i++)
-    {
-	for(int z = 0,f = 128,u = 7;z < 8;z++,f >>= 1,u--)
-	{
-	    bAND[r] = (realAND[i] & f) >> u;
-	    r++;
-	}
-    }
-/*
-    for(int i = 0;i < finfo->image[currentImage].h;i++)
-    {
-	for(int j = 0;j < finfo->image[currentImage].w;j++)
-	{
-	    printf("%2d", bAND[i * finfo->image[currentImage].w + j]);
-	}
-	printf("\n");
-    }
-*/
-    fsetpos(fptr, (fpos_t*)&pos);
-
     finfo->image[currentImage].bpp = bih.BitCount;
+//    printf("bitcount #2: %d\n", bih.BitCount);
     pal_entr = 1 << finfo->image[currentImage].bpp;
+//    printf("pal_entr: %d\n", pal_entr);
 
     if(finfo->image[currentImage].bpp < 16)
     {
-	if((pal = (RGB*)calloc(pal_entr, sizeof(RGB))) == 0)
+	if((pal = (RGB*)realloc(pal, pal_entr * sizeof(RGB))) == 0)
 		return SQERR_NOMEMORY;
 
 	for(i = 0;i < pal_entr;i++)
@@ -188,6 +159,53 @@ int fmt_next(fmt_info *finfo)
     }
     else
 	pal = 0;
+
+    pos = ftell(fptr);
+
+    int count = finfo->image[currentImage].w * finfo->image[currentImage].h;
+    int count2 = count / (8 / finfo->image[currentImage].bpp);
+    int count3 = count / 8;
+    printf("count2: %d\n", count2);
+    printf("count3: %d\n", count3);
+
+    fseek(fptr, /*ide[currentImage].dwBytes - sizeof(BITMAPINFO_HEADER) - */count2, SEEK_CUR);
+
+    bAND = (uchar *)realloc(bAND, count * sizeof(uchar));
+
+    if(!bAND)
+        return SQERR_NOMEMORY;
+
+    uchar realAND[count3];
+
+    fread(realAND, 1, count3, fptr);
+/*    
+    for(i = 0;i < count3;i++)
+	printf("REALAND %d\n", realAND[i]);
+*/
+    int r = 0;
+
+    for(i = 0;i < count3;i++)
+    {
+	for(int z = 0,f = 128;z < 8;z++,f >>= 1)
+	{
+	    bAND[r] = (realAND[i] & f) ? 1 : 0;
+	//    printf("%d,", bAND[r]);
+	    r++;
+	}
+	//printf("\n");
+    }printf("r: %d\n", r);
+/*
+    for(int i = 0;i < finfo->image[currentImage].h;i++)
+    {
+	for(int j = 0;j < finfo->image[currentImage].w;j++)
+	{
+	    printf("%2d", bAND[i * finfo->image[currentImage].w + j]);
+	}
+	printf("\n");
+    }
+*/
+    fsetpos(fptr, (fpos_t*)&pos);
+
 /*
     for(i = 0;i < pal_entr;i++)
 	printf("%d %d %d\n",(pal)[i].r,(pal)[i].g,(pal)[i].b);
@@ -219,7 +237,7 @@ int fmt_next_pass(fmt_info *)
     
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    int i, j;
+    int i, j, count;
     unsigned char bt, ind;
 
     memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
@@ -227,6 +245,28 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     switch(finfo->image[currentImage].bpp)
     {
     	case 1:
+	    j = finfo->image[currentImage].w / 8;
+	    count = 0;
+
+	    for(i = 0;i < j;i++)
+	    {
+		fread(&bt, 1, 1, fptr);
+//		printf("*** Read byte %d\n", bt);
+
+		for(int z = 0, f = 128;z < 8;z++,f >>= 1)
+		{
+		    ind = (bt & f) ? 1 : 0;
+//		    printf("ind: %d, %d\n", ind, (bt & f));
+
+		    memcpy(scan+count, pal+ind, sizeof(RGB));
+
+//		    (scan+count)->a = (bAND[pixel]) ? 0 : 255;
+
+//		    printf("pixel: %d\n", pixel);
+		    count++;
+		    pixel++;
+		}
+	    }
 	break;
 
 	case 4:
@@ -236,12 +276,12 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		bt = fgetc(fptr);
 		ind = bt >> 4;
 		memcpy(scan+j, pal+ind, sizeof(RGB));
-		(scan+j)->a = (bAND[pixel]) ? 0 : 255;
+//		(scan+j)->a = (bAND[pixel]) ? 0 : 255;
 		j++;
 		pixel++;
 		ind = bt&15;
 		memcpy(scan+j, pal+ind, sizeof(RGB));
-		(scan+j)->a = (bAND[pixel]) ? 0 : 255;
+//		(scan+j)->a = (bAND[pixel]) ? 0 : 255;
 		j++;
 		pixel++;
 	    }while(j < finfo->image[currentImage].w);
@@ -253,33 +293,25 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	    {
 		bt = fgetc(fptr);
 		memcpy(scan+i, pal+bt, sizeof(RGB));
-		(scan+i)->a = (bAND[pixel]) ? 0 : 255;
+//		(scan+i)->a = (bAND[pixel]) ? 0 : 255;
 		pixel++;
 	    }
 	break;
-
-	case 16:
-	break;
-
-	case 24:
-	break;
-
-	case 32:
-	break;
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)
 {
-    uchar		*m_bAND;
+    uchar		*m_bAND = 0;
     ICO_HEADER		m_ifh;
     ICO_DIRENTRY	m_ide;
     BITMAPINFO_HEADER	m_bih;
     int			m_pixel = 0;
-    RGB 		*m_pal;
-    int 		m_pal_entr;
+    RGB 		*m_pal = 0;
+    int 		m_pal_entr, pos;
+    RGBA		rgba;
 
     FILE *m_fptr;
     int w, h, bpp;
@@ -289,94 +321,28 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!m_fptr)
         return SQERR_NOFILE;
 
-    m_pal = 0;
-    m_pal_entr = 0;
-
     fread(&m_ifh, sizeof(ICO_HEADER), 1, m_fptr);
 
     if(m_ifh.idType != 1 && m_ifh.idType != 2)
 	return SQERR_BADFILE;
-
-    RGBA	rgba;
-    int		i, pos;
-
+	
     fread(&m_ide, sizeof(ICO_DIRENTRY), 1, m_fptr);
     
-//    printf("ressize: %d\n", m_ide.dwBytes);
-
     w = m_ide.bWidth;
     h = m_ide.bHeight;
-//    finfo->images = ifh.idCount;
-    
-/*
-    if(finfo->image[currentImage].w != 16 && finfo->image[currentImage].w != 32 && finfo->image[currentImage].w != 64)
-	return SQERR_BADFILE;
-
-    if(finfo->image[currentImage].h != 16 && finfo->image[currentImage].h != 32 && finfo->image[currentImage].h != 64)
-	return SQERR_BADFILE;
-
-    if(ide.bColorCount != 2 && ide.bColorCount != 8 && ide.bColorCount != 16)
-	return SQERR_BADFILE;
-*/
 
     fseek(m_fptr, m_ide.dwImageOffset, SEEK_SET);
     fread(&m_bih, sizeof(BITMAPINFO_HEADER), 1, m_fptr);
-
-    pos = ftell(m_fptr);
-
-//    fseek(fptr, finfo->image[currentImage].h * bih.Planes * bih.BitCount * finfo->image[currentImage].w / 8, SEEK_CUR);
-
-    int count = w * h;
-    int count2 = count / 8;
-
-    fseek(m_fptr, m_ide.dwBytes - sizeof(BITMAPINFO_HEADER) - count2, SEEK_CUR);
-
-    m_bAND = (uchar *)calloc(count, sizeof(uchar));
-
-    if(!m_bAND)
-        return SQERR_NOMEMORY;
-	
-    uchar realAND[count2];
-
-    fread(realAND, count2, 1, m_fptr);
-
-    int r = 0;
-
-    for(i = 0;i < count2;i++)
-    {
-	for(int z = 0,f = 128,u = 7;z < 8;z++,f >>= 1,u--)
-	{
-	    m_bAND[r] = (realAND[i] & f) >> u;
-	    r++;
-	}
-    }
-/*
-    for(int i = 0;i < finfo->image[currentImage].h;i++)
-    {
-	for(int j = 0;j < finfo->image[currentImage].w;j++)
-	{
-	    printf("%2d", bAND[i * finfo->image[currentImage].w + j]);
-	}
-	printf("\n");
-    }
-*/
-    fsetpos(m_fptr, (fpos_t*)&pos);
 
     bpp = m_bih.BitCount;
     m_pal_entr = 1 << bpp;
 
     if(bpp < 16)
     {
-	if((m_pal = (RGB *)calloc(m_pal_entr, sizeof(RGB))) == 0)
-	{
-	    if(m_bAND)
-		free(m_bAND);
-	    fclose(m_fptr);
+	if((m_pal = (RGB*)realloc(m_pal, m_pal_entr * sizeof(RGB))) == 0)
+		return SQERR_NOMEMORY;
 
-	    return SQERR_NOMEMORY;
-	}
-
-	for(i = 0;i < m_pal_entr;i++)
+	for(int i = 0;i < m_pal_entr;i++)
 	{
 		fread(&rgba, sizeof(RGBA), 1, m_fptr);
 		m_pal[i].r = rgba.b;
@@ -386,10 +352,36 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     }
     else
 	m_pal = 0;
-/*
-    for(i = 0;i < pal_entr;i++)
-	printf("%d %d %d\n",(pal)[i].r,(pal)[i].g,(pal)[i].b);
-*/
+
+    pos = ftell(m_fptr);
+
+    int count = w * h;
+    int count2 = count / (8 / bpp);
+    int count3 = count / 8;
+
+    fseek(m_fptr, count2, SEEK_CUR);
+
+    m_bAND = (uchar *)realloc(m_bAND, count * sizeof(uchar));
+
+    if(!m_bAND)
+        return SQERR_NOMEMORY;
+
+    uchar realAND[count3];
+
+    fread(realAND, 1, count3, m_fptr);
+
+    int r = 0;
+
+    for(int i = 0;i < count3;i++)
+    {
+	for(int z = 0,f = 128;z < 8;z++,f >>= 1)
+	{
+	    m_bAND[r] = (realAND[i] & f) ? 1 : 0;
+	    r++;
+	}
+    }
+
+    fsetpos(m_fptr, (fpos_t*)&pos);
 
     int m_bytes = w * h * sizeof(RGBA);
 
@@ -409,7 +401,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
         fprintf(stderr, "libSQ_read_ico: Image is null!\n");
         
 	fclose(m_fptr);
-        
+
 	if(m_bAND)
 	    free(m_bAND);
 
@@ -428,14 +420,34 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
 	memset(scan, 255, W);
 
-    int i, j;
+    int i, j, count;
     unsigned char bt, ind;
 
-    memset(scan, 255, W);
+    memset(scan, 255, w * sizeof(RGBA));
 
     switch(bpp)
     {
     	case 1:
+	    j = w / 8;
+	    count = 0;
+
+	    for(i = 0;i < j;i++)
+	    {
+		fread(&bt, 1, 1, m_fptr);
+//		printf("*** Read byte %d\n", bt);
+
+		for(int z = 0, f = 128;z < 8;z++,f >>= 1)
+		{
+		    ind = (bt & f) ? 1 : 0;
+//		    printf("ind: %d, %d\n", ind, (bt & f));
+
+		    memcpy(scan+count, m_pal+ind, sizeof(RGB));
+
+//		    (scan+count)->a = (m_bAND[m_pixel]) ? 0 : 255;
+		    count++;
+		    m_pixel++;
+		}
+	    }
 	break;
 
 	case 4:
@@ -445,15 +457,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		bt = fgetc(m_fptr);
 		ind = bt >> 4;
 		memcpy(scan+j, m_pal+ind, sizeof(RGB));
-		(scan+j)->a = (m_bAND[m_pixel]) ? 0 : 255;
+//		(scan+j)->a = (m_bAND[m_pixel]) ? 0 : 255;
 		j++;
 		m_pixel++;
 		ind = bt&15;
 		memcpy(scan+j, m_pal+ind, sizeof(RGB));
-		(scan+j)->a = (m_bAND[m_pixel]) ? 0 : 255;
+//		(scan+j)->a = (m_bAND[m_pixel]) ? 0 : 255;
 		j++;
 		m_pixel++;
 	    }while(j < w);
+
 	break;
 
 	case 8:
@@ -461,28 +474,18 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	    {
 		bt = fgetc(m_fptr);
 		memcpy(scan+i, m_pal+bt, sizeof(RGB));
-		(scan+i)->a = (m_bAND[m_pixel]) ? 0 : 255;
+//		(scan+i)->a = (m_bAND[m_pixel]) ? 0 : 255;
 		m_pixel++;
 	    }
 	break;
-
-	case 16:
-	break;
-
-	case 24:
-	break;
-
-	case 32:
-	break;
     }
-
     }
 
     fclose(m_fptr);
 
     if(m_pal)
 	free(m_pal);
-	
+
     if(m_bAND)
 	free(m_bAND);
 	

@@ -28,7 +28,7 @@
 
 const char* fmt_version()
 {
-    return (const char*)"0.9.0";
+    return (const char*)"0.9.1";
 }
 
 const char* fmt_quickinfo()
@@ -75,7 +75,6 @@ int fmt_init(fmt_info *finfo, const char *file)
     pal = 0;
 
     currentImage = -1;
-    finfo->passes = 1;
 
     fread(&bfh, sizeof(BITMAPFILE_HEADER), 1, fptr);
     fread(&bih, sizeof(BITMAPINFO_HEADER), 1, fptr);
@@ -101,9 +100,10 @@ int fmt_next(fmt_info *finfo)
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
 
+    finfo->image[currentImage].passes = 1;
+
     RGBA		rgba;
     long		i, j, scanShouldBe;
-
 
     if(bih.BitCount < 16)
     	pal_entr = 1 << bih.BitCount;
@@ -317,104 +317,110 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)
 {
-    unsigned short m_FILLER = 0;
-    FILE *m_fptr;
-    int w, h, bpp;
-    int m_pal_entr = 0;
-    RGB *m_pal = 0;
+    int 		w, h, bpp;
+    RGB			*m_pal;
+    int			m_pal_entr;
+    unsigned short	m_FILLER = 0;
+    FILE 		*m_fptr;
+    BITMAPFILE_HEADER	m_bfh;
+    BITMAPINFO_HEADER	m_bih;
 
     m_fptr = fopen(file, "rb");
-
+				        
     if(!m_fptr)
         return SQERR_NOFILE;
 
-    BITMAPFILE_HEADER   m_bfh;
-    BITMAPINFO_HEADER   m_bih;
-    RGBA                rgba;
-    int 		i = 0, j, m_scanShouldBe;
+    m_pal_entr = 0;    
+    m_pal = 0;
 
     fread(&m_bfh, sizeof(BITMAPFILE_HEADER), 1, m_fptr);
     fread(&m_bih, sizeof(BITMAPINFO_HEADER), 1, m_fptr);
 
     if(m_bih.Size != 40)
-        return SQERR_BADFILE;
+    	return SQERR_BADFILE;
 
     if(m_bih.Compression != BI_RGB)
 	return SQERR_NOTSUPPORTED;
 
-    if(m_bih.BitCount < 16)
-        m_pal_entr = 1 << m_bih.BitCount;
-    else
-        m_pal_entr = 0;
+    RGBA		rgba;
+    long		i, j, scanShouldBe;
 
-    m_scanShouldBe = w = m_bih.Width;
+    if(m_bih.BitCount < 16)
+    	m_pal_entr = 1 << m_bih.BitCount;
+    else
+	m_pal_entr = 0;
+
+    w = m_bih.Width;
     h = m_bih.Height;
     bpp = m_bih.BitCount;
+    scanShouldBe = m_bih.Width;
 
     switch(bpp)
     {
-        case 1:
-        {
-            long tmp = m_scanShouldBe;
-            m_scanShouldBe /= 8;
-            m_scanShouldBe = m_scanShouldBe + ((tmp%8)?1:0);
-        }
-        break;
+	case 1:
+	{
+	    long tmp = scanShouldBe;
+	    scanShouldBe /= 8;
+	    scanShouldBe = scanShouldBe + ((tmp%8)?1:0);
+	}
+	break;
+	
+	case 4:  scanShouldBe = ((w)%2)?((scanShouldBe+1)/2):(scanShouldBe/2); break;
+	case 8:  break;
+	case 16: scanShouldBe *= 2; break;
+	case 24: scanShouldBe *= 3; break;
+	case 32: break;
 
-        case 4:  m_scanShouldBe = (w%2) ? ((m_scanShouldBe+1)/2) : m_scanShouldBe/2; break;
-        case 8:  break;
-        case 16: m_scanShouldBe <<= 1; break;
-        case 24: m_scanShouldBe *= 3; break;
-        case 32: break;
-
-        default:
-            return SQERR_BADFILE;
+	default:
+	    return SQERR_BADFILE;
     }
 
     for(j = 0;j < 4;j++)
-        if((m_scanShouldBe+j)%4 == 0)
-        {
-            m_FILLER = j;
-            break;
-        }
+	if((scanShouldBe+j)%4 == 0) 
+	{
+	    m_FILLER = j;
+	    break;
+	}
 
     if(bpp < 16)
     {
-        if((m_pal = (RGB*)calloc(m_pal_entr, sizeof(RGB))) == 0)
-        {
-                fclose(m_fptr);
-                return SQERR_NOMEMORY;
-        }
+	if((m_pal = (RGB *)calloc(m_pal_entr, sizeof(RGB))) == 0)
+	{
+		fclose(m_fptr);
+		return SQERR_NOMEMORY;
+	}
 
-        /*  read palette  */
-        for(i = 0;i < m_pal_entr;i++)
-        {
-                fread(&rgba, sizeof(RGBA), 1, m_fptr);
-                (m_pal)[i].r = rgba.b;
-                (m_pal)[i].g = rgba.g;
-                (m_pal)[i].b = rgba.r;
-
-        }
+	/*  read palette  */
+	for(i = 0;i < m_pal_entr;i++)
+	{
+		fread(&rgba, sizeof(RGBA), 1, m_fptr);
+		(m_pal)[i].r = rgba.b;
+		(m_pal)[i].g = rgba.g;
+		(m_pal)[i].b = rgba.r;
+		
+	}
     }
     else
-        m_pal = 0;
+	m_pal = 0;
 
-    const int m_bytes  = w * h * sizeof(RGBA);
-
+    /*  fseek to image bits  */
     fseek(m_fptr, m_bfh.OffBits, SEEK_SET);
 
+    int m_bytes = w * h * sizeof(RGBA);
+
     asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
-            fmt_quickinfo(),
-            w,h,
-            bpp, 
-	    (m_pal_entr) ? "Color indexed":"RGB",
-            1,
-	    m_bytes);
+	fmt_quickinfo(),
+	w,
+	h,
+	bpp,
+	(m_pal_entr)?"Color indexed":"RGB",
+	1,
+	m_bytes);
 
     *image = (RGBA*)realloc(*image, m_bytes);
 
@@ -422,148 +428,151 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     {
         fprintf(stderr, "libSQ_read_bmp: Image is null!\n");
         fclose(m_fptr);
+	
+	free(m_pal);
+
         return SQERR_NOMEMORY;
     }
 
     memset(*image, 255, m_bytes);
 
-    short remain, m_scan, counter;
-    char bt;
-    RGBA *scan;
-
-    for(int kk = 0;kk < h;kk++)
+    for(int h2 = 0;h2 < h;h2++)
     {
-    scan = *image + kk * w;
-    counter = 0;
+	RGBA 	*scan = *image + h2 * w;
+
+    unsigned short remain, scanShouldBe, j, counter = 0;
+    unsigned char bt;
 
     switch(bpp)
     {
-        case 1:
-        {
-                unsigned char   index;
-                remain = (w <= 8) ? 0:w%8;
-                m_scan = w;
+    	case 1:
+	{
+		unsigned char	index;
+		remain=((w)<=8)?(0):((w)%8);
+		scanShouldBe = w;;
 
-                long tmp = m_scan;
-                m_scan /= 8;
-                m_scan = m_scan + ((tmp%8)?1:0);
+		long tmp = scanShouldBe;
+		scanShouldBe /= 8;
+		scanShouldBe = scanShouldBe + ((tmp%8)?1:0);
+ 
+		// @todo get rid of miltiple 'if'
+		for(j = 0;j < scanShouldBe;j++)
+		{
+			fread(&bt, 1, 1, m_fptr);
+			if(j==scanShouldBe-1 && (remain-0)<=0 && remain)break; index = (bt & 128) >> 7; memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-1)<=0 && remain)break; index = (bt & 64) >> 6;  memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-2)<=0 && remain)break; index = (bt & 32) >> 5;  memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-3)<=0 && remain)break; index = (bt & 16) >> 4;  memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-4)<=0 && remain)break; index = (bt & 8) >> 3;   memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-5)<=0 && remain)break; index = (bt & 4) >> 2;   memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-6)<=0 && remain)break; index = (bt & 2) >> 1;   memcpy(scan+(counter++), (m_pal)+index, 3);
+			if(j==scanShouldBe-1 && (remain-7)<=0 && remain)break; index = (bt & 1);        memcpy(scan+(counter++), (m_pal)+index, 3);
+		}
 
-                // @todo get rid of miltiple 'if'
-                for(j = 0;j < m_scan;j++)
-                {
-                        fread(&bt, 1, 1, m_fptr);
+		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
+	}
+	break;
 
-                        if(j==m_scan-1 && (remain-0)<=0 && remain)break; index = (bt & 128) >> 7; memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-1)<=0 && remain)break; index = (bt & 64) >> 6;  memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-2)<=0 && remain)break; index = (bt & 32) >> 5;  memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-3)<=0 && remain)break; index = (bt & 16) >> 4;  memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-4)<=0 && remain)break; index = (bt & 8) >> 3;   memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-5)<=0 && remain)break; index = (bt & 4) >> 2;   memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-6)<=0 && remain)break; index = (bt & 2) >> 1;   memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        if(j==m_scan-1 && (remain-7)<=0 && remain)break; index = (bt & 1);        memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                }
-                for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-        }
-        break;
+	case 4:
+	{
+		unsigned char	index;
+		remain = (w)%2;
 
-        case 4:
-        {
-                unsigned char   index;
-                remain = w%2;
+		int ck = (w%2)?(w + 1):(w);
+		ck /= 2;
 
-                int ck = (w%2) ? (w+1):w;
-                ck /= 2;
+		for(j = 0;j < ck-1;j++)
+		{
+			fread(&bt, 1, 1, m_fptr);
+			index = (bt & 0xf0) >> 4;
+			memcpy(scan+(counter++), (m_pal)+index, 3);
+			index = bt & 0xf;
+			memcpy(scan+(counter++), (m_pal)+index, 3);
+		}
 
-                for(j = 0;j < ck-1;j++)
-                {
-                        fread(&bt, 1, 1, m_fptr);
-                        index = (bt & 0xf0) >> 4;
-                        memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                        index = bt & 0xf;
-                        memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                }
+		fread(&bt, 1, 1, m_fptr);
+		index = (bt & 0xf0) >> 4;
+		memcpy(scan+(counter++), (m_pal)+index, 3);
 
-                fread(&bt, 1, 1, m_fptr);
-                index = (bt & 0xf0) >> 4;
-                memcpy(scan+(counter++), (m_pal)+index, 3);
+		if(!remain)
+		{
+			index = bt & 0xf;
+			memcpy(scan+(counter++), (m_pal)+index, 3);
+		}
 
-                if(!remain)
-                {
-                        index = bt & 0xf;
-                        memcpy(scan+(counter++), (m_pal)+index, sizeof(RGB));
-                }
+		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
+	}
+	break;
 
-                for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-        }
-        break;
+	case 8:
+	{
+		
+		for(j = 0;j < w;j++)
+		{
+			fread(&bt, 1, 1, m_fptr);
+			memcpy(scan+(counter++), (m_pal)+bt, 3);
+		}
 
-        case 8:
-        {
-                for(j = 0;j < w;j++)
-                {
-                        fread(&bt, 1, 1, m_fptr);
-                        memcpy(scan+(counter++), (m_pal)+bt, sizeof(RGB));
-                }
+		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
+	}
+	break;
 
-                for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-        }
-        break;
+	case 16:
+	{
+		unsigned short word;
 
-        case 16:
-        {
-                unsigned short word;
+		for(j = 0;j < w;j++)
+		{
+			fread(&word, 2, 1, m_fptr);
+			scan[counter].b = (word&0x1f) << 3;
+			scan[counter].g = ((word&0x3e0) >> 5) << 3;
+			scan[counter++].r = ((word&0x7c00)>>10) << 3;
+		}
 
-                for(j = 0;j < w;j++)
-                {
-                        fread(&word, 2, 1, m_fptr);
-                        scan[counter].b = (word&0x1f) << 3;
-                        scan[counter].g = ((word&0x3e0) >> 5) << 3;
-                        scan[counter].r = ((word&0x7c00)>>10) << 3;
-			
+		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
+	}
+	break;
+
+	case 24:
+	{
+		RGB rgb;
+
+		for(j = 0;j < w;j++)
+		{
+			fread(&rgb, sizeof(RGB), 1, m_fptr);
+			scan[counter].r = rgb.b;
+			scan[counter].g = rgb.g;
+			scan[counter].b = rgb.r;
 			counter++;
-                }
+		}
 
-                for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-        }
-        break;
+		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
+	}
+	break;
 
-        case 24:
-        {
-                RGB rgb;
+	case 32:
+	{
+		RGBA rgba;
 
-                for(j = 0;j < w;j++)
-                {
-                        fread(&rgb, sizeof(RGB), 1, m_fptr);
-                        scan[counter].r = rgb.b;
-                        scan[counter].g = rgb.g;
-                        scan[counter].b = rgb.r;
-			
-			counter++;
-                }
+		for(j = 0;j < w;j++)
+		{
+			fread(&rgba, sizeof(RGBA), 1, m_fptr);
+			scan[j].r = rgba.b;
+			scan[j].g = rgba.g;
+			scan[j].b = rgba.r;
+		}
+	}
+	break;
 
-                for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-        }
-        break;
-        case 32:
-        {
-                RGBA rgba;
-
-                for(j = 0;j < w;j++)
-                {
-                        fread(&rgba, sizeof(RGBA), 1, m_fptr);
-                        scan[j].r = rgba.b;
-                        scan[j].g = rgba.g;
-                        scan[j].b = rgba.r;
-                }
-        }
-        break;
     }
-}
+
+    }
+    
     fclose(m_fptr);
     
     if(m_pal)
 	free(m_pal);
-	
+
     flip((char*)*image, w * sizeof(RGBA), h);
 
     return SQERR_OK;

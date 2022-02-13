@@ -45,7 +45,7 @@ int	fmt_next_pass(fmt_info *finfo);
 }
 
 #define DISPOSAL_NO          0
-#define DOSPOSAL_LEFT        1
+#define DISPOSAL_LEFT        1
 #define DISPOSAL_BACKGROUND  2
 #define DISPOSAL_PREVIOUS    3
 

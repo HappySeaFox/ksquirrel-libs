@@ -69,7 +69,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 
     currentImage = -1;
-    finfo->passes = 1;
     pal = 0;
 
     return SQERR_OK;
@@ -92,6 +91,8 @@ int fmt_next(fmt_info *finfo)
     int		i, ncolors;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+
+    finfo->image[currentImage].passes = 1;
 
     fread(&xfh, sizeof(XWDFileHeader), 1, fptr);
 
@@ -163,7 +164,7 @@ int fmt_next_pass(fmt_info *)
 
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    int i, redd = 0;
+    int 	i;
     RGBA	rgba;
     RGB		rgb;
 
@@ -174,7 +175,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
         case 24:
 	    for(i = 0;i < finfo->image[currentImage].w;i++)
     	    {
-    		redd = fread(&rgb, sizeof(RGB), 1, fptr);
+    		fread(&rgb, sizeof(RGB), 1, fptr);
 		memcpy(scan+i, &rgb, sizeof(RGB));
 	    }
 	    
@@ -184,7 +185,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
         case 32:
 	    for(i = 0;i < finfo->image[currentImage].w;i++)
     	    {
-    		redd = fread(&rgba, sizeof(RGBA), 1, fptr);
+    		fread(&rgba, sizeof(RGBA), 1, fptr);
 
 		scan[i].r = rgba.b;
 		scan[i].g = rgba.g;
@@ -195,7 +196,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	break;
     }
 
-    return (redd == sizeof(RGBA)) ? SQERR_OK : SQERR_NOTOK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)
@@ -276,7 +277,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 /*
 	for(int s = 0;s < w;s++)
 	{
-	    redd = fread(&rgba, sizeof(RGBA), 1, fptr);
+	    fread(&rgba, sizeof(RGBA), 1, fptr);
 
 	    scan[s].r = rgba.b;
 	    scan[s].g = rgba.g;

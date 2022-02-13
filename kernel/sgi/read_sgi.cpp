@@ -40,7 +40,7 @@ typedef unsigned char uchar;
 
 const char* fmt_version()
 {
-    return (const char*)"0.8.2";
+    return (const char*)"0.8.3";
 }
     
 const char* fmt_quickinfo()
@@ -50,12 +50,12 @@ const char* fmt_quickinfo()
 	
 const char* fmt_filter()
 {
-    return (const char*)"*.rgb *.rgba ";
+    return (const char*)"*.rgb *.rgba *.bw";
 }
 	    
 const char* fmt_mime()
 {
-    return (const char*)"\x00DA.[\x0001\x0002]";
+    return (const char*)"\001\332.[\001\002]";
 }
 
 const char* fmt_pixmap()
@@ -74,7 +74,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    finfo->passes = 1;
     starttab = 0;
     lengthtab = 0;
 
@@ -92,6 +91,8 @@ int fmt_next(fmt_info *finfo)
         return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+
+    finfo->image[currentImage].passes = 1;
 
     sfh.Magik = BE_getshort(fptr);
     sfh.StorageFormat = fgetc(fptr);
@@ -308,12 +309,6 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 	}
 	break;
-
-	default:
-	{
-		//@TODO:  free memory !!
-		return SQERR_BADFILE;
-	}
     }
 
     for(i = 0;i < sz;i++)
@@ -324,7 +319,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
         scan[i].a = channel[3][i];
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)

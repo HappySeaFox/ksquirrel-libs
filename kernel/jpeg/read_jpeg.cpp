@@ -82,7 +82,6 @@ int fmt_init(fmt_info *finfo, const char *file)
         return SQERR_NOFILE;
 
     currentImage = -1;
-    finfo->passes = 1;
 	
     return SQERR_OK;
 }
@@ -100,6 +99,8 @@ int fmt_next(fmt_info *finfo)
         return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+
+    finfo->image[currentImage].passes = 1;
 
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = my_error_exit;

@@ -24,21 +24,20 @@ You should have your videocard specific drivers been installed.
 %prep 
 %setup
 
-CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" ./configure --libdir=%libdir
+CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" ./configure --libdir=/usr/lib/squirrel $LOCALFLAGS
 
 %build 
-
-%__make
+%__make %{?_smp_mflags} 
 
 %install 
 [ "$RPM_BUILD_ROOT" != "" ] && rm -rf $RPM_BUILD_ROOT 
-%makeinstall libdir=%buildroot%libdir
+%makeinstall 
 
 %clean 
 [ "$RPM_BUILD_ROOT" != "" ] && rm -rf $RPM_BUILD_ROOT 
 
 %files 
 %defattr(-,root,root) 
-%{_libdir}/*
+%{_libdir}/* 
 
 %changelog 

@@ -71,7 +71,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    finfo->passes = 1;
     pal = 0;
     pal_entr = 0;
 
@@ -91,6 +90,8 @@ int fmt_next(fmt_info *finfo)
         return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+
+    finfo->image[currentImage].passes = 1;
 
     fread(&tfh, sizeof(TGA_FILEHEADER), 1, fptr);
 
@@ -205,7 +206,7 @@ int fmt_next(fmt_info *finfo)
 	comp,
 	bytes);
 
-    printf("tfh.ImageType: %d, pal_len: %d\n", tfh.ImageType, tfh.ColorMapSpecLength);
+//    printf("tfh.ImageType: %d, pal_len: %d\n", tfh.ImageType, tfh.ColorMapSpecLength);
 
     return SQERR_OK;
 }
@@ -399,15 +400,9 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	{
 	}
 	break;
-
-	default:
-	{
-		//@TODO:  free memory !!
-		return SQERR_BADFILE;
-	}
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)

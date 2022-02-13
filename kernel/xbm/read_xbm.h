@@ -30,6 +30,8 @@ typedef struct
     unsigned char ID[3];
 }XBM_HEADER;
 
+void skip_comments(FILE *);
+
 extern "C" {
 
 const char*     fmt_version();

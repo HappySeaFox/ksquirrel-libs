@@ -1,6 +1,6 @@
 /*  This file is part of the ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2004 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2004,2005 Dmitry Baryshev <ksquirrel@tut.by>
     
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
 GifFileType 	*gif;
 GifRecordType	record;
 GifByteType	*Extension;
-GifRowType	buf;
+unsigned char	*buf;
 RGBA		*saved;
 int		i, j, Error, Row, Col, Width, Height, lastRow, lastCol, lastWidth, lastHeight, ExtCode, Count,
 		transIndex, layer, line, Lines_h, curLine, linesz, disposal, lastDisposal, currentImage, currentPass;
@@ -44,7 +44,7 @@ InterlacedJumps[] = { 8, 8, 4, 2 };    /* be read - offsets and jumps... */
 
 const char* fmt_version(void)
 {
-    return (const char*)"1.1.1";
+    return (const char*)"1.1.4";
 }
 
 const char* fmt_quickinfo(void)
@@ -86,7 +86,7 @@ int fmt_init(fmt_info *finfo, const char *file)
 
     linesz = gif->SWidth * sizeof(GifPixelType);
 
-    if((buf = (GifRowType)malloc(linesz)) == NULL)
+    if((buf = (unsigned char*)malloc(linesz)) == NULL)
         return SQERR_NOMEMORY;
 
     if((saved = (RGBA *)calloc(linesz, sizeof(RGBA))) == NULL)
@@ -103,9 +103,6 @@ int fmt_init(fmt_info *finfo, const char *file)
     {
 	memset(&back, 0, sizeof(RGBA));
     }
-
-    finfo->interlaced = gif->Image.Interlace;
-    finfo->passes = (finfo->interlaced) ? 4 : 1;
 
     layer = -1;
     line = 0;
@@ -138,10 +135,6 @@ int fmt_init(fmt_info *finfo, const char *file)
     currentImage = -1;
     lastDisposal = DISPOSAL_NO;
 
-    for(int k = 0;k < gif->SWidth;k++)
-    {
-        memcpy(saved+k, &back, sizeof(RGBA));
-    }
     
     return SQERR_OK;
 }
@@ -168,69 +161,60 @@ int fmt_next(fmt_info *finfo)
 
     currentImage++;
 	
-    printf("Entering fmt_next\n\n");
+    finfo->image[currentImage].interlaced = gif->Image.Interlace;
+    finfo->image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
+
+//    printf("Entering fmt_next\n\n");
 
     while(true)
     {
         if (DGifGetRecordType(gif, &record) == GIF_ERROR)
 	{
-	    printf("DGifGetRecordType(gif, &record) == GIF_ERROR\n");
+//	    printf("DGifGetRecordType(gif, &record) == GIF_ERROR\n");
 	    PrintGifError();
 	    return SQERR_BADFILE;
 	}
 
-	printf("record = %d\n", record);
+//	printf("record = %d\n", record);
 	switch(record)
 	{
 	    case IMAGE_DESC_RECORD_TYPE:
-	    if(DGifGetImageDesc(gif) == GIF_ERROR)
-	    {
-		PrintGifError();
-//		free(buf);
-		return SQERR_BADFILE;
-	    }
-	    printf("Record IMAGE_DESC_RECORD_TYPE\n");
-	    finfo->images++;
+		if(DGifGetImageDesc(gif) == GIF_ERROR)
+		{
+		    PrintGifError();
+		    return SQERR_BADFILE;
+		}
+
+		finfo->images++;
 	    
-	    if(!foundExt)
-	    {
-		memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
-		lastDisposal = disposal;
-		disposal = DISPOSAL_NO;
-		finfo->image[currentImage].delay = 100;
-		transIndex = -1;
-		finfo->image[currentImage].hasalpha = true;
-	    }
+		if(!foundExt)
+		{
+		    memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+		    lastDisposal = disposal;
+		    disposal = DISPOSAL_NO;
+		    finfo->image[currentImage].delay = 100;
+		    transIndex = -1;
+		    finfo->image[currentImage].hasalpha = true;
+		}
 
-	    lastRow = (currentImage) ? Row : gif->Image.Top;
-	    lastCol = (currentImage) ? Col : gif->Image.Left;
-	    Row = gif->Image.Top;
-	    Col = gif->Image.Left;
-	    finfo->image[currentImage].w = gif->SWidth;
-	    finfo->image[currentImage].h = gif->SHeight;
-	    lastWidth = (currentImage) ? Width : gif->Image.Width;
-	    lastHeight = (currentImage) ? Height : gif->Image.Height;
-	    Width = gif->Image.Width;
-	    Height = gif->Image.Height;
-	    finfo->image[currentImage].bpp = 8;
+		lastRow = (currentImage) ? Row : gif->Image.Top;
+		lastCol = (currentImage) ? Col : gif->Image.Left;
+		Row = gif->Image.Top;
+		Col = gif->Image.Left;
+		finfo->image[currentImage].w = gif->SWidth;
+		finfo->image[currentImage].h = gif->SHeight;
+		lastWidth = (currentImage) ? Width : gif->Image.Width;
+		lastHeight = (currentImage) ? Height : gif->Image.Height;
+		Width = gif->Image.Width;
+		Height = gif->Image.Height;
+		finfo->image[currentImage].bpp = 8;
 
-	    printf("** fmt_next: %dx%d [%d,%d,%d,%d]\n", finfo->image[currentImage].w, finfo->image[currentImage].h,
-			    Col, Row, Width, Height);
+		curLine = 0;
 
-	    curLine = 0;
-
-	    if(gif->Image.Left + gif->Image.Width > gif->SWidth || gif->Image.Top + gif->Image.Height > gif->SHeight)
-	    {
-	        return SQERR_BADFILE;
-	    }
-
-/*	    linesz = gif->SWidth * sizeof(GifPixelType);
-	    
-	    if((buf = (GifRowType)realloc(buf, linesz)) == NULL)
-	    {
-    		return SQERR_NOMEMORY;
-	    }
-*/
+		if(gif->Image.Left + gif->Image.Width > gif->SWidth || gif->Image.Top + gif->Image.Height > gif->SHeight)
+		{
+	    	    return SQERR_BADFILE;
+		}
 	    break;
 
 	    case EXTENSION_RECORD_TYPE:
@@ -240,23 +224,18 @@ int fmt_next(fmt_info *finfo)
 		    return SQERR_BADFILE;
 		}
 		
-		printf("ExtCode = %d\n", ExtCode);
-		
 		if(ExtCode == 249)
 		{
-		    printf("Record EXT 249\n");
 		    foundExt = true;
 
-//		    finfo->image = (fmt_image *)realloc(finfo->image, sizeof(fmt_image) * finfo->images);
 		    memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
 
 		    lastDisposal = disposal;
 		    disposal = (Extension[1] >> 2) & 7;
-//		    printf("Disposal method: %d\n", disposal);
 		    bool b = Extension[1] & 1;
 		    int u = (unsigned)*(Extension + 2);
 		    finfo->image[currentImage].delay = (!u) ? 100 : (u * 10);
-//		    printf("**** fmt_next: Image #%d, Delay: %u\n", currentImage, finfo->image[currentImage].delay);
+
 		    if(b)
 		      transIndex = Extension[4];
 		      
@@ -265,7 +244,7 @@ int fmt_next(fmt_info *finfo)
 		else if(ExtCode == 254)
 		{
 		    //Extension[2];
-		    printf("Record EXT 254\n");
+//		    printf("Record EXT 254\n");
 		}
 
 		while(Extension)
@@ -275,13 +254,10 @@ int fmt_next(fmt_info *finfo)
 			PrintGifError();
 			return SQERR_BADFILE;
 		    }
-		    
-		    printf("Found NEWEXT %d\n", Extension);
 		}
 	    break;
 	    
 	    case TERMINATE_RECORD_TYPE:
-		printf("Found TERMINATE!\n");
 		return SQERR_NOTOK;
 
 	    default: ;
@@ -294,7 +270,12 @@ int fmt_next(fmt_info *finfo)
 
 	    map = (gif->Image.ColorMap) ? gif->Image.ColorMap : gif->SColorMap;
 
-	    printf("transIndex = %d\n", transIndex);
+	    back.a = (transIndex != -1) ? 0 : 255;
+
+	    for(int k = 0;k < gif->SWidth;k++)
+	    {
+    		memcpy(saved+k, &back, sizeof(RGBA));
+	    }
 
 	    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\nLZW\n%d\n",
 		fmt_quickinfo(),
@@ -304,105 +285,123 @@ int fmt_next(fmt_info *finfo)
 		"Color indexed",
 		finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA));
 
-	    finfo->interlaced = gif->Image.Interlace;
-	    finfo->passes = (finfo->interlaced) ? 4 : 1;
-	    
+	    finfo->image[currentImage].interlaced = gif->Image.Interlace;
+	    finfo->image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
+
 	    layer = -1;
 	    currentPass = -1;
-
-	    printf("fmt_next: finfo->interlaced = %d\n", finfo->interlaced);
 
 	    return SQERR_OK;
 	}
     }
 }
 
-/*  
- *    reads scanline
- *    scan should exist, e.g. RGBA scan[N], not RGBA *scan  
- */
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
     if(curLine < Row || curLine >= Row + Height)
     {
-	memcpy(scan, Last[curLine], finfo->image[currentImage].w * sizeof(RGBA));
-//	memset(scan, 0, finfo->image[currentImage].w * sizeof(RGBA));
+    	if(currentPass == finfo->image[currentImage].passes-1)
+	{
+	    memcpy(scan, Last[curLine], finfo->image[currentImage].w * sizeof(RGBA));
 
-	if(lastDisposal == DISPOSAL_BACKGROUND)
-	    if(curLine >= lastRow && curLine < lastRow+lastHeight)
-	    {
-		memcpy(scan+lastCol, saved, lastWidth * sizeof(RGBA));
-		memcpy(Last[curLine], scan, finfo->image[currentImage].w * sizeof(RGBA));
-	    }
-
+	    if(lastDisposal == DISPOSAL_BACKGROUND)
+		if(curLine >= lastRow && curLine < lastRow+lastHeight)
+		{
+		    memcpy(scan+lastCol, saved, lastWidth * sizeof(RGBA));
+		    memcpy(Last[curLine], scan, finfo->image[currentImage].w * sizeof(RGBA));
+		}
+	}
+	
 	curLine++;
 
 	return SQERR_OK;
     }
-    
+
     curLine++;
 
     int i;
-    
+    int index;
+
     if(gif->Image.Interlace)
     {
-	    memcpy(scan, Last[curLine-1], finfo->image[currentImage].w * sizeof(RGBA));
+	memcpy(scan, Last[curLine-1], finfo->image[currentImage].w * sizeof(RGBA));
 
-	    if(line == 0)
-		j = InterlacedOffset[layer];
+	if(line == 0)
+	    j = InterlacedOffset[layer];
 
-	    if(line == j)
+	if(line == j)
+	{
+	    if(DGifGetLine(gif, buf, Width) == GIF_ERROR)
 	    {
-		if(DGifGetLine(gif, buf, Width) == GIF_ERROR)
-		{
-		    PrintGifError();
-		    memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
-		    return SQERR_BADFILE;
-		}
-		else
-		{
-		    j += InterlacedJumps[layer];
-
-		    for(i = 0;i < Width;i++)
-		    {
-			int index = Col + i;
-
-			if(buf[i] == transIndex && transIndex != -1)
-			{
-			    if(!currentImage)
-			    {
-    			        RGB *rgb = (RGB*)&(map->Colors[buf[i]]);
-
-				if(back.r == rgb->r && back.g == rgb->b && back.b == rgb->b)
-			    	    (scan+index)->a = 0;
-				else
-				    memcpy(scan+index, &back, sizeof(RGBA));
-			    }
-			}
-			else
-			    memcpy(scan+index, &(map->Colors[buf[i]]), sizeof(RGB));
-		    }
-
-		    Lines[line] = (RGBA*)calloc(finfo->image[currentImage].w, sizeof(RGBA));
-
-		    if(!Lines[line])
-			return SQERR_NOMEMORY;
-			
-		    memcpy(Lines[line], scan, finfo->image[currentImage].w * sizeof(RGBA));
-		};
+	        PrintGifError();
+	        memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
+	        return SQERR_BADFILE;
 	    }
 	    else
 	    {
-		if(Lines[line])
-		    memcpy(scan, Lines[line], finfo->image[currentImage].w * sizeof(RGBA));
-		else
-		    memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
-	    }
+		j += InterlacedJumps[layer];
 
+		for(i = 0;i < Width;i++)
+		{
+		    index = Col + i;
+
+		    if(buf[i] == transIndex && transIndex != -1)
+		    {
+			RGB rgb = *((RGB *)&(map->Colors[buf[i]]));
+
+			if(back == rgb && !currentImage)
+			    (scan+index)->a = 0;
+			else if(back == rgb && lastDisposal != DISPOSAL_BACKGROUND && currentImage)
+			{
+			    RGBA *t = &Last[curLine-1][index];
+			    memcpy(scan+index, t, sizeof(RGBA));
+			}
+			else if(back == rgb && lastDisposal == DISPOSAL_BACKGROUND && currentImage)
+			{
+			    (scan+index)->a = 0;
+			}
+			else if(currentImage)
+			{
+			    RGBA *t = &Last[curLine-1][index];
+
+			    if(lastDisposal == DISPOSAL_BACKGROUND)
+			    {
+				memcpy(scan+index, &back, sizeof(RGBA));//(scan+index)->a=0;
+
+				if(t->a == 0)
+				(scan+index)->a=0;
+			    }
+			}
+		    }
+		    else
+		    {
+		        memcpy(scan+index, &(map->Colors[buf[i]]), sizeof(RGB));
+		        (scan+index)->a = 255;
+		    }
+		}
+
+		Lines[line] = (RGBA*)realloc(Lines[line], finfo->image[currentImage].w * sizeof(RGBA));
+
+		if(!Lines[line])
+		    return SQERR_NOMEMORY;
+			
+		memcpy(Lines[line], scan, finfo->image[currentImage].w * sizeof(RGBA));
+	    }
+	} // if(line == j)
+	else
+	{
+	    if(Lines[line])
+	        memcpy(scan, Lines[line], finfo->image[currentImage].w * sizeof(RGBA));
+	    else
+	        memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
+	}
+
+	if(currentPass == finfo->image[currentImage].passes-1)
 	    memcpy(Last[curLine-1], scan, finfo->image[currentImage].w * sizeof(RGBA));
-	    line++;
+
+	line++;
     }
-    else
+    else // !interlaced
     {
         if(DGifGetLine(gif, buf, Width) == GIF_ERROR)
         {
@@ -413,13 +412,12 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	else
 	{
 	    memcpy(scan, Last[curLine-1], finfo->image[currentImage].w * sizeof(RGBA));
-//	    memset(scan, 0, finfo->image[currentImage].w * sizeof(RGBA));
 
 	    if(lastDisposal == DISPOSAL_BACKGROUND)
+	    {
 		if(curLine-1 >= lastRow && curLine-1 < lastRow+lastHeight)
 		    memcpy(scan+lastCol, saved, lastWidth * sizeof(RGBA));
-
-	    int index;
+	    }
 
 	    for(i = 0;i < Width;i++)
 	    {
@@ -431,20 +429,28 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		    if(back == rgb && !currentImage)
 			(scan+index)->a = 0;
-		    else if(back == rgb)
+		    else if(back == rgb && lastDisposal != DISPOSAL_BACKGROUND && currentImage)
 		    {
 			RGBA *t = &Last[curLine-1][index];
-//			if(t->a == 255)
-			    memcpy(scan+index, t, sizeof(RGBA));// = 255;
-//			    else
-//			    (scan+index)->a = 0;
+			memcpy(scan+index, t, sizeof(RGBA));// = 255;
 		    }
-		    else
+		    else if(back == rgb && lastDisposal == DISPOSAL_BACKGROUND && currentImage)
 		    {
-			memcpy(scan+index, &back, sizeof(RGBA));
-			(scan+index)->a = 255;
+			(scan+index)->a = 0;
 		    }
-		}
+		    else if(currentImage)
+		    {
+			RGBA *t = &Last[curLine-1][index];
+
+			if(lastDisposal == DISPOSAL_BACKGROUND)
+			{
+			    memcpy(scan+index, &back, sizeof(RGBA));//(scan+index)->a=0;
+
+			    if(t->a == 0)
+				(scan+index)->a=0;
+			}
+		    }
+		}// if transIndex
 		else
 		{
 		    memcpy(scan+index, &(map->Colors[buf[i]]), sizeof(RGB));
@@ -459,18 +465,264 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **scan, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char **dump)
 {
-    file = file;
-    scan = scan;
-    dump = dump;
+    GifFileType 	*m_gif;
+    GifRecordType	m_record;
+    GifByteType		*m_Extension;
+    unsigned char	**m_buf;
+    int			m_i, m_j, m_Row = 0, m_Col = 0, m_Width = 0, m_Height = 0, ExtCode, m_transIndex;
+    RGBA		m_back;
+    FILE		*m_fptr;
+    ColorMapObject	*m_map;
+    int 		w = 0, h = 0, bpp = 0;
+
+    m_fptr = fopen(file, "rb");
+
+    if(!m_fptr)
+        return SQERR_NOFILE;
+	
+    fclose(m_fptr);
+
+    m_transIndex = -1;
+
+    m_gif = DGifOpenFileName(file);
+
+    if((m_buf = (unsigned char**)calloc(m_gif->SHeight, sizeof(unsigned char*))) == NULL)
+        return SQERR_NOMEMORY;
+
+    for(m_i = 0;m_i < m_gif->SHeight;m_i++)
+	if((m_buf[m_i] = (unsigned char*)calloc(m_gif->SWidth, sizeof(unsigned char))) == NULL)
+	{
+	    for(int k = 0;k < m_i;k++)
+		free(m_buf[k]);
+
+	    free(m_buf);
+
+	    DGifCloseFile(m_gif);
+
+    	    return SQERR_NOMEMORY;
+	}
+
+    if(m_gif->SColorMap)
+    {
+	m_back.r = m_gif->SColorMap->Colors[m_gif->SBackGroundColor].Red;
+	m_back.g = m_gif->SColorMap->Colors[m_gif->SBackGroundColor].Green;
+	m_back.b = m_gif->SColorMap->Colors[m_gif->SBackGroundColor].Blue;
+	m_back.a = 255;
+    }
+    else
+    {
+	memset(&m_back, 0, sizeof(RGBA));
+    }
+
+    m_map = (m_gif->Image.ColorMap) ? m_gif->Image.ColorMap : m_gif->SColorMap;
+
+    while(true)
+    {
+        if(DGifGetRecordType(m_gif, &m_record) == GIF_ERROR)
+	{
+	    PrintGifError();
+
+	    for(int k = 0;k < m_gif->SHeight;k++)
+		free(m_buf[k]);
+		    
+	    free(m_buf);
+		    
+	    DGifCloseFile(m_gif);
+	
+	    return SQERR_BADFILE;
+	}
+
+	switch(m_record)
+	{
+	    case IMAGE_DESC_RECORD_TYPE:
+		if(DGifGetImageDesc(m_gif) == GIF_ERROR)
+		{
+		    PrintGifError();
+		    
+		    for(int k = 0;k < m_gif->SHeight;k++)
+			free(m_buf[k]);
+		    
+		    free(m_buf);
+		    
+		    DGifCloseFile(m_gif);
+
+		    return SQERR_BADFILE;
+		}
+
+		m_Row = m_gif->Image.Top;
+		m_Col = m_gif->Image.Left;
+		w = m_gif->SWidth;
+		h = m_gif->SHeight;
+		m_Width = m_gif->Image.Width;
+		m_Height = m_gif->Image.Height;
+		bpp = 8;
+
+		if(m_gif->Image.Left + m_gif->Image.Width > m_gif->SWidth || m_gif->Image.Top + m_gif->Image.Height > m_gif->SHeight)
+		{
+		    for(int k = 0;k < m_gif->SHeight;k++)
+			free(m_buf[k]);
+
+		    free(m_buf);
+
+		    DGifCloseFile(m_gif);
+	    	    return SQERR_BADFILE;
+		}
+	    break;
+
+	    case EXTENSION_RECORD_TYPE:
+		if(DGifGetExtension(m_gif, &ExtCode, &m_Extension) == GIF_ERROR)
+		{
+		    PrintGifError();
+
+		    for(int k = 0;k < m_gif->SHeight;k++)
+			free(m_buf[k]);
+
+		    free(m_buf);
+
+		    DGifCloseFile(m_gif);
+		    return SQERR_BADFILE;
+		}
+		
+		if(ExtCode == 249)
+		{
+		    bool b = m_Extension[1] & 1;
+
+		    if(b)
+			m_transIndex = m_Extension[4];
+		}
+
+		while(m_Extension)
+		{
+		    if(DGifGetExtensionNext(m_gif, &m_Extension) == GIF_ERROR)
+		    {
+			PrintGifError();
+
+			for(int k = 0;k < m_gif->SHeight;k++)
+			    free(m_buf[k]);
+
+			free(m_buf);
+
+			DGifCloseFile(m_gif);
+			return SQERR_BADFILE;
+		    }
+		}
+	    break;
+	    
+	    case TERMINATE_RECORD_TYPE:
+		for(int k = 0;k < m_gif->SHeight;k++)
+		    free(m_buf[k]);
+
+		free(m_buf);
+
+		DGifCloseFile(m_gif);
+	    return SQERR_BADFILE;
+
+	    default: ;
+	}
+
+	if(m_record == IMAGE_DESC_RECORD_TYPE)
+	{
+	    m_map = (m_gif->Image.ColorMap) ? m_gif->Image.ColorMap : m_gif->SColorMap;
+	    m_back.a = (m_transIndex != -1) ? 0 : 255;
+	    break;
+	}
+    }
+
+    int m_bytes = w * h * sizeof(RGBA);
+
+    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nLZW\n%d\n%d\n",
+        fmt_quickinfo(),
+        w,
+        h,
+        bpp,
+        "Color indexed",
+        1,
+        m_bytes);
+
+    *image = (RGBA*)realloc(*image, m_bytes);
+
+    if(!*image)
+    {
+        trace("libSQ_read_gif: Image is null!");
+
+	for(int k = 0;k < m_gif->SHeight;k++)
+	    free(m_buf[k]);
+
+	free(m_buf);
+
+	DGifCloseFile(m_gif);
+
+        return SQERR_NOMEMORY;
+    }
+
+    memset(*image, 255, m_bytes);
+
+    if(m_gif->Image.Interlace)
+    {
+	for(m_i = 0;m_i < 4;m_i++)
+	{
+	    for(m_j = m_Row + InterlacedOffset[m_i];m_j < m_Row + m_Height;m_j += InterlacedJumps[m_i])
+	    {
+		if(DGifGetLine(m_gif, &m_buf[m_j][m_Col], m_Width) == GIF_ERROR)
+		{
+		    PrintGifError();
+		}
+	    }
+	}
+    }
+    else
+    {
+	for(int h2 = m_Row;h2 < m_Height+m_Row;h2++)
+	{
+	    if(DGifGetLine(m_gif, &m_buf[h2][m_Col], m_Width) == GIF_ERROR)
+	    {
+	        PrintGifError();
+	    }
+	}
+    }
+
+    RGB *r;
+
+    for(m_i = m_Row;m_i < m_Height+m_Row;m_i++)
+    {
+	RGBA *scan = *image + m_i * w;
+
+	for(m_j = m_Col;m_j < m_Col+m_Width;m_j++)
+	{
+	    r = (RGB*)(&m_map->Colors[m_buf[m_i][m_j]]);
+
+	    if(m_buf[m_i][m_j] == m_transIndex && m_transIndex != -1)
+	    {
+		if(back == *r)
+		    (scan+m_j)->a = 0;
+	    }
+	    else
+	    {
+	        memcpy(scan+m_j, r, sizeof(RGB));
+		(scan+m_j)->a = 255;
+	    }
+	}
+    }
+
+    for(int k = 0;k < m_gif->SHeight;k++)
+	free(m_buf[k]);
+
+    free(m_buf);
+
+    DGifCloseFile(m_gif);
 
     return SQERR_OK;
 }
 
 int fmt_close()
 {
-    free(buf);
+    if(buf)
+	free(buf);
+
+    if(saved)
+	free(saved);
 
     if(Lines)
     {

@@ -16,12 +16,12 @@ read_pnm.lo .libs/read_pnm.o: read_pnm.cpp /usr/include/stdio.h \
   /usr/include/bits/select.h /usr/include/bits/sigset.h \
   /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
   /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h \
-  /usr/include/alloca.h /usr/include/string.h read_pnm.h ../defs.h \
-  /usr/include/linux/types.h /usr/include/linux/posix_types.h \
-  /usr/include/linux/stddef.h /usr/include/asm/posix_types.h \
-  /usr/include/asm/types.h /usr/include/linux/compiler.h \
-  /usr/include/linux/compiler-gcc3.h /usr/include/linux/compiler-gcc.h \
-  ../err.h
+  /usr/include/alloca.h /usr/include/string.h /usr/include/ctype.h \
+  read_pnm.h ../defs.h /usr/include/linux/types.h \
+  /usr/include/linux/posix_types.h /usr/include/linux/stddef.h \
+  /usr/include/asm/posix_types.h /usr/include/asm/types.h \
+  /usr/include/linux/compiler.h /usr/include/linux/compiler-gcc3.h \
+  /usr/include/linux/compiler-gcc.h ../err.h
 
 /usr/include/stdio.h:
 
@@ -94,6 +94,8 @@ read_pnm.lo .libs/read_pnm.o: read_pnm.cpp /usr/include/stdio.h \
 /usr/include/alloca.h:
 
 /usr/include/string.h:
+
+/usr/include/ctype.h:
 
 read_pnm.h:
 

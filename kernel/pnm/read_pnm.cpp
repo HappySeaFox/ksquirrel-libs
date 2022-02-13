@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "read_pnm.h"
 
@@ -30,12 +31,14 @@ PPM_HEADER	pfh;
 int		pnm;
 FILE 		*fptr;
 int 		currentImage, bytes;
+char		format[10];
+double		koeff;
 
 typedef unsigned char uchar;
 
 const char* fmt_version()
 {
-    return (const char*)"0.5.0";
+    return (const char*)"0.5.2";
 }
     
 const char* fmt_quickinfo()
@@ -69,7 +72,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    finfo->passes = 1;
 
     return SQERR_OK;
 }
@@ -77,7 +79,7 @@ int fmt_init(fmt_info *finfo, const char *file)
 int fmt_next(fmt_info *finfo)
 {
     currentImage++;
-    
+
     if(currentImage)
 	return SQERR_NOTOK;
 	    
@@ -86,15 +88,18 @@ int fmt_next(fmt_info *finfo)
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
 
+    finfo->image[currentImage].passes = 1;
+
     char		str[256];
-    int			w, h, maxcolor;
+    int			w, h;
+    unsigned int	 maxcolor;
 
     fread(&pfh, 2, 1, fptr);
     pfh.ID[2] = '\0';
 
     fgetc(fptr);
 
-    for(;;)
+    while(true)
     {
 	fgets(str, 255, fptr);
         if(str[0] != '#')
@@ -102,17 +107,16 @@ int fmt_next(fmt_info *finfo)
     }
 
     sscanf(str, "%d%d", &w, &h);
-    if(pfh.ID[1] != '4')
-	fscanf(fptr, "%d", &maxcolor);
 
     finfo->image[currentImage].w = w;
     finfo->image[currentImage].h = h;
 
-    pnm = pfh.ID[1] - 48;
+    printf("%dx%d\n", w, h);
 
-    if(pnm != 4 && pnm != 1)
-	fgetc(fptr);
-	
+    pnm = pfh.ID[1] - 48;
+    
+    printf("PNM: %d\n", pnm);
+
     switch(pnm)
     {
 	case 1:
@@ -130,6 +134,37 @@ int fmt_next(fmt_info *finfo)
 	    finfo->image[currentImage].bpp = 8;
 	break;
     }
+
+    if(pnm != 4 && pnm != 1)
+    {
+	fscanf(fptr, "%d", &maxcolor);
+	
+	if((pnm == 5 || pnm == 6) && maxcolor > 255)
+	    return SQERR_BADFILE;
+
+	if(pnm == 2 || pnm == 3)
+	    skip_flood(fptr);
+	else
+	    fgetc(fptr);
+
+	if(maxcolor <= 9)
+	    strcpy(format, "%1d");
+	else if(maxcolor >= 9 && maxcolor <= 99)
+	    strcpy(format, "%2d");
+	else if(maxcolor > 99 && maxcolor <= 999)
+	    strcpy(format, "%3d");
+	else if(maxcolor > 999 && maxcolor <= 9999)
+	    strcpy(format, "%4d");
+
+	koeff = 255.0 / maxcolor;
+    }
+    else if(pnm == 1)
+    {
+	strcpy(format, "%1d");
+	koeff = 1.0;
+    }
+    
+    printf("maxcolor: %d, format: %s, koeff: %.1f\n\n", maxcolor, format, koeff);
 
     bytes = finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA);
     
@@ -152,56 +187,80 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     uchar	bt;
     int		i;
 
-
     memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
 
     switch(pnm)
     {
+	case 1:
+        {
+    	    static RGB palmono[2] = {{255,255,255}, {0,0,0}};
+	    int d;
+
+	    for(i = 0;i < finfo->image[currentImage].w;i++)
+	    {
+		fscanf(fptr, format, &d);
+
+		d = (int)(d * koeff);
+
+		memcpy(scan+i, palmono+d, sizeof(RGB));
+    	    }
+	    
+	    skip_flood(fptr);
+	}
+	break;
+
+	case 2:
+	{
+	    int d;
+
+	    for(i = 0;i < finfo->image[currentImage].w;i++)
+	    {
+		fscanf(fptr, format, &d);
+
+		d = (int)(d * koeff);
+
+		memset(scan+i, d, sizeof(RGB));
+	    }
+	    
+	    skip_flood(fptr);
+	}
+	break;
+
 	case 3:
     	    for(i = 0;i < finfo->image[currentImage].w;i++)
 	    {
-		fscanf(fptr ,"%d%d%d", (int*)&rgb.r, (int*)&rgb.g, (int*)&rgb.b);
-		memcpy(scan+i, &rgb, 3);
+		fscanf(fptr, format, (int*)&rgb.r);
+		fscanf(fptr, format, (int*)&rgb.g);
+		fscanf(fptr, format, (int*)&rgb.b);
+		memcpy(scan+i, &rgb, sizeof(RGB));
 	    }
+
+	    skip_flood(fptr);
 	break;
 
 	case 6:
 	    for(i = 0;i < finfo->image[currentImage].w;i++)
 	    {
-		fread(&rgb,sizeof(RGB),1,fptr);
-		memcpy(scan+i, &rgb, 3);
+		fread(&rgb, sizeof(RGB), 1, fptr);
+		memcpy(scan+i, &rgb, sizeof(RGB));
     	    }
 	break;
-	
-	case 2:
-	    for(i = 0;i < finfo->image[currentImage].w;i++)
-	    {
-		fscanf(fptr ,"%d", (int*)&bt);
-		rgb.r = rgb.g = rgb.b = bt;
-		memcpy(scan+i, &rgb, 3);
-	    }
-	break;
-    
+
 	case 5:
+	{
+	    long pos;
+	    pos = ftell(fptr);
+	    printf("POS1: %d, ", pos);
+
 	    for(i = 0;i < finfo->image[currentImage].w;i++)
 	    {
 		fread(&bt,1,1,fptr);
 		rgb.r = rgb.g = rgb.b = bt;
 		memcpy(scan+i, &rgb, 3);
 	    }
-	break;
-	
-	case 1:
-        {
-    	    static RGB palmono[2] = {{255,255,255}, {0,0,0}};
-
-	    for(i = 0;i < finfo->image[currentImage].w;i++)
-	    {
-		fscanf(fptr ,"%d", (int*)&bt);
-		memcpy(scan+i, palmono+(int)bt, 3);
-    	    }
 	}
 	break;
+	
 
 	case 4:
 	{
@@ -233,7 +292,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	break;
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_next_pass(fmt_info *)
@@ -243,40 +302,44 @@ int fmt_next_pass(fmt_info *)
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)
 {
+    int w, h, bpp = 0;
     PPM_HEADER	m_pfh;
     int		m_pnm;
-    FILE *m_fptr;
-    int w, h, bpp;
+    FILE 	*m_fptr;
+    char	m_format[10];
+    double	m_koeff = 1.0;
 
     m_fptr = fopen(file, "rb");
-
+				        
     if(!m_fptr)
         return SQERR_NOFILE;
 
     char		str[256];
-    int			maxcolor;
+    unsigned int	 maxcolor;
 
     fread(&m_pfh, 2, 1, m_fptr);
     m_pfh.ID[2] = '\0';
 
     fgetc(m_fptr);
 
-    for(;;)
+    while(true)
     {
 	fgets(str, 255, m_fptr);
-        if(*str != '#')
+        if(str[0] != '#')
 	    break;
     }
 
     sscanf(str, "%d%d", &w, &h);
-    if(m_pfh.ID[1] != '4')
-	fscanf(m_fptr, "%d", &maxcolor);
+
+    w = w;
+    h = h;
+
+    printf("%dx%d\n", w, h);
 
     m_pnm = m_pfh.ID[1] - 48;
+    
+    printf("PNM: %d\n", m_pnm);
 
-    if(m_pnm != 4 && m_pnm != 1)
-	fgetc(m_fptr);
-	
     switch(m_pnm)
     {
 	case 1:
@@ -293,9 +356,35 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	case 6:
 	    bpp = 8;
 	break;
+    }
+
+    if(m_pnm != 4 && m_pnm != 1)
+    {
+	fscanf(m_fptr, "%d", &maxcolor);
 	
-	default:
-	    bpp = 8;
+	if((m_pnm == 5 || m_pnm == 6) && maxcolor > 255)
+	    return SQERR_BADFILE;
+
+	if(m_pnm == 2 || m_pnm == 3)
+	    skip_flood(m_fptr);
+	else
+	    fgetc(m_fptr);
+	
+	if(maxcolor <= 9)
+	    strcpy(m_format, "%1d");
+	else if(maxcolor >= 9 && maxcolor <= 99)
+	    strcpy(m_format, "%2d");
+	else if(maxcolor > 99 && maxcolor <= 999)
+	    strcpy(m_format, "%3d");
+	else if(maxcolor > 999 && maxcolor <= 9999)
+	    strcpy(m_format, "%4d");
+
+	m_koeff = 255.0 / maxcolor;
+    }
+    else if(m_pnm == 1)
+    {
+	strcpy(m_format, "%1d");
+	m_koeff = 1.0;
     }
 
     int m_bytes = w * h * sizeof(RGBA);
@@ -310,79 +399,96 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	m_bytes);
 
     *image = (RGBA*)realloc(*image, m_bytes);
-
+						
     if(!*image)
     {
-        fprintf(stderr, "libSQ_read_pix: Image is null!\n");
+        fprintf(stderr, "libSQ_read_pnm: Image is null!\n");
         fclose(m_fptr);
         return SQERR_NOMEMORY;
     }
 
     memset(*image, 255, m_bytes);
 
-    /*  reading ... */
-
-    int W = w * sizeof(RGBA);
-    
     for(int h2 = 0;h2 < h;h2++)
     {
-        RGBA 	*scan = *image + h2 * w;
-
-	memset(scan, 255, W);
+	RGBA 	*scan = *image + h2 * w;
 
     RGB		rgb;
     uchar	bt;
-    int 	i;
-
-    memset(scan, 255, W);
+    int		i;
 
     switch(m_pnm)
     {
+	case 1:
+        {
+    	    static RGB palmono[2] = {{255,255,255}, {0,0,0}};
+	    int d;
+
+	    for(i = 0;i < w;i++)
+	    {
+		fscanf(m_fptr, m_format, &d);
+
+		d = (int)(d * m_koeff);
+
+		memcpy(scan+i, palmono+d, sizeof(RGB));
+    	    }
+	    
+	    skip_flood(m_fptr);
+	}
+	break;
+
+	case 2:
+	{
+	    int d;
+
+	    for(i = 0;i < w;i++)
+	    {
+		fscanf(m_fptr, m_format, &d);
+
+		d = (int)(d * m_koeff);
+
+		memset(scan+i, d, sizeof(RGB));
+	    }
+	    
+	    skip_flood(m_fptr);
+	}
+	break;
+
 	case 3:
     	    for(i = 0;i < w;i++)
 	    {
-		fscanf(m_fptr ,"%d%d%d", (int*)&rgb.r, (int*)&rgb.g, (int*)&rgb.b);
+		fscanf(m_fptr, m_format, (int*)&rgb.r);
+		fscanf(m_fptr, m_format, (int*)&rgb.g);
+		fscanf(m_fptr, m_format, (int*)&rgb.b);
 		memcpy(scan+i, &rgb, 3);
 	    }
+
+	    skip_flood(m_fptr);
 	break;
 
 	case 6:
 	    for(i = 0;i < w;i++)
 	    {
 		fread(&rgb,sizeof(RGB),1,m_fptr);
-		memcpy(scan+i, &rgb, 3);
+		memcpy(scan+i, &rgb, sizeof(RGB));
     	    }
 	break;
-	
-	case 2:
-	    for(i = 0;i < w;i++)
-	    {
-		fscanf(m_fptr ,"%d", (int*)&bt);
-		rgb.r = rgb.g = rgb.b = bt;
-		memcpy(scan+i, &rgb, 3);
-	    }
-	break;
-    
+
 	case 5:
+	{
+	    long pos;
+	    pos = ftell(m_fptr);
+	    printf("POS1: %d, ", pos);
+
 	    for(i = 0;i < w;i++)
 	    {
 		fread(&bt,1,1,m_fptr);
 		rgb.r = rgb.g = rgb.b = bt;
 		memcpy(scan+i, &rgb, 3);
 	    }
-	break;
-	
-	case 1:
-        {
-    	    static RGB palmono[2] = {{255,255,255}, {0,0,0}};
-
-	    for(i = 0;i < w;i++)
-	    {
-		fscanf(m_fptr ,"%d", (int*)&bt);
-		memcpy(scan+i, palmono+(int)bt, 3);
-    	    }
 	}
 	break;
+	
 
 	case 4:
 	{
@@ -413,8 +519,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	}
 	break;
     }
-    }
 
+    }
+    
     fclose(m_fptr);
 
     return SQERR_OK;
@@ -425,4 +532,37 @@ int fmt_close()
     fclose(fptr);
 
     return SQERR_OK;
+}
+
+void skip_flood(FILE *f)
+{
+    long pos;
+    unsigned char b;
+
+    while(true)
+    {
+	pos = ftell(f);
+	fread(&b, 1, 1, f);
+	
+	if(feof(f) || ferror(f))
+	    break;
+
+	if(!isspace(b))
+	{
+	    if(b == '#')
+	    {
+		while(true)
+		{
+		    b = fgetc(f);
+
+		    if(b == '\n')
+			break;
+		}
+	    }
+
+	    break;
+	}
+    }
+
+    fsetpos(f, (fpos_t*)&pos);
 }

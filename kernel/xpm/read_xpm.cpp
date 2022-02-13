@@ -48,7 +48,7 @@ const char* fmt_filter()
 	    
 const char* fmt_mime()
 {
-    return (const char*)"/* XPM */";
+    return (const char*)"/. XPM ./\n";
 }
 
 const char* fmt_pixmap()
@@ -89,6 +89,7 @@ int fmt_next(fmt_info *finfo)
     char	str[256];
 
     skip_comments(fptr);
+    skip_empty_lines(fptr);
     fgets(str, 256, fptr);  /*  static char* ....  */
     skip_comments(fptr);
     fgets(str, 256, fptr);
@@ -142,7 +143,8 @@ int fmt_next(fmt_info *finfo)
     bytes = finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA);
             
     finfo->images++;
-    finfo->passes = 1;
+
+    finfo->image[currentImage].passes = 1;
 
     asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
@@ -204,7 +206,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	break;
     }
 
-    return SQERR_OK;
+    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
 int fmt_readimage(const char *file, RGBA **image, char **dump)
@@ -224,6 +226,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     char	str[256];
 
     skip_comments(m_fptr);
+    skip_empty_lines(m_fptr);
     fgets(str, 256, m_fptr);  /*  static char* ....  */
     skip_comments(m_fptr);
     fgets(str, 256, m_fptr);

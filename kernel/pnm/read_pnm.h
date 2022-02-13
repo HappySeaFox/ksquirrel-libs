@@ -32,6 +32,8 @@ typedef struct
     uchar	ID[3];
 }PPM_HEADER;
 
+void skip_flood(FILE *);
+
 extern "C" {
 
 const char*     fmt_version();

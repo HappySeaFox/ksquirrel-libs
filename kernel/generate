@@ -28,17 +28,19 @@ chmod +x compile-c compile-c++
 } # function
 
 cat << EOF > Makefile.am
+INCLUDES = -I.. -I.
 lib_LTLIBRARIES = libSQ_read_$name.la
 libSQ_read_${name}_la_SOURCES = read_$name.cpp read_$name.h
 libSQ_read_${name}_la_LIBDADD = 
 EXTRA_DIST = read_$name.cpp read_$name.h
-libSQ_read_$name_la_LDFLAGS = -release 1.0.0
+libSQ_read_${name}_la_LDFLAGS = -release 1.0.0
+LIBS = 
 EOF
 
 cat << EOF > read_$name.h
-/*  This file is part of KSquirrel's (http://ksquirrel.sf.net) libraries
+/*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2004 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -60,8 +62,9 @@ cat << EOF > read_$name.h
 #ifndef KSQUIRREL_READ_IMAGE_$name
 #define KSQUIRREL_READ_IMAGE_$name
 
-#include "../defs.h"
-#include "../err.h"
+#include "defs.h"
+#include "err.h"
+
 
 extern "C" {
 
@@ -85,9 +88,9 @@ int    fmt_next_pass(fmt_info *finfo);
 EOF
 
 cat << EOF > read_$name.cpp
-/*  This file is part of KSquirrel's (http://ksquirrel.sf.net) libraries
+/*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
 
-    Copyright (c) 2004 Dmitry Baryshev <ksquirrel@tut.by>
+    Copyright (c) 2005 Dmitry Baryshev <ksquirrel@tut.by>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -146,12 +149,11 @@ int fmt_init(fmt_info *finfo, const char *file)
     if(!finfo)
         return SQERR_NOMEMORY;
 	
-    fptr = fopen("file", "rb");
+    fptr = fopen(file, "rb");
 
     if(!fptr)
         return SQERR_NOFILE;
 	
-    finfo->passes = 1;
     currentImage = -1;
 
     return SQERR_OK;
@@ -165,7 +167,10 @@ int fmt_next(fmt_info *finfo)
 	return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
-    
+
+    /* You can setup number of passes here, or later */
+    finfo->image[currentImage].passes = 1;
+
     /* Move to the next image here */
 
 
@@ -175,6 +180,8 @@ int fmt_next(fmt_info *finfo)
     /* Determine image type (RGB, RGBA, YUV, etc.) */
     char type[25];
     strcpy(type, "RGB"); /* Usually image is in RGB format */
+    
+    finfo->images++;
 
     /* Write dump */
     asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n?COMPRESSION?\n%d\n",
@@ -185,19 +192,11 @@ int fmt_next(fmt_info *finfo)
 	type,
 	bytes);
 
-    return SQERR_NOTOK;
+    return SQERR_OK;
 }
 
-int fmt_next_pass(fmt_info *finfo)
+int fmt_next_pass(fmt_info *)
 {
-    if(!finfo)
-	return SQERR_NOTOK;
-
-    if(!finfo->image)
-	return SQERR_NOTOK;
-
-    finfo = finfo;
-
     return SQERR_OK;
 }
 
@@ -229,10 +228,10 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     int m_bytes = w * h * sizeof(RGBA);
 
     /*
-	Dump has the following format: "$QUICK_INFO\n$WIDTH\n$HEIGHT\n
-        $BPP\n$COLOR_TYPE\n$NUMBER_OF_IMAGES\n$TOTAL_BYTES_NEEDED"
+	Dump has the following format: "%QUICK_INFO\n%WIDTH\n%HEIGHT\n
+        %BPP\n%COLOR_TYPE\n%COMPRESSION\n%NUMBER_OF_IMAGES\n%TOTAL_BYTES_NEEDED"
     */
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nNO\n%d\n%d\n",
+    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -258,7 +257,6 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     {
 	RGBA 	*scan = *image + h2 * w;
 
-	memset(scan, 255, w * sizeof(RGBA));
     }
     
     /* Do something like fmt_close() here */

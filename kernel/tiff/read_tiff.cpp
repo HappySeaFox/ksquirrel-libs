@@ -65,7 +65,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 	return SQERR_NOMEMORY;
 	
     currentImage = -1;
-    finfo->passes = 1;
 
     if((ftiff = TIFFOpen(file, "r")) == NULL)
 	return SQERR_BADFILE;
@@ -87,6 +86,8 @@ int fmt_next(fmt_info *finfo)
         return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
+
+    finfo->image[currentImage].passes = 1;
 
 //    int bps, spp;
 
