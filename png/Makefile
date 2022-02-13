@@ -10,7 +10,7 @@ INSTALL_DIR=/usr/lib/squirrel/
 all: $(NAME_OBJ) $(NAME_LIB)
 
 $(NAME_LIB): $(NAME_OBJ)
-	$(CC) $(GENERAL_FLAGS) -shared $(NAME_OBJ) -o $(NAME_LIB)
+	$(CC) $(GENERAL_FLAGS) -shared -lpng $(NAME_OBJ) -o $(NAME_LIB)
 	rm -f $(NAME_OBJ)
 
 $(NAME_OBJ): $(NAME_C) $(NAME_H) ../defs.h ../err.h
