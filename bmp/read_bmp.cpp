@@ -39,9 +39,8 @@ char* fmt_quickinfo()
 
 char* fmt_extension()
 {
-    return "*.bmp *.dib";
+    return "bmp dib ";
 }
-
 
 /* inits decoding of 'file': opens it, inits struct fmt_info  */
 int fmt_init(fmt_info **finfo, const char *file)
@@ -71,7 +70,7 @@ int fmt_init(fmt_info **finfo, const char *file)
 }
 
 
-short	FILLER;
+unsigned short	FILLER;
 
 /*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
 int fmt_read_info(fmt_info *finfo)
@@ -147,8 +146,11 @@ int fmt_read_info(fmt_info *finfo)
     /*  fseek to image bits  */
     fseek(finfo->fptr, bfh.OffBits, SEEK_SET);
 
-    asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
-	    finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
+    asprintf(&finfo->dump, "%s\n%ldx%ld\n%d\n%s\nNO\n%d\n",
+	    fmt_quickinfo(),
+	    finfo->w,finfo->h,
+	    finfo->bpp,(finfo->pal_entr)?"Color indexed":"RGB", 
+	    finfo->images);
 
     return SQERR_OK;
 }
@@ -161,8 +163,7 @@ int fmt_read_info(fmt_info *finfo)
  */
 int fmt_read_scanline(fmt_info *finfo, RGBA scan[])
 {
-
-    long remain, scanShouldBe, j, counter = 0;
+    unsigned short remain, scanShouldBe, j, counter = 0;
     unsigned char bt;
 
     memset(scan, 255, finfo->w * 4);
@@ -297,6 +298,13 @@ int fmt_read_scanline(fmt_info *finfo, RGBA scan[])
     return SQERR_OK;
 }
 
+void fmt_readimage(fmt_info *finfo, RGBA *image)
+{
+    unsigned int i = 0;
+
+    for(;i < finfo->h;i++)
+        fmt_read_scanline(finfo, image + i*finfo->w);
+}
 
 int fmt_close(fmt_info *finfo)
 {

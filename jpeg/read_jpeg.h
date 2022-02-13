@@ -26,6 +26,7 @@
 #include "../err.h"
 
 #include <setjmp.h>
+#include <jpeglib.h>
 
 struct my_error_mgr
 {

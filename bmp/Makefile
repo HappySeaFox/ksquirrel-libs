@@ -1,9 +1,9 @@
 NAME=read_bmp
-NAME_C=$(NAME).c
+NAME_C=$(NAME).cpp
 NAME_H=$(NAME).h
 NAME_OBJ=$(NAME).o
 NAME_LIB=libSQ_$(NAME).so
-CC=gcc
+CC=g++
 GENERAL_FLAGS=-Wall -O2
 INSTALL_DIR=/usr/lib/squirrel/
 

@@ -25,9 +25,7 @@
 #include <string.h>
 #include <libiberty.h>
 
-#include <jpeglib.h>
-
-#include "read_jpg.h"
+#include "read_jpeg.h"
 
 
 char* fmt_version()
@@ -42,7 +40,7 @@ char* fmt_quickinfo()
 
 char* fmt_extension()
 {
-    return "*.jpg *.jpeg *.jpe";
+    return "jpg jpeg jpe ";
 }
 
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
@@ -65,13 +63,13 @@ int fmt_init(fmt_info **finfo, const char *file)
     
     if(!((*finfo)->fptr))
     {
-	fclose((*finfo)->fptr);
 	free(*finfo);
 	return SQERR_NOFILE;
     }
     
     return SQERR_OK;
 }
+
 
 METHODDEF(void) my_error_exit(j_common_ptr cinfo)
 {
@@ -90,6 +88,7 @@ JSAMPARRAY 			buffer;
 int fmt_read_info(fmt_info *finfo)
 {
     int i;
+
 
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = my_error_exit;
@@ -129,8 +128,11 @@ int fmt_read_info(fmt_info *finfo)
     
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
 
-    asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
-    finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
+    asprintf(&finfo->dump, "%s\n%ldx%ld\n%d\n%s\nNO\n%d\n",
+    fmt_quickinfo(),
+    finfo->w,finfo->h,
+    finfo->bpp,(finfo->pal_entr)?"Color indexed":"RGB",
+    finfo->images);
 
     return SQERR_OK;
 }
@@ -141,7 +143,7 @@ int fmt_read_info(fmt_info *finfo)
  */
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    int i;
+    unsigned int i;
 
     memset(scan, 255, finfo->w * 4);
 
@@ -151,6 +153,14 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	memcpy(scan+i, buffer[0] + i*3, 3);
 
     return SQERR_OK;
+}
+
+void fmt_readimage(fmt_info *finfo, RGBA *image)
+{
+    unsigned int i = 0;
+
+    for(;i < finfo->h;i++)
+        fmt_read_scanline(finfo, image + i*finfo->w);
 }
 
 int fmt_close(fmt_info *finfo)

@@ -50,7 +50,7 @@ char* fmt_quickinfo()
 
 char* fmt_extension()
 {
-    return "*.png";
+    return "png ";
 }
 
 int fmt_writeable()
@@ -171,29 +171,11 @@ int fmt_read_info(fmt_info *finfo)
 	
     png_read_image(png_ptr, row_pointers);
 */
-    asprintf(&finfo->dump, 
-"Width: %ld\n\
-Height: %ld\n\
-Bits per pixel: %d\n\
-Number of images: %d\n\
-Animated: %s\n\
-Has palette: %s\n\
-Palette has %d entries\n\
-Interlaced: %s\n\
-Number of passes: %ld\n\
-Channels per pixel: %d\n",
-
-finfo->w,
-finfo->h,
-finfo->bpp,
-finfo->images,
-(finfo->animated)?"yes":"no",
-(finfo->pal_entr)?"yes":"no",
-info_ptr->num_palette,
-(number_passes>1)?"yes":"no",
-number_passes,
-info_ptr->channels
-);
+    asprintf(&finfo->dump, "%s\n%ldx%ld\n%d\n%s\nNO\n%d\n",
+    fmt_quickinfo(),
+    finfo->w,finfo->h,
+    finfo->bpp,(finfo->pal_entr)?"Color indexed":"RGB",
+    finfo->images);
 
     return SQERR_OK;
 }
@@ -211,13 +193,21 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
     int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 
-    rows[0] = png_malloc(png_ptr, row_bytes);
+    rows[0] = (png_bytep)png_malloc(png_ptr, row_bytes);
     
     png_read_rows(png_ptr, &rows[0], png_bytepp_NULL, 1);
 
     memcpy(scan, rows[0], finfo->w * 4);
 
     return SQERR_OK;
+}
+
+void fmt_readimage(fmt_info *finfo, RGBA *image)
+{
+    unsigned int i = 0;
+
+    for(;i < finfo->h;i++)
+        fmt_read_scanline(finfo, image + i*finfo->w);
 }
 
 int fmt_close(fmt_info *finfo)

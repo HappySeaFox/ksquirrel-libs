@@ -61,4 +61,15 @@ typedef struct
 
 }ATTR_ BITMAPINFO_HEADER;
 
+extern "C" {
+    char *fmt_version();
+    char *fmt_quickinfo();
+    char* fmt_extension();
+    int fmt_init(fmt_info **finfo, const char *file);
+    int fmt_read_info(fmt_info *finfo);
+    int fmt_read_scanline(fmt_info *finfo, RGBA *scan);
+    void fmt_readimage(fmt_info *finfo, RGBA *scan);
+    int fmt_close(fmt_info *finfo);
+};
+			    
 #endif
