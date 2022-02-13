@@ -6,4 +6,4 @@ libSQ_codec_wbmp_la_SOURCES = fmt_codec_wbmp.cpp fmt_codec_wbmp_defs.h
 
 libSQ_codec_wbmp_la_LDFLAGS = -release 0.9.0
 
-libSQ_codec_wbmp_la_LIBADD = ../fileio.lo
+libSQ_codec_wbmp_la_LIBADD = ../fileio.lo ../fmt_utils.lo

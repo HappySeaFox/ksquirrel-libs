@@ -73,6 +73,7 @@ class fmt_codec : public fmt_codec_base
         virtual std::string     fmt_filter();
         virtual std::string     fmt_mime();
         virtual std::string     fmt_pixmap();
+        virtual std::string     fmt_extension(const s32 bpp);
 
         virtual bool    fmt_readable() const;
         virtual s32     fmt_read_init(const std::string &amp;file);
@@ -184,7 +185,6 @@ s32 fmt_codec::fmt_read_init(const std::string &amp;file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQERR_OK;
 }
@@ -201,22 +201,21 @@ s32 fmt_codec::fmt_read_next()
 	return SQERR_NOTOK; <b>return, if TTX can
 			     have only one image.</b>
 
-    finfo.image.push_back(fmt_image());
-    
+    fmt_image image;
+
     <b>Non-interlaced image has 1 pass.
     If you need to define another value, do it here</b>
-    finfo.image[currentImage].passes = 1;
+    image.passes = 1;
 
 <b>Here you should read necessary data from file,
 and initialize finfo.image[currentImage].w,h,bpp. Return error
 code you need on error.</b>
 <b>...</b>
 
-    <b>increment image counter, if everything is OK.
-    From here you can return only SQERR_OK</b>
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "RGB";
+    image.compression = "-";
+    image.colorspace = "RGB";
+
+    finfo.image.push_back(image);
 
     return SQERR_OK;
 }
@@ -328,6 +327,15 @@ bool fmt_codec::fmt_readable() const
 {
     return true;
 }
+
+<b>Some libraries support several image types (like PNM library).
+This method should be used by writing function to determine file extension by image's bpp.
+For example, 1 bpp means .pbm, 8 bpp - pgm</b>"
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
+}
+
   </pre>
   </td>
   </tr>
@@ -353,7 +361,7 @@ bool fmt_codec::fmt_readable() const
 <li>That's all. You've just created a new decoder for KSquirrel. Copy libSQ_codec_ttx.so in /usr/lib/ksquirrel-libs.
 </ul>
 
-<br><br><a href='simplelib.php'>Sample library (RAWRGB codec)</a><br><br>
+<br><br><a href='simplelib.html'>Sample library (RAWRGB codec)</a><br><br>
 
 </body>
 </html>

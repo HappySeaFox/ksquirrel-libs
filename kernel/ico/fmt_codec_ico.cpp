@@ -101,7 +101,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 //    printf("colorcount: %d, bitcount: %d, bytes: %d\n", ide[i].bColorCount, ide[i].wBitCount, ide[i].dwBytes);
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -113,9 +112,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage == ifh.idCount)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     RGBA	rgba;
     s32		i;
@@ -123,8 +120,8 @@ s32 fmt_codec::fmt_read_next()
 
 //    printf("ressize: %d\n", ide.dwBytes);
 
-    finfo.image[currentImage].w = ide[currentImage].bWidth;
-    finfo.image[currentImage].h = ide[currentImage].bHeight;
+    image.w = ide[currentImage].bWidth;
+    image.h = ide[currentImage].bHeight;
 //    finfo.images = ifh.idCount;
     
 /*
@@ -143,13 +140,13 @@ s32 fmt_codec::fmt_read_next()
     if(!frs.readK(&bih, sizeof(BITMAPINFO_HEADER)))
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].bpp = bih.BitCount;
+    image.bpp = bih.BitCount;
 //    printf("bitcount #2: %d\n", bih.BitCount);
 //    printf("pal_entr: %d\n", pal_entr);
 
-    if(finfo.image[currentImage].bpp < 16)
+    if(image.bpp < 16)
     {
-	pal_entr = 1 << finfo.image[currentImage].bpp;
+	pal_entr = 1 << image.bpp;
 
 	for(i = 0;i < pal_entr;i++)
 	{
@@ -168,9 +165,9 @@ s32 fmt_codec::fmt_read_next()
     pos = frs.tellg();
 
 //    printf("Calculating ...\n");
-    s32 count = finfo.image[currentImage].w * finfo.image[currentImage].h;
+    s32 count = image.w * image.h;
 //    printf("count: %d\n", count);
-    s32 count2 = (finfo.image[currentImage].bpp < 16) ? (count / (8 / finfo.image[currentImage].bpp)) : (count * (finfo.image[currentImage].bpp / 8));
+    s32 count2 = (image.bpp < 16) ? (count / (8 / image.bpp)) : (count * (image.bpp / 8));
 //    printf("count2: %d\n", count2);
     s32 count3 = count / 8;
 //    printf("count3: %d\n", count3);
@@ -203,9 +200,9 @@ s32 fmt_codec::fmt_read_next()
 	//printf("\n");
     }//printf("r: %d\n", r);
 /*
-    for(s32 i = 0;i < finfo.image[currentImage].h;i++)
+    for(s32 i = 0;i < image.h;i++)
     {
-	for(s32 j = 0;j < finfo.image[currentImage].w;j++)
+	for(s32 j = 0;j < image.w;j++)
 	{
 	    printf("%2d", bAND[i * finfo.image[currentImage].w + j]);
 	}
@@ -219,9 +216,9 @@ s32 fmt_codec::fmt_read_next()
 	printf("%d %d %d\n",(pal)[i].r,(pal)[i].g,(pal)[i].b);
 */
 
-    finfo.image[currentImage].needflip = true;
-    finfo.image[currentImage].hasalpha = true;
-    finfo.images++;
+    image.needflip = true;
+    image.hasalpha = true;
+
 /*	
     snprintf(finfo.image[currentImage].dump, sizeof(finfo.image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
@@ -231,8 +228,10 @@ s32 fmt_codec::fmt_read_next()
 	"RGB",
 	bytes);
 */
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = ((pal_entr) ? "Color indexed":"RGB");
+    image.compression = "-";
+    image.colorspace = ((pal_entr) ? "Color indexed":"RGB");
+
+    finfo.image.push_back(image);
 
     pixel = 0;
 

@@ -249,7 +249,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     ref = fmt_utils::adjustTempName(file, ".rawrgb");
     orig = file;
@@ -264,7 +263,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     const char * argv[5] = 
     {
@@ -282,16 +281,17 @@ s32 fmt_codec::fmt_read_next()
     if(!frs.good())
         return SQE_R_NOFILE;
 
-    if(!frs.readK(&finfo.image[currentImage].w,   sizeof(s32))) return SQE_R_BADFILE;
-    if(!frs.readK(&finfo.image[currentImage].h,   sizeof(s32))) return SQE_R_BADFILE;
-    if(!frs.readK(&finfo.image[currentImage].bpp, sizeof(s32))) return SQE_R_BADFILE;
+    if(!frs.readK(&image.w,   sizeof(s32))) return SQE_R_BADFILE;
+    if(!frs.readK(&image.h,   sizeof(s32))) return SQE_R_BADFILE;
+    if(!frs.readK(&image.bpp, sizeof(s32))) return SQE_R_BADFILE;
 
-    if(finfo.image[currentImage].bpp != 24 && finfo.image[currentImage].bpp != 32)
+    if(image.bpp != 24 && image.bpp != 32)
 	return SQE_R_BADFILE;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "?"; 
-    finfo.image[currentImage].colorspace = "?";
+    image.compression = "?"; 
+    image.colorspace = "?";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

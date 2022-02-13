@@ -88,7 +88,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     const char * argv[] = 
     {
@@ -111,17 +110,15 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
-    finfo.image[currentImage].passes = 1;
+    image.bpp = 32;
+    image.w = w;
+    image.h = h;
+    image.compression = "-";
+    image.colorspace = "Vectorized RGB";
 
-    finfo.image[currentImage].bpp = 32;
-    finfo.image[currentImage].w = w;
-    finfo.image[currentImage].h = h;
-
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "Vectorized RGB";
+    finfo.image.push_back(image);
 
     line = -1;
 

@@ -19,18 +19,10 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_jpeg2000_H
-#define KSQUIRREL_LIBS_CLASS_DEFINITION_jpeg2000_H
+#ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_pxr_H
+#define KSQUIRREL_LIBS_CLASS_DEFINITION_pxr_H
 
 #include "fmt_codec_base.h"
-
-typedef struct
-{
-    jas_image_t		*image;
-    s32			cmptlut[MAXCMPTS];
-    jas_image_t		*altimage;
-
-} gs_t;
 
 class fmt_codec : public fmt_codec_base
 {
@@ -63,13 +55,7 @@ class fmt_codec : public fmt_codec_base
         virtual void    fmt_write_close();
 
     private:
-	bool convert_colorspace();
-	
-    private:
-	gs_t		gs;
-	jas_image_t	*jp2_image;
-	jas_stream_t	*in;
-	s32		family;
+	// define variables you need here
 };
 
 extern "C" fmt_codec_base* fmt_codec_create()

@@ -61,7 +61,7 @@ class fmt_codec : public fmt_codec_base
 
     private:
         Array2D<Rgba> pixels;
-	std::string file;
+	std::string file, ref;
 	RgbaOutputFile	*out;
 	Rgba		*hs;
 };

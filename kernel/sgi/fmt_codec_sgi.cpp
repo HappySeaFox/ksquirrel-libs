@@ -82,7 +82,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     lengthtab = 0;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -94,7 +93,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());	    
+    fmt_image image;	    
 
     if(!frs.be_getshort(&sfh.Magik)) return SQE_R_BADFILE;
     if(!frs.readK(&sfh.StorageFormat, 1)) return SQE_R_BADFILE;
@@ -113,11 +112,11 @@ s32 fmt_codec::fmt_read_next()
 
     if(!frs.readK(&sfh.dummy2, sizeof(sfh.dummy2))) return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = sfh.x;
-    finfo.image[currentImage].h = sfh.y;
-    finfo.image[currentImage].bpp = sfh.bpc * sfh.z * 8;
+    image.w = sfh.x;
+    image.h = sfh.y;
+    image.bpp = sfh.bpc * sfh.z * 8;
 
-    if(finfo.image[currentImage].bpp == 32) finfo.image[currentImage].hasalpha = true;
+    if(image.bpp == 32) image.hasalpha = true;
 
     if(sfh.Magik != 474 || (sfh.StorageFormat != 0 && sfh.StorageFormat != 1) || (sfh.Dimensions != 1 && sfh.Dimensions != 2 && sfh.Dimensions != 3) || (sfh.bpc != 1 && sfh.bpc != 2))
 	return SQE_R_BADFILE;
@@ -155,14 +154,17 @@ s32 fmt_codec::fmt_read_next()
 
     if(strlen(sfh.name))
     {
-	finfo.meta[0].group = "SGI Image Name";
-	finfo.meta[0].data = sfh.name;
+	fmt_metaentry mt;
+	mt.group = "SGI Image Name";
+	mt.data = sfh.name;
+	finfo.meta.push_back(mt);
     }
 
-    finfo.image[currentImage].needflip = true;
-    finfo.images++;
-    finfo.image[currentImage].compression = (sfh.StorageFormat) ? "RLE" : "-";
-    finfo.image[currentImage].colorspace = ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
+    image.needflip = true;
+    image.compression = (sfh.StorageFormat ? "RLE" : "-");
+    image.colorspace = fmt_utils::colorSpaceByBpp(image.bpp);
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

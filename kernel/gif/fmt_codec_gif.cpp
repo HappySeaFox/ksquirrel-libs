@@ -155,7 +155,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     lastDisposal = DISPOSAL_NO;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -175,11 +174,11 @@ s32 fmt_codec::fmt_read_next()
     bool foundExt = false;
 
     currentImage++;
-	
-    finfo.image.push_back(fmt_image());
 
-    finfo.image[currentImage].interlaced = gif->Image.Interlace;
-    finfo.image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
+	fmt_image image;
+
+    image.interlaced = gif->Image.Interlace;
+    image.passes = (gif->Image.Interlace) ? 4 : 1;
 
 //    prs32f("Entering fmt_read_next\n\n");
 
@@ -202,28 +201,26 @@ s32 fmt_codec::fmt_read_next()
 		    return SQE_R_BADFILE;
 		}
 
-		finfo.images++;
-	    
 		if(!foundExt)
 		{
 		    lastDisposal = disposal;
 		    disposal = DISPOSAL_NO;
-		    finfo.image[currentImage].delay = 100;
+		    image.delay = 100;
 		    transIndex = -1;
-		    finfo.image[currentImage].hasalpha = true;
+		    image.hasalpha = true;
 		}
 
 		lastRow = (currentImage) ? Row : gif->Image.Top;
 		lastCol = (currentImage) ? Col : gif->Image.Left;
 		Row = gif->Image.Top;
 		Col = gif->Image.Left;
-		finfo.image[currentImage].w = gif->SWidth;
-		finfo.image[currentImage].h = gif->SHeight;
+		image.w = gif->SWidth;
+		image.h = gif->SHeight;
 		lastWidth = (currentImage) ? Width : gif->Image.Width;
 		lastHeight = (currentImage) ? Height : gif->Image.Height;
 		Width = gif->Image.Width;
 		Height = gif->Image.Height;
-		finfo.image[currentImage].bpp = 8;
+		image.bpp = 8;
 
 		curLine = 0;
 
@@ -248,12 +245,12 @@ s32 fmt_codec::fmt_read_next()
 		    disposal = (Extension[1] >> 2) & 7;
 		    bool b = Extension[1] & 1;
 		    s32 u = (unsigned)*(Extension + 2);
-		    finfo.image[currentImage].delay = (!u) ? 100 : (u * 10);
+		    image.delay = (!u) ? 100 : (u * 10);
 
 		    if(b)
 		      transIndex = Extension[4];
 		      
-		    finfo.image[currentImage].hasalpha = b;
+		    image.hasalpha = b;
 		}
 		else if(ExtCode == 254)
 		{
@@ -264,7 +261,7 @@ s32 fmt_codec::fmt_read_next()
 //		    prs32f("%c", Extension[1+s]);
 		    if(Extension[0])
 		    {
-    			finfo.meta.push_back(fmt_metaentry());
+				fmt_metaentry mt;
 
 			s8 d[Extension[0]+1];
 			memcpy(d, (s8*)Extension+1, Extension[0]);
@@ -274,8 +271,10 @@ s32 fmt_codec::fmt_read_next()
 			    if(d[s] == '\n')
 				d[s] = ' ';
 
-                	finfo.meta[0].group = "GIF Comment";
-			finfo.meta[0].data = d;
+            mt.group = "GIF Comment";
+			mt.data = d;
+
+   			finfo.meta.push_back(mt);
 		    }
 		}
 
@@ -317,10 +316,12 @@ s32 fmt_codec::fmt_read_next()
 		"Color indexed",
 		finfo.image[currentImage].w * finfo.image[currentImage].h * sizeof(RGBA));
 */
-	    finfo.image[currentImage].compression = "LZW";
-    	    finfo.image[currentImage].colorspace = "Color indexed";
-	    finfo.image[currentImage].interlaced = gif->Image.Interlace;
-	    finfo.image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
+	    image.compression = "LZW";
+    	image.colorspace = "Color indexed";
+	    image.interlaced = gif->Image.Interlace;
+	    image.passes = (gif->Image.Interlace) ? 4 : 1;
+    	
+		finfo.image.push_back(image);
 
 	    layer = -1;
 	    currentPass = -1;

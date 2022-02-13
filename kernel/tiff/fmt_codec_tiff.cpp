@@ -95,7 +95,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     TIFFSetErrorHandler(NULL);
 
     finfo.animated = false;
-    finfo.images = 0;
 
     dircount = 0;
 
@@ -134,12 +133,12 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	TIFFRGBAImageEnd(&img);
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     s32 bps, spp;
 
-    TIFFGetField(ftiff, TIFFTAG_IMAGEWIDTH, &finfo.image[currentImage].w);
-    TIFFGetField(ftiff, TIFFTAG_IMAGELENGTH, &finfo.image[currentImage].h);
+    TIFFGetField(ftiff, TIFFTAG_IMAGEWIDTH,  &image.w);
+    TIFFGetField(ftiff, TIFFTAG_IMAGELENGTH, &image.h);
 
     memset(&img, 0, sizeof(TIFFRGBAImage));
 
@@ -150,12 +149,12 @@ s32 fmt_codec::fmt_read_next()
 
 //    printf("bps: %d, spp: %d\n", bps, spp);
 
-    finfo.image[currentImage].bpp = bps * spp;
+    image.bpp = bps * spp;
+    image.hasalpha = true;
+    image.compression = "-"; 
+    image.colorspace = fmt_utils::colorSpaceByBpp(image.bpp);
 
-    finfo.images++;
-    finfo.image[currentImage].hasalpha = true;
-    finfo.image[currentImage].compression = "-"; 
-    finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(finfo.image[currentImage].bpp);
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

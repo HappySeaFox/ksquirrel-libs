@@ -72,7 +72,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     s32 id, ver;
 
@@ -103,7 +102,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage == numtex)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     if(currentImage)
 	frs.seekg(opos);
@@ -124,8 +123,8 @@ s32 fmt_codec::fmt_read_next()
     if(!frs.good())
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = tex.width;
-    finfo.image[currentImage].h = tex.height;
+    image.w = tex.width;
+    image.h = tex.height;
 
     fstream::pos_type pos = frs.tellg();
 
@@ -135,9 +134,11 @@ s32 fmt_codec::fmt_read_next()
 
     frs.seekg(pos);
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(8);
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(8);
+	image.bpp = 8;
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

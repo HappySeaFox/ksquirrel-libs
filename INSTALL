@@ -10,6 +10,7 @@ How to install 'ksquirrel-libs' package:
    b) from binary packages
 RPM  # rpm -ihv ksquirrel-libs-0.6.0.rpm
 TGZ  # installpkg ksquirrel-libs-0.6.0.tgz
+DEB  # dpkg -i ksquirrel-libs-0.6.0.deb
 
 --------------------------------------------------------------
 

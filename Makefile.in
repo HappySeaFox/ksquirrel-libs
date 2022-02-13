@@ -686,7 +686,7 @@ install-data-local:
 .NOEXPORT:
 
 #>+ 2
-KDE_DIST=stamp-h.in configure.ac Makefile.in reconfigure predistclean ksquirrel-libs.spec configure.gnu aclocal.m4 Makefile.dist configure acinclude.m4 Makefile.am VERSION 
+KDE_DIST=stamp-h.in confdefs.h configure.ac Makefile.in reconfigure predistclean ksquirrel-libs.spec configure.gnu aclocal.m4 Makefile.dist configure acinclude.m4 Makefile.am VERSION 
 
 #>+ 2
 docs-am:

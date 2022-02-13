@@ -81,7 +81,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
     
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -96,21 +95,20 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     if(!frs.readK(&width, sizeof(s16))) return SQE_R_BADFILE;
     if(!frs.readK(&height, sizeof(s16))) return SQE_R_BADFILE;
     if(!frs.readK(&dummy, sizeof(s32))) return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = width;
-    finfo.image[currentImage].h = height;
-    finfo.image[currentImage].bpp = 8;
+    image.w = width;
+    image.h = height;
+    image.bpp = 8;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "RLE";
-    finfo.image[currentImage].colorspace = "Color indexed";
+    image.compression = "RLE";
+    image.colorspace = "Color indexed";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

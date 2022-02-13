@@ -82,7 +82,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -94,9 +93,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     s8		str[256];
     s32		w, h;
@@ -119,24 +116,24 @@ s32 fmt_codec::fmt_read_next()
 
     sscanf(str, "%d%d", &w, &h);
 
-    finfo.image[currentImage].w = w;
-    finfo.image[currentImage].h = h;
+    image.w = w;
+    image.h = h;
 
     switch(pnm)
     {
 	case 1:
 	case 4:
-	    finfo.image[currentImage].bpp = 1;
+	    image.bpp = 1;
 	break;
 
 	case 2:
 	case 5:
-	    finfo.image[currentImage].bpp = 8;
+	    image.bpp = 8;
 	break;
 
 	case 3:
 	case 6:
-	    finfo.image[currentImage].bpp = 8;
+	    image.bpp = 8;
 	break;
     }
 
@@ -179,9 +176,10 @@ s32 fmt_codec::fmt_read_next()
     
 //    printf("maxcolor: %d, format: %s, koeff: %.1f\n\n", maxcolor, format, koeff);
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = ((pnm == 1 || pnm == 4) ? "Monochrome":"Color indexed");
+    image.compression = "-";
+    image.colorspace = ((pnm == 1 || pnm == 4) ? "Monochrome":"Color indexed");
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

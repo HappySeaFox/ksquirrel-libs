@@ -72,7 +72,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -84,7 +83,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     if(!frs.readK(&lif, sizeof(lif_header))) return SQE_R_BADFILE;
 /*
@@ -102,8 +101,8 @@ s32 fmt_codec::fmt_read_next()
     if(strcmp(lif.id, LIF_ID))
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = lif.width;
-    finfo.image[currentImage].h = lif.height;
+    image.w = lif.width;
+    image.h = lif.height;
 
     fstream::pos_type pos = frs.tellg();
 
@@ -114,13 +113,14 @@ s32 fmt_codec::fmt_read_next()
 
     frs.seekg(pos);
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(8);
-    finfo.image[currentImage].bpp = 8;
-    finfo.image[currentImage].hasalpha = (bool)(lif.flags & 0x08);
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(8);
+    image.bpp = 8;
+    image.hasalpha = (bool)(lif.flags & 0x08);
 
-    bytes = finfo.image[currentImage].hasalpha ? sizeof(RGBA) : sizeof(RGB);
+    bytes = image.hasalpha ? sizeof(RGBA) : sizeof(RGB);
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

@@ -84,7 +84,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     isRGB = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -96,9 +95,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 	    
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     if(!frs.be_getlong(&rfh.ras_magic)) return SQE_R_BADFILE;
     if(!frs.be_getlong(&rfh.ras_width)) return SQE_R_BADFILE;
@@ -117,9 +114,9 @@ s32 fmt_codec::fmt_read_next()
     else if(rfh.ras_type == RAS_EXPERIMENTAL)
 	return SQE_R_NOTSUPPORTED;
 
-    finfo.image[currentImage].w = rfh.ras_width;
-    finfo.image[currentImage].h = rfh.ras_height;
-    finfo.image[currentImage].bpp = rfh.ras_depth;
+    image.w = rfh.ras_width;
+    image.h = rfh.ras_height;
+    image.bpp = rfh.ras_depth;
 
     switch(rfh.ras_maptype)
     {
@@ -200,9 +197,10 @@ s32 fmt_codec::fmt_read_next()
     if(!buf)
 	return SQE_R_NOMEMORY;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = ((isRGB) ? "-":"RLE");
-    finfo.image[currentImage].colorspace = "RGB";
+    image.compression = ((isRGB) ? "-":"RLE");
+    image.colorspace = "RGB";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

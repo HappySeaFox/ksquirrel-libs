@@ -100,7 +100,6 @@ s32 fmt_codec::fmt_read_init(const std::string &fl)
     file = fl;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -112,7 +111,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     s32 width, height;
 
@@ -142,46 +141,46 @@ s32 fmt_codec::fmt_read_next()
 	return SQE_R_BADFILE;
     }
 
-    finfo.images++;
-
     switch(in->compression())
     {
 	case Imf::NO_COMPRESSION:
-	    finfo.image[currentImage].compression = "-";
+	    image.compression = "-";
 	break;
 
 	case Imf::RLE_COMPRESSION:
-	    finfo.image[currentImage].compression = "RLE";
+	    image.compression = "RLE";
 	break;
 
 	case Imf::ZIPS_COMPRESSION:
-	    finfo.image[currentImage].compression = "ZIPS";
+	    image.compression = "ZIPS";
 	break;
 
 	case Imf::ZIP_COMPRESSION:
-	    finfo.image[currentImage].compression = "ZIP";
+	    image.compression = "ZIP";
 	break;
 
 	case Imf::PIZ_COMPRESSION:
-	    finfo.image[currentImage].compression = "PIZ";
+	    image.compression = "PIZ";
 	break;
 
 	case Imf::PXR24_COMPRESSION:
-	    finfo.image[currentImage].compression = "PXR24";
+	    image.compression = "PXR24";
 	break;
 
 	case Imf::NUM_COMPRESSION_METHODS:
-	    finfo.image[currentImage].compression = "Different methods";
+	    image.compression = "Different methods";
 	break;
 	
 	default:
-	    finfo.image[currentImage].compression = "Unknown";
+	    image.compression = "Unknown";
     }
 
-    finfo.image[currentImage].colorspace = "RGBA";
-    finfo.image[currentImage].bpp = 32;
-    finfo.image[currentImage].w = width;
-    finfo.image[currentImage].h = height;
+    image.colorspace = "RGBA";
+    image.bpp = 32;
+    image.w = width;
+    image.h = height;
+
+    finfo.image.push_back(image);
 
     line = -1;
 

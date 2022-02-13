@@ -110,10 +110,9 @@ class fmt_codec_base
 	// fmt_write_close: close writing(close descriptors, free memory, etc.)
 	virtual void	fmt_write_close() = 0;
 
-	fmt_info information() const
-	{
-	    return finfo;
-	}
+	fmt_info information() const;
+	
+	fmt_image* image(const int index);
 
     protected:
 	// image index in finfo.image
@@ -144,5 +143,17 @@ class fmt_codec_base
 	// saved fmt_image
 	fmt_image         writeimage;
 };
+
+inline
+fmt_info fmt_codec_base::information() const
+{
+    return finfo;
+}
+
+inline
+fmt_image* fmt_codec_base::image(const int index)
+{
+    return &finfo.image[index];
+}
 
 #endif

@@ -27,12 +27,13 @@
  *  graphical information to be sent to the handset.
  *  This format is very simple and allows to store image only in 1-bit
  *  format (black and white).
-*/
+ */
 
 
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
 #include "fileio.h"
 #include "error.h"
 
@@ -95,7 +96,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
     
     return SQE_OK;
 }
@@ -107,9 +107,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     u8 type;
 
@@ -133,9 +131,9 @@ s32 fmt_codec::fmt_read_next()
     if(wbmp.height == -1)
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = wbmp.width;
-    finfo.image[currentImage].h = wbmp.height;
-    finfo.image[currentImage].bpp = 1;
+    image.w = wbmp.width;
+    image.h = wbmp.height;
+    image.bpp = 1;
 
     wbmp.bitmap = new s32 [wbmp.width * wbmp.height];
 
@@ -171,9 +169,10 @@ s32 fmt_codec::fmt_read_next()
 	}
     }
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "Monochrome";
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(1);
+
+    finfo.image.push_back(image);
 
     line = -1;
 

@@ -111,7 +111,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 	    return SQE_R_NOMEMORY;
     }
     
-    finfo.images = 0;
     finfo.animated = false;
 
     return SQE_OK;
@@ -124,13 +123,12 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage == flic.NumberOfFrames || currentImage == MAX_FRAME)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
-    finfo.image[currentImage].passes = 1;
-    finfo.image[currentImage].w = flic.Width;
-    finfo.image[currentImage].h = flic.Height;
-    finfo.image[currentImage].bpp = 8;
-    finfo.image[currentImage].delay = (s32)((float)flic.FrameDelay * 14.3);
+    image.w = flic.Width;
+    image.h = flic.Height;
+    image.bpp = 8;
+    image.delay = (s32)((float)flic.FrameDelay * 14.3);
     finfo.animated = (currentImage) ? true : false;
 
 //    prs32f("%dx%d@%d, delay: %d\n", flic.Width, flic.Height, flic.PixelDepth, finfo.image[currentImage].delay);
@@ -239,13 +237,13 @@ s32 fmt_codec::fmt_read_next()
 		s8 c;
 		s32 count;
 
-		for(s32 j = 0;j < finfo.image[currentImage].h;j++)
+		for(s32 j = 0;j < image.h;j++)
 		{
 		    s32 index = 0;
 		    count = 0;
 		    if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
 
-		    while(count < finfo.image[currentImage].w)
+		    while(count < image.w)
 		    {
 			if(!frs.readK(&c, 1)) return SQE_R_BADFILE;
 
@@ -300,7 +298,7 @@ s32 fmt_codec::fmt_read_next()
 
 		    if(!frs.readK(&packets, 1)) return SQE_R_BADFILE;
 
-		    while(count < finfo.image[currentImage].w)
+		    while(count < image.w)
 		    {
 			for(s32 k = 0;k < packets;k++)
 			{
@@ -340,9 +338,9 @@ s32 fmt_codec::fmt_read_next()
 	    {
 //		prs32f("*** COPY DATA CHUNK\n");
 
-		for(s32 j = 0;j < finfo.image[currentImage].h;j++)
+		for(s32 j = 0;j < image.h;j++)
 		{
-		    if(!frs.readK(buf[j], finfo.image[currentImage].w)) return SQE_R_BADFILE;
+		    if(!frs.readK(buf[j], image.w)) return SQE_R_BADFILE;
 		}
 	    }
 	    break;
@@ -357,9 +355,10 @@ s32 fmt_codec::fmt_read_next()
 //	prs32f("POS2: %d\n", ftell(fptr));
     }
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "RLE/DELTA_FLI";
-    finfo.image[currentImage].colorspace = "Color indexed";
+    image.compression = "RLE/DELTA_FLI";
+    image.colorspace = "Color indexed";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

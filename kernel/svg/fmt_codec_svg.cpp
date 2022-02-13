@@ -84,7 +84,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -96,19 +95,20 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
-    if(render_to_mem(fin, &buf, &finfo.image[currentImage].w, &finfo.image[currentImage].h))
+    if(render_to_mem(fin, &buf, &image.w, &image.h))
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].bpp = 32;
-    finfo.image[currentImage].hasalpha = true;
+    image.bpp = 32;
+    image.hasalpha = true;
 
     line = -1;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "Vectorized";
+    image.compression = "-";
+    image.colorspace = "Vectorized";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

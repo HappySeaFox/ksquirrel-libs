@@ -84,7 +84,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     pal_entr = 0;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -96,28 +95,28 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());	    
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;	    
 
     if(!frs.readK(&tfh, sizeof(TGA_FILEHEADER))) return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = tfh.ImageSpecW;
-    finfo.image[currentImage].h = tfh.ImageSpecH;
-    finfo.image[currentImage].bpp = tfh.ImageSpecDepth;
+    image.w = tfh.ImageSpecW;
+    image.h = tfh.ImageSpecH;
+    image.bpp = tfh.ImageSpecDepth;
     pal_entr = 0;
 
     if(tfh.IDlength)
     {
-	finfo.meta.push_back(fmt_metaentry());
-
-	finfo.meta[0].group = "TGA image identification field";
-	
 	s8 data[tfh.IDlength];
-	
+
 	if(!frs.readK(data, tfh.IDlength)) return SQE_R_BADFILE;
 
-	finfo.meta[0].data = data;
+	fmt_metaentry mt;
+
+	mt.group = "TGA image identification field";
+	
+	mt.data = data;
+
+	finfo.meta.push_back(mt);
     }
 
     if(tfh.ColorMapType)
@@ -154,9 +153,8 @@ s32 fmt_codec::fmt_read_next()
     std::string comp, type;
 
     fliph = (bool)(tfh.ImageSpecDescriptor & 0x10);
-    finfo.image[currentImage].needflip = !(bool)(tfh.ImageSpecDescriptor & 0x20);
-    finfo.images++;
-    finfo.image[currentImage].hasalpha = (finfo.image[currentImage].bpp == 32);
+    image.needflip = !(bool)(tfh.ImageSpecDescriptor & 0x20);
+    image.hasalpha = (image.bpp == 32);
 
     switch(tfh.ImageType)
     {
@@ -167,7 +165,7 @@ s32 fmt_codec::fmt_read_next()
 
 	case 2:
 	    comp = "-";
-	    type = ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
+	    type = (( image.bpp == 32) ? "RGBA":"RGB");
 	break;
 
 	case 3:
@@ -182,7 +180,7 @@ s32 fmt_codec::fmt_read_next()
 
 	case 10:
 	    comp = "RLE";
-	    type = ((finfo.image[currentImage].bpp == 32) ? "RGBA":"RGB");
+	    type = (( image.bpp == 32) ? "RGBA":"RGB");
 	break;
 
 	case 11:
@@ -191,10 +189,12 @@ s32 fmt_codec::fmt_read_next()
 	break;
     }
 
-    finfo.image[currentImage].compression = comp;
-    finfo.image[currentImage].colorspace = type;
+    image.compression = comp;
+    image.colorspace = type;
 
 //    printf("tfh.ImageType: %d, pal_len: %d\n", tfh.ImageType, tfh.ColorMapSpecLength);
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

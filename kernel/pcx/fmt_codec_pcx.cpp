@@ -89,7 +89,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     pal_entr = 0;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -101,18 +100,16 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 	    
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     if(!frs.readK(&pfh, sizeof(PCX_HEADER))) return SQE_R_BADFILE;
 
     if(pfh.ID != 10 || pfh.Encoding != 1)
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = pfh.Xmax - pfh.Xmin + 1;
-    finfo.image[currentImage].h = pfh.Ymax - pfh.Ymin + 1;
-    finfo.image[currentImage].bpp = pfh.bpp * pfh.NPlanes;
+    image.w = pfh.Xmax - pfh.Xmin + 1;
+    image.h = pfh.Ymax - pfh.Ymin + 1;
+    image.bpp = pfh.bpp * pfh.NPlanes;
     pal_entr = 0;
 
     if(pfh.bpp == 1)
@@ -154,9 +151,10 @@ s32 fmt_codec::fmt_read_next()
 */
     TotalBytesLine = pfh.NPlanes * pfh.BytesPerLine;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = ((pal_entr) ? "Color indexed":"RGB");
+    image.compression = "-";
+    image.colorspace = ((pal_entr) ? "Color indexed":"RGB");
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

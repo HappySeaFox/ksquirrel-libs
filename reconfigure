@@ -1,4 +1,4 @@
 #!/bin/sh
 
-gmake -f Makefile.dist &&
+make -f Makefile.dist &&
 ./configure.gnu

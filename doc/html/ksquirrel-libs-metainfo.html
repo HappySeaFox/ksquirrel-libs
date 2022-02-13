@@ -14,7 +14,7 @@
 structure similar to map. Support of a metainformation COMPLETELY lays down on library i.e.
 if in image file there are any collateral data, but library ignores it,
 KSquirrel (as well as any other viewer on the basis of ksquirrel-libs) will not display it in 
-<a href="IMG/metainfo_dialog.png">Image Properties</a> dialog.
+"Image Properties" dialog.
 
 <p>At present EXIF the information is not supported yet, but in v0.6.0 it possibly will be realized.
 <p>Formally work with a metainformation looks so: [read some information from a file] => [group it] => [keep in object 'finfo']. Further you can see an example of the elementary reading and preservation of a metainformation.
@@ -34,15 +34,17 @@ KSquirrel (as well as any other viewer on the basis of ksquirrel-libs) will not 
     <b>Don't forget to insert '\0', if necessary</b>
     str[255] = '\0';
 
-    <b>insert new metaentry</b>
-    finfo.meta.push_back(fmt_metaentry());
-	
+    fmt_metaentry mt;
+
     <b>Setup group name. It can be "JPEG "COM" Marker", "PNG key", 
     "SGI Image Name", or any other you want.</b>
-    finfo.meta[0].group = "Group name";
-		
+    mt.group = "Group name";
+
     <b>Copy information</b>
-    finfo.meta[0].data = str;
+    mt.data = str;
+
+    <b>insert new metaentry</b>
+    finfo.meta.push_back(mt);
 </pre>
 </td>
 </tr>

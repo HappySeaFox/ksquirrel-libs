@@ -109,11 +109,11 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) \
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	$(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libcairo_la_SOURCES)
 DIST_SOURCES = $(am__libcairo_la_SOURCES_DIST)
@@ -130,6 +130,7 @@ ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
+AR = @AR@
 ATSUI_FONT_FEATURE = @ATSUI_FONT_FEATURE@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -164,6 +165,10 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -173,13 +178,8 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
-
-# These names match automake style variable definition conventions so
-# without these lines, automake will complain during the handling of 
-# the libcairo_la_LIBADD below.  (The INCLUDES is an autoconf only
-# term and automake does not care about it)
-FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
+F77 = @F77@
+FFLAGS = @FFLAGS@
 FREETYPE_CFLAGS = @FREETYPE_CFLAGS@
 FREETYPE_CONFIG = @FREETYPE_CONFIG@
 FREETYPE_LIBS = @FREETYPE_LIBS@
@@ -240,11 +240,17 @@ X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
+ac_ct_F77 = @ac_ct_F77@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
+am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
+am__fastdepCXX_TRUE = @am__fastdepCXX_TRUE@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -297,6 +303,12 @@ libcairo_win32_sources = $(am__append_1) $(am__append_2)
 @CAIRO_HAS_ATSUI_FONT_TRUE@libcairo_atsui_sources = cairo-atsui-font.c
 @CAIRO_HAS_FT_FONT_TRUE@libcairo_ft_headers = cairo-ft.h
 @CAIRO_HAS_FT_FONT_TRUE@libcairo_ft_sources = cairo-ft-font.c cairo-ft-private.h
+
+# These names match automake style variable definition conventions so
+# without these lines, automake will complain during the handling of 
+# the libcairo_la_LIBADD below.  (The INCLUDES is an autoconf only
+# term and automake does not care about it)
+FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
 cairoincludedir = $(includedir)/cairo
 cairoinclude_HEADERS = \
 	cairo.h				\

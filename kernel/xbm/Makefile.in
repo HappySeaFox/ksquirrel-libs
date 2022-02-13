@@ -58,7 +58,7 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libSQ_codec_xbm_la_DEPENDENCIES = ../fileio.lo
+libSQ_codec_xbm_la_DEPENDENCIES = ../fileio.lo ../fmt_utils.lo
 am_libSQ_codec_xbm_la_OBJECTS = fmt_codec_xbm.lo
 #>- libSQ_codec_xbm_la_OBJECTS = $(am_libSQ_codec_xbm_la_OBJECTS)
 #>+ 1
@@ -237,7 +237,7 @@ INCLUDES = -I.. -I../include
 lib_LTLIBRARIES = libSQ_codec_xbm.la
 libSQ_codec_xbm_la_SOURCES = fmt_codec_xbm.cpp fmt_codec_xbm_defs.h
 libSQ_codec_xbm_la_LDFLAGS = -release 0.7.0
-libSQ_codec_xbm_la_LIBADD = ../fileio.lo
+libSQ_codec_xbm_la_LIBADD = ../fileio.lo ../fmt_utils.lo
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am

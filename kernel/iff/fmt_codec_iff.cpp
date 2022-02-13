@@ -85,7 +85,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
     pal = 0;
 
     return SQE_OK;
@@ -107,9 +106,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     CHUNK_HEAD chunk;
     u32 ilbm;
@@ -182,8 +179,9 @@ s32 fmt_codec::fmt_read_next()
     if(!dline)
 	return SQE_R_NOMEMORY;
 
-    finfo.image[currentImage].w = bmhd.Width;
-    finfo.image[currentImage].h = bmhd.Height;
+    image.w = bmhd.Width;
+    image.h = bmhd.Height;
+	image.bpp = 8;
 
     printf("%dx%d@%d, transparent: %d\n", bmhd.Width, bmhd.Height, bmhd.Bitplanes, bmhd.Transparency);
 
@@ -268,10 +266,10 @@ for (unsigned y = 0; y < height; ++y)
 	printf("\n");
     }
 	
-    finfo.image[currentImage].compression = ((bmhd.Compress) ? "RLE":"-");
-    finfo.image[currentImage].colorspace = "RGB";
+    image.compression = ((bmhd.Compress) ? "RLE":"-");
+    image.colorspace = "RGB";
 
-    finfo.images++;
+    finfo.image.push_back(image);
 
     line = -1;
 

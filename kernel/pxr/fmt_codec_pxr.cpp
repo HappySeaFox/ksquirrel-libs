@@ -23,20 +23,14 @@
 
 #include "fmt_types.h"
 #include "fileio.h"
-#include "fmt_utils.h"
 
-#include "fmt_codec_wal_defs.h"
-#include "fmt_codec_wal.h"
+#include "fmt_codec_pxr_defs.h"
+#include "fmt_codec_pxr.h"
 
 #include "error.h"
 
-#include "q2pal.h"
+#include "fmt_utils.h"
 
-/*
- *
- * Quake2 WAL texture
- *
- */
 
 fmt_codec::fmt_codec() : fmt_codec_base()
 {}
@@ -51,12 +45,12 @@ std::string fmt_codec::fmt_version()
 
 std::string fmt_codec::fmt_quickinfo()
 {
-    return std::string("Quake2 texture");
+    return std::string("Pxrar format");
 }
 
 std::string fmt_codec::fmt_filter()
 {
-    return std::string("*.wal ");
+    return std::string("*.pxr ");
 }
 
 std::string fmt_codec::fmt_mime()
@@ -66,7 +60,7 @@ std::string fmt_codec::fmt_mime()
 
 std::string fmt_codec::fmt_pixmap()
 {
-    return std::string("137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,33,80,76,84,69,207,0,8,176,176,176,200,200,200,221,221,221,174,174,174,255,255,255,243,243,243,177,177,177,69,69,69,198,73,142,76,76,76,185,109,193,98,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,91,73,68,65,84,120,218,99,88,5,2,2,12,12,12,139,148,148,148,180,76,64,140,208,208,80,173,228,2,40,99,213,2,8,67,73,9,200,88,209,1,1,12,43,103,130,193,12,134,165,51,167,206,12,157,25,9,100,76,157,58,117,102,36,50,99,101,100,228,212,80,24,99,102,100,104,4,66,23,220,28,144,165,96,147,185,192,238,88,192,0,0,70,94,57,78,0,45,81,153,0,0,0,0,73,69,78,68,174,66,96,130");
+    return std::string("");
 }
 
 s32 fmt_codec::fmt_read_init(const std::string &file)
@@ -81,8 +75,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 
     finfo.animated = false;
 
-    bits = NULL;
-
     return SQE_OK;
 }
 
@@ -90,50 +82,21 @@ s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
 
-    if(currentImage == 4)
+    if(currentImage)
         return SQE_NOTOK;
-
-    if(!currentImage)
-    {
-	if(!frs.readK(&wal, sizeof(wal_header)))
-	    return SQE_R_BADFILE;
-
-	neww = wal.width;
-	newh = wal.height;
-
-	fmt_metaentry mt;
-
-    mt.group = "Quake2 texture name";
-	mt.data = wal.name;
-	finfo.meta.push_back(mt);
-
-    mt.group = "Quake2 next texture name";
-	mt.data = wal.next_name;
-	finfo.meta.push_back(mt);
-    }
-    else
-    {
-	neww /= 2;
-	newh /= 2;
-    }
-
-    bits = (u8 *)realloc(bits, neww * newh);
-
-    if(!bits)
-	return SQE_R_NOMEMORY;
 
     fmt_image image;
 
-    frs.seekg(wal.offset[currentImage], ios::beg);
+/*
+    image.w = 
+    image.h = 
+    image.bpp = 
+*/
 
-    if(!frs.good())
-	return SQE_R_BADFILE;
+    image.compression = "";
+    image.colorspace = "";
 
-    image.w = neww;
-    image.h = newh;
-    image.bpp = 8;
-    image.compression = "-";
-    image.colorspace = fmt_utils::colorSpaceByBpp(8);
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }
@@ -145,18 +108,12 @@ s32 fmt_codec::fmt_read_next_pass()
 
 s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 {
+    RGB rgb;
+    RGBA rgba;
+
     memset(scan, 255, finfo.image[currentImage].w * sizeof(RGBA));
 
-    if(!frs.readK(bits, finfo.image[currentImage].w))
-	return SQE_R_BADFILE;
 
-    for(s32 i = 0;i < finfo.image[currentImage].w;i++)
-    {
-	scan[i].r = q2pal[bits[i] * 3];
-	scan[i].g = q2pal[bits[i] * 3 + 1];
-	scan[i].b = q2pal[bits[i] * 3 + 2];
-    }
-    
     return SQE_OK;
 }
 
@@ -166,8 +123,6 @@ void fmt_codec::fmt_read_close()
 
     finfo.meta.clear();
     finfo.image.clear();
-
-    if(bits) free(bits);
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
@@ -210,7 +165,6 @@ s32 fmt_codec::fmt_write_next_pass()
 
 s32 fmt_codec::fmt_write_scanline(RGBA * /*scan*/)
 {
-
     return SQE_OK;
 }
 

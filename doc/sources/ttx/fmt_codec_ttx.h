@@ -36,6 +36,7 @@ class fmt_codec : public fmt_codec_base
         virtual std::string     fmt_filter();
         virtual std::string     fmt_mime();
         virtual std::string     fmt_pixmap();
+        virtual std::string     fmt_extension(const s32 bpp);
 
         virtual s32     fmt_read_init(std::string file);
         virtual s32     fmt_read_next();

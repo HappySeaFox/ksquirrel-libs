@@ -41,7 +41,7 @@ using namespace fmt_utils;
  * dump and an XWD file is produced containing an image of the window. If you
  * issue the following command:
  * 
- *   % xwd -root > output.xwd
+ * $ xwd -root > output.xwd
  *
  */
 
@@ -87,7 +87,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     pal = 0;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -101,13 +100,11 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     XWDColor	color;
     s8 	str[256];
     s32		i, ncolors;
-
-    finfo.image[currentImage].passes = 1;
 
     if(!frs.readK(&xfh, sizeof(XWDFileHeader))) return SQE_R_BADFILE;
 
@@ -138,20 +135,23 @@ s32 fmt_codec::fmt_read_next()
 	pal[i].b = (s8)fmt_utils::konvertWord(color.blue);
     }
 
-    finfo.image[currentImage].w = fmt_utils::konvertLong(xfh.pixmap_width);
-    finfo.image[currentImage].h = fmt_utils::konvertLong(xfh.pixmap_height);
-    finfo.image[currentImage].bpp = fmt_utils::konvertLong(xfh.bits_per_pixel);//fmt_utils::konvertLong(xfh.pixmap_depth);
+    image.w = fmt_utils::konvertLong(xfh.pixmap_width);
+    image.h = fmt_utils::konvertLong(xfh.pixmap_height);
+    image.bpp = fmt_utils::konvertLong(xfh.bits_per_pixel);//fmt_utils::konvertLong(xfh.pixmap_depth);
 
-    finfo.images++;
+    fmt_metaentry mt;
 
-    finfo.meta.push_back(fmt_metaentry());
+    mt.group = "XWD Window Name";
+    mt.data = str;
 
-    finfo.meta[0].group = "XWD Window Name";
-    finfo.meta[0].data = str;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "RGB";
+    finfo.meta.push_back(mt);
 
-    filler = fmt_utils::konvertLong(xfh.bytes_per_line) - finfo.image[currentImage].w * finfo.image[currentImage].bpp / 8;
+    image.compression = "-";
+    image.colorspace = "RGB";
+
+    filler = fmt_utils::konvertLong(xfh.bytes_per_line) - image.w * image.bpp / 8;
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

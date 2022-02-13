@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
 #include "fileio.h"
 #include "error.h"
 
@@ -79,7 +80,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
     
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -94,10 +94,8 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
-    finfo.image[currentImage].passes = 1;
-    
     if(!skip_comments(fptr))
 	return SQE_R_BADFILE;
 
@@ -110,7 +108,7 @@ s32 fmt_codec::fmt_read_next()
     if((ptr = strstr(str, "_width ")) == NULL)
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = (long)atoi(ptr+6);
+    image.w = (long)atoi(ptr+6);
 
     if(!sq_fgets(str, sizeof(str)-1, fptr))
 	return SQE_R_BADFILE;
@@ -121,7 +119,7 @@ s32 fmt_codec::fmt_read_next()
     if((ptr = strstr(str, "_height ")) == NULL)
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].h = (long)atoi(ptr+7);
+    image.h = (long)atoi(ptr+7);
 
     while(sq_fgets(str, sizeof(str)-1, fptr))
     {
@@ -143,9 +141,9 @@ s32 fmt_codec::fmt_read_next()
     else
 	return SQE_R_NOTSUPPORTED;
 
-    tmp = lscan = finfo.image[currentImage].w;
+    tmp = lscan = image.w;
 
-    finfo.image[currentImage].bpp = 1;
+    image.bpp = 1;
 
     lscan /= 8;
     lscan = lscan + ((tmp%8)?1:0);
@@ -153,9 +151,10 @@ s32 fmt_codec::fmt_read_next()
     memset(pal, 255, sizeof(RGB));
     memset(pal+1, 0, sizeof(RGB));
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "Monochrome";
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(1);
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

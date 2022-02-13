@@ -2,11 +2,11 @@
 <html>
 <head>
     <title>KSquirrel: development</title>
-
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta name='Author' content='Baryshev Dmitry/Krasu'>
 
-    <link rel="stylesheet" href="../styles.css" type="text/css">
+    <link rel="stylesheet" href="styles.css" type="text/css">
+    <link rel="shortcut icon" href="IMG/favicon.png">
 </head>
 <body>
 
@@ -104,7 +104,6 @@ s32 fmt_codec::fmt_read_init(const std::string &amp;file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -116,25 +115,23 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     u32 w, h, bpp;
     frs.readK(&amp;w, sizeof(u32));
     frs.readK(&amp;h, sizeof(u32));
     frs.readK(&amp;bpp, sizeof(u32));
     
-    if(bpp != 32 && bpp != 24)
+    if(bpp != 32 &amp;&amp; bpp != 24)
 	return SQE_R_BADFILE;
     
-    finfo.image[currentImage].w = w;
-    finfo.image[currentImage].h = h;
-    finfo.image[currentImage].bpp = bpp;
+    image.w = w;
+    image.h = h;
+    image.bpp = bpp;
+    image.compression = "-";
+    image.colorspace = (bpp == 24 ? "RGB" : "RGBA");
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = (bpp == 24 ? "RGB" : "RGBA");
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }
@@ -186,8 +183,8 @@ void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)
     opt->needflip = false;
 }
 
-s32 fmt_codec::fmt_write_init(const std::string &amp;file, const fmt_image &image,
-					const fmt_writeoptions &opt)
+s32 fmt_codec::fmt_write_init(const std::string &amp;file, const fmt_image &amp;image,
+					const fmt_writeoptions &amp;opt)
 {
     if(!image.w || !image.h || file.empty())
 	return SQE_W_WRONGPARAMS;
@@ -252,6 +249,11 @@ bool fmt_codec::fmt_writable() const
 bool fmt_codec::fmt_readable() const
 {
     return true;
+}
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("rawrgb");
 }
   </pre>
   </td>

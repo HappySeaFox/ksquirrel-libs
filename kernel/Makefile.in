@@ -71,9 +71,9 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = aaa avs bmp cut fli gif hdr ico iff jpeg2000 koala lif \
-	mac mdl msp mtv openexr pcx pix pnm psd ras rawrgb sct sgi sun \
-	tga utah wal wbmp xbm xcur xpm xwd camera jpeg png tiff wmf \
-	svg
+	mac mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi \
+	sun tga utah wal wbmp xbm xcur xpm xwd camera jpeg png tiff \
+	wmf svg
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -212,10 +212,10 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 SUBDIRS = aaa avs bmp cut fli gif hdr ico iff jpeg2000 koala lif mac \
-	mdl msp mtv openexr pcx pix pnm psd ras rawrgb sct sgi sun tga \
-	utah wal wbmp xbm xcur xpm xwd $(am__append_1) $(am__append_2) \
-	$(am__append_3) $(am__append_4) $(am__append_5) \
-	$(am__append_6) $(am__append_7)
+	mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun \
+	tga utah wal wbmp xbm xcur xpm xwd $(am__append_1) \
+	$(am__append_2) $(am__append_3) $(am__append_4) \
+	$(am__append_5) $(am__append_6) $(am__append_7)
 EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_filters.h fmt_filters.cpp fmt_types.h generate link fmt_filters_ChangeLog fmt_filters_VERSION fmt_filters_README genfdist
 #>- all: all-recursive
 #>+ 1

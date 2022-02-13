@@ -73,7 +73,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -85,7 +84,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     s8	comment[0x50 + 1], sig[2];
 
@@ -123,7 +122,7 @@ s32 fmt_codec::fmt_read_next()
 
     ss.setf(ios::hex);
 
-    ss >> finfo.image[currentImage].h;
+    ss >> image.h;
 
     buf.assign(sct.height, sizeof(sct.height));
 
@@ -131,33 +130,36 @@ s32 fmt_codec::fmt_read_next()
 
     ss1.setf(ios::hex);
 
-    ss1 >> finfo.image[currentImage].w;
+    ss1 >> image.w;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
+    image.compression = "-";
 
     switch(sct.format)
     {
 	case SCT_FORMAT_RGB:
-	    finfo.image[currentImage].colorspace = "RGB";
-	    finfo.image[currentImage].bpp = 24;
+	    image.colorspace = "RGB";
+	    image.bpp = 24;
 	break;
 
 	case SCT_FORMAT_GRAY:
-	    finfo.image[currentImage].colorspace = "Grayscale";
-	    finfo.image[currentImage].bpp = 8;
+	    image.colorspace = "Grayscale";
+	    image.bpp = 8;
 	break;
 
 	case SCT_FORMAT_CMYK:
-	    finfo.image[currentImage].colorspace = "CMYK";
-	    finfo.image[currentImage].bpp = 32;
+	    image.colorspace = "CMYK";
+	    image.bpp = 32;
 	break;
     }
 
-    finfo.meta.push_back(fmt_metaentry());
+	fmt_metaentry mt;
 
-    finfo.meta[0].group = "SCT Comment";
-    finfo.meta[0].data = comment;
+    mt.group = "SCT Comment";
+    mt.data = comment;
+
+    finfo.meta.push_back(mt);
+
+    finfo.image.push_back(image);
 
     frs.seekg(0x800, ios::beg);
 

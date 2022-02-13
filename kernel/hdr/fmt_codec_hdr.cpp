@@ -79,7 +79,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     if(!getHdrHead()) return SQE_R_BADFILE;
 
@@ -95,19 +94,20 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+	fmt_image image;
 
-    finfo.image[currentImage].w = hdr.width;
-    finfo.image[currentImage].h = hdr.height;
-    finfo.image[currentImage].bpp = 32;
+    image.w = hdr.width;
+    image.h = hdr.height;
+    image.bpp = 32;
 
     scanline = new u8 [hdr.width * sizeof(RGBA)];
     
     if(!scanline) return SQE_R_NOMEMORY;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "RGBE";
-    finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(32);
+    image.compression = "RGBE";
+    image.colorspace = fmt_utils::colorSpaceByBpp(32);
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

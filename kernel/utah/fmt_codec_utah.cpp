@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
 #include "fileio.h"
 #include "error.h"
 
@@ -81,7 +82,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -93,9 +93,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     if(!frs.readK(&utah, sizeof(UTAH_HEADER))) return SQE_R_BADFILE;
 
@@ -105,9 +103,9 @@ s32 fmt_codec::fmt_read_next()
 
     if(utah.ncmap != 1 && utah.ncmap != 0 && utah.ncmap != utah.ncolors) return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = utah.xsize;
-    finfo.image[currentImage].h = utah.ysize;
-    finfo.image[currentImage].bpp = 8;
+    image.w = utah.xsize;
+    image.h = utah.ysize;
+    image.bpp = 8;
     
     printf("flags: %d\nncolors: %d\nncmap: %d\ncmaplen: %d\nred: %d, green: %d,blue: %d\n",
     utah.flags,
@@ -119,9 +117,10 @@ s32 fmt_codec::fmt_read_next()
     utah.blue
     );
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "RLE";
-    finfo.image[currentImage].colorspace = "Color indexed";
+    image.compression = "RLE";
+    image.colorspace = fmt_utils::colorSpaceByBpp(8);
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

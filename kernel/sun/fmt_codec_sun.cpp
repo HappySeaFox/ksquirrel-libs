@@ -95,7 +95,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -107,7 +106,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     s8 str[128];
     u32 var, ver;
@@ -115,9 +114,9 @@ s32 fmt_codec::fmt_read_next()
     u32 * pointers[5] = 
     {
 	&ver,
-	(u32 *)&finfo.image[currentImage].w,
-	(u32 *)&finfo.image[currentImage].h,
-	(u32 *)&finfo.image[currentImage].bpp,
+	(u32 *)&image.w,
+	(u32 *)&image.h,
+	(u32 *)&image.bpp,
 	&validbits
     };
 
@@ -143,11 +142,11 @@ s32 fmt_codec::fmt_read_next()
 	return SQE_R_BADFILE;
 	
     // ignore images with width != 64 or height != 64
-    // @todo get rid of this if()
-    if(finfo.image[currentImage].w != 64 || finfo.image[currentImage].h != 64)
+    // TODO: get rid of this if()
+    if(image.w != 64 || image.h != 64)
 	return SQE_R_NOTSUPPORTED;
 
-    if(finfo.image[currentImage].bpp != 1)
+    if(image.bpp != 1)
 	return SQE_R_NOTSUPPORTED;
 
     if(validbits != 16 && validbits != 32)
@@ -156,9 +155,10 @@ s32 fmt_codec::fmt_read_next()
     if(!scanForLex(frs, true))
 	return SQE_R_BADFILE;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "Monochrome";
+    image.compression = "-";
+    image.colorspace = "Monochrome";
+
+    finfo.image.push_back(image);
 
     line = -1;
 

@@ -38,13 +38,6 @@
  *
  */
 
-struct color_t
-{
-    u8 r;
-    u8 g;
-    u8 b;
-};
-
 const RGB c64pal[16] =
 {
         RGB(   0,   0,   0 ),      // Black
@@ -107,7 +100,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
     
     pixel_mask[0] = 0xc0;
     pixel_mask[1] = 0x30;
@@ -129,7 +121,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     u8	load[2];
     
@@ -152,12 +144,12 @@ s32 fmt_codec::fmt_read_next()
 
     foundcolor = 0;
 
-    finfo.image[currentImage].w = KOALA_WIDTH;
-    finfo.image[currentImage].h = KOALA_HEIGHT;
+    image.w = KOALA_WIDTH;
+    image.h = KOALA_HEIGHT;
+    image.compression = "-";
+    image.colorspace = fmt_utils::colorSpaceByBpp(8);
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = fmt_utils::colorSpaceByBpp(8);
+    finfo.image.push_back(image);
 
     line = -1;
 

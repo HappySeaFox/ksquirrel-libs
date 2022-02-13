@@ -90,7 +90,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 	return SQE_R_NOTSUPPORTED;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -102,7 +101,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     RGBA		rgba;
     s32		i, j, scanShouldBe;
@@ -112,12 +111,12 @@ s32 fmt_codec::fmt_read_next()
     else
 	pal_entr = 0;
 
-    finfo.image[currentImage].w = bih.Width;
-    finfo.image[currentImage].h = bih.Height;
-    finfo.image[currentImage].bpp = bih.BitCount;
+    image.w = bih.Width;
+    image.h = bih.Height;
+    image.bpp = bih.BitCount;
     scanShouldBe = bih.Width;
 
-    switch(finfo.image[currentImage].bpp)
+    switch(image.bpp)
     {
 	case 1:
 	{
@@ -127,7 +126,7 @@ s32 fmt_codec::fmt_read_next()
 	}
 	break;
 	
-	case 4:  scanShouldBe = ((finfo.image[currentImage].w)%2)?((scanShouldBe+1)/2):(scanShouldBe/2); break;
+	case 4:  scanShouldBe = ((image.w)%2)?((scanShouldBe+1)/2):(scanShouldBe/2); break;
 	case 8:  break;
 	case 16: scanShouldBe *= 2; break;
 	case 24: scanShouldBe *= 3; break;
@@ -144,7 +143,7 @@ s32 fmt_codec::fmt_read_next()
 	    break;
 	}
 
-    if(finfo.image[currentImage].bpp < 16)
+    if(image.bpp < 16)
     {
 	/*  read palette  */
 	for(i = 0;i < pal_entr;i++)
@@ -161,10 +160,11 @@ s32 fmt_codec::fmt_read_next()
     /*  fseek to image bits  */
     frs.seekg(bfh.OffBits, ios::beg);
 
-    finfo.image[currentImage].needflip = true;
-    finfo.images++;
-    finfo.image[currentImage].colorspace = ((pal_entr) ? "Color indexed":"RGB");
-    finfo.image[currentImage].compression = "-";
+    image.needflip = true;
+    image.colorspace = (pal_entr ? "Color indexed":"RGB");
+    image.compression = "-";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

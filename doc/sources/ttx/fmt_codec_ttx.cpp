@@ -136,3 +136,8 @@ bool fmt_codec::fmt_writable() const
 {
     return false;
 }
+
+std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
+{
+    return std::string("");
+}

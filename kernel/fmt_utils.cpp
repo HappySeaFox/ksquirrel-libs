@@ -117,7 +117,7 @@ std::string fmt_utils::adjustTempName(const std::string &n, const std::string &s
     if(!t)
         t = getenv("TMPDIR");
 
-    tmp  = (t) ? t : tmp_global;
+    tmp  = t ? t : tmp_global;
     tmp += "/";
 
     std::string::size_type pos = 0;

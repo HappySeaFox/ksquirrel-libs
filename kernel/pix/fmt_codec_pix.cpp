@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include "fmt_types.h"
+#include "fmt_utils.h"
 #include "fileio.h"
 #include "error.h"
 
@@ -75,7 +76,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 	
     return SQE_OK;
 }
@@ -90,9 +90,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     if(!frs.be_getshort(&pfh.width)) return SQE_R_BADFILE;
     if(!frs.be_getshort(&pfh.height)) return SQE_R_BADFILE;
@@ -105,13 +103,13 @@ s32 fmt_codec::fmt_read_next()
     if(pfh.bpp != 24)	
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = pfh.width;
-    finfo.image[currentImage].h = pfh.height;
-    finfo.image[currentImage].bpp = pfh.bpp;
-    finfo.image[currentImage].compression = "RLE";
-    finfo.image[currentImage].colorspace = "RGB";
+    image.w = pfh.width;
+    image.h = pfh.height;
+    image.bpp = pfh.bpp;
+    image.compression = "RLE";
+    image.colorspace = fmt_utils::colorSpaceByBpp(24);
 
-    finfo.images++;
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

@@ -1,17 +1,65 @@
+Notes:
+------
+
+Some filters are ported from KDE's KImageEffect. See fmt_filters.h for more.
+Resize methods are ported from DevIL library. See fmt_filters.h for more.
+
+-------------------------------------------------------------------
+
 * fmt_filters is a regular C++ namespace.
 * it is a set of image filters, written on pure C++.
 * it is intended to create platform-independed filters, which can be used anywhere -
     in KDE, GNOME, ... apps.
 * these source files are distributed with ksquirrel-libs from http://ksquirrel.sf.net.
-* You can find the latest version of fmt_filters at http://ksquirrel.sf.net/subprojects.php.
+* you can find the latest version of fmt_filters at http://ksquirrel.sf.net/subprojects.php.
 * fmt_filters work with 32-bit image data.
 * to use it in your project, simply add fmt_filters sources to your project.
 * fmt_filters is distributed under the terms of LGPL. See COPYING for details.
 
-* at this time fmt_filters support the following filters:
+* at this time fmt_filters supports the following filters:
 	- colorize
 	- brightness
 	- contrast
 	- gamma
 	- negative
 	- swap RGB values
+        - blend
+        - fade
+        - togray
+        - desaturate
+        - threshold
+        - solarize
+        - spread
+        - swirl
+        - noise
+        - flatten
+        - wave
+        - shade
+        - equalize
+        - blur
+        - despeckle
+        - implode
+        - edge
+        - emboss
+        - sharpen
+        - oil
+
+-------------------------------------------------------------------
+
+Qt example:
+-----------
+
+QImage im;
+
+im.load("sample.png");
+
+fmt_filters::image img(sample.bits(), sample.width(), sample.height());
+
+fmt_filters::implode(img, 50, fmt_filters::white);
+
+QPixmap p;
+
+p.convertFromImage(im);
+
+pixmapLabel->setPixmap(p);
+

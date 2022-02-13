@@ -4,7 +4,7 @@ Important
   please install libpng, libjpeg and libtiff. You should also install devel packages.
 * XWD library requires X11/XWDFile.h.
 * WMF library requires freetype2 and freetype2-devel
-* SVG library requires libxml2, freetype2 and freetype2-devel
+* SVG library requires libxml2, freetype2, freetype2-devel and fontconfig
 
 About
 -----
@@ -15,8 +15,8 @@ About
   own mechanism that could use the libraries.
 * You can find latest version of ksquirrel-libs at http://ksquirrel.sf.net.
 * You can find some interesting examples in "examples" directory
-        qgl   - using ksquirrel-libs with QT and OpenGL (QGLWidget)
-        qtapp - using ksquirrel-libs with QT            (QLabel)
+        qgl   - using ksquirrel-libs with Qt and OpenGL (QGLWidget)
+        qtapp - using ksquirrel-libs with Qt            (QLabel)
 
 	To compile them cd to "examples" and run make
 
@@ -25,4 +25,4 @@ About
 
 Version
 -------
-Current version: 0.6.0-pre5
+Current version: 0.6.0-pre7

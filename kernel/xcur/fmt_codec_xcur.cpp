@@ -86,7 +86,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     lastToc = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -110,24 +109,22 @@ s32 fmt_codec::fmt_read_next()
     if(currentToc == (s32)xcur_h.ntoc-1)
 	lastToc = true;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;    
+    fmt_image image;
 
     frs.seekg(tocs[currentToc].pos, ios::beg);
 
     if(!frs.readK(&xcur_chunk, sizeof(XCUR_CHUNK_HEADER))) return SQE_R_BADFILE;
     if(!frs.readK(&xcur_im, sizeof(XCUR_CHUNK_IMAGE))) return SQE_R_BADFILE;
     
-    finfo.image[currentImage].w = xcur_im.width;
-    finfo.image[currentImage].h = xcur_im.height;
-    finfo.image[currentImage].bpp = 32;
-    finfo.image[currentImage].delay = xcur_im.delay;
-    finfo.image[currentImage].hasalpha = true;
+    image.w = xcur_im.width;
+    image.h = xcur_im.height;
+    image.bpp = 32;
+    image.delay = xcur_im.delay;
+    image.hasalpha = true;
+    image.compression = "-";
+    image.colorspace = "ARGB";
 
-    finfo.images++;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "ARGB";
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

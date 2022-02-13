@@ -134,4 +134,4 @@ do_cmd $AUTOMAKE $AUTOMAKE_FLAGS
 
 do_cmd $AUTOCONF
 
-do_cmd ./configure --enable-maintainer-mode --enable-shared=no --disable-glitz --disable-pdf --disable-win32 --disable-png --disable-xlib --disable-quartz && echo "Now type \`make' to compile" || exit 1
+do_cmd ./configure --enable-maintainer-mode --enable-shared=no --disable-glitz --disable-pdf --disable-win32 --disable-png --disable-xlib --disable-quartz && echo "Now type \`make' to compile $PACKAGE" || exit 1

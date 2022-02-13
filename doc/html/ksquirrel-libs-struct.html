@@ -92,7 +92,7 @@ struct fmt_image
 to decode a file with one or more images.</b>
 struct fmt_info
 {
-    fmt_info() : images(0), animated(false)
+    fmt_info() : animated(false)
     {}
 
     <b>Array of fmt_image structures. One structure defines one image.</b>
@@ -101,8 +101,6 @@ struct fmt_info
     <b>Metainfo entries</b>
     std::vector&#60;fmt_metaentry&#62;  meta;
 
-    <b>Number of images in file.</b>
-    s32			images;
     <b>Is it animated or static ?</b>
     bool		animated;
 

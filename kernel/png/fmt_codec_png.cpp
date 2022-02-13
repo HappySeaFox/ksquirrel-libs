@@ -99,21 +99,20 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     rows = 0L;
 
     finfo.animated = false;
-    finfo.images = 0;
 	    
     return SQE_OK;
 }
 
 s32 fmt_codec::fmt_read_next()
 {
-    s32		bit_depth, interlace_type;
+    s32	bit_depth, interlace_type;
 
     currentImage++;
 
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     if((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, my_error_exit, 0)) == NULL)
     {
@@ -137,17 +136,17 @@ s32 fmt_codec::fmt_read_next()
     png_read_info(png_ptr, info_ptr);
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, (int*)NULL, (int*)NULL);
 
-    finfo.image[currentImage].w = width;
-    finfo.image[currentImage].h = height;
-    finfo.image[currentImage].bpp = bit_depth;
+    image.w = width;
+    image.h = height;
+    image.bpp = bit_depth;
 
-    if(finfo.image[currentImage].bpp == 16)
+    if(image.bpp == 16)
 	png_set_strip_16(png_ptr);
 
-    if(finfo.image[currentImage].bpp < 8)
+    if(image.bpp < 8)
 	png_set_packing(png_ptr);
 
-    if(color_type == PNG_COLOR_TYPE_GRAY && finfo.image[currentImage].bpp < 8)
+    if(color_type == PNG_COLOR_TYPE_GRAY && image.bpp < 8)
 	png_set_gray_1_2_4_to_8(png_ptr);
 
     if(color_type == PNG_COLOR_TYPE_PALETTE)
@@ -165,40 +164,40 @@ s32 fmt_codec::fmt_read_next()
 
     number_passes = png_set_interlace_handling(png_ptr);
 
-    finfo.image[currentImage].interlaced = number_passes > 1;
-    finfo.image[currentImage].passes = number_passes;
+    image.interlaced = number_passes > 1;
+    image.passes = number_passes;
 
     png_read_update_info(png_ptr, info_ptr);
 
-    rows = (png_bytep*)calloc(finfo.image[currentImage].h, sizeof(png_bytep));
-    
+    rows = (png_bytep*)calloc(image.h, sizeof(png_bytep));
+
     if(!rows)
 	return SQE_R_NOMEMORY;
 
-    for(s32 row = 0; row < finfo.image[currentImage].h; row++)
+    for(s32 row = 0; row < image.h; row++)
     {
-	rows[row] = (png_bytep)0;
+	rows[row] = NULL;
     }
 
-    for(s32 row = 0; row < finfo.image[currentImage].h; row++)
+    for(s32 row = 0; row < image.h; row++)
     {
 	rows[row] = (png_bytep)malloc(png_get_rowbytes(png_ptr, info_ptr));
 
 	if(!rows[row])
 	    return SQE_R_NOMEMORY;
     }
-
+    
     std::string color_;
 
     switch(color_type)
     {
 	case PNG_COLOR_TYPE_GRAY_ALPHA:
-    	    finfo.image[currentImage].hasalpha = true;
+    	    image.hasalpha = true;
     	    color_ = "Grayscale with ALPHA";
 	break;
 
 	case PNG_COLOR_TYPE_RGB_ALPHA:
-	    finfo.image[currentImage].hasalpha = true;
+	    image.hasalpha = true;
 	    color_ = "RGBA";
 	break;
 	
@@ -218,31 +217,32 @@ s32 fmt_codec::fmt_read_next()
 	    color_ = "Unknown";
     }
 
-    finfo.image[currentImage].compression = "Deflate method 8, 32K window";
-    finfo.image[currentImage].colorspace = color_;
+    image.compression = "Deflate method 8, 32K window";
+    image.colorspace = color_;
 
 #if defined(PNG_TEXT_SUPPORTED)
     png_textp lines = info_ptr->text;
 
     if(!lines || !info_ptr->num_text)
     {
-        finfo.images++;
+   	finfo.image.push_back(image);
         return SQE_OK;
     }
 
     for(s32 i = 0;i < info_ptr->num_text;i++)
-        finfo.meta.push_back(fmt_metaentry());
-
-    for(s32 i = 0;i < info_ptr->num_text;i++)
     {
+	fmt_metaentry mt;
+
         std::string key;
-	key = key + "PNG key [" + lines[i].key + "]";
-        finfo.meta[i].group = key;
-        finfo.meta[i].data = lines[i].text;
+        key = key + "PNG key [" + lines[i].key + "]";
+        mt.group = key;
+        mt.data = lines[i].text;
+
+        finfo.meta.push_back(mt);
     }
 #endif
 
-    finfo.images++;
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }
@@ -268,8 +268,10 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 void fmt_codec::fmt_read_close()
 {
     if(!zerror)
+    {
 	png_read_end(png_ptr, info_ptr);
-
+    }
+    
     png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 
     fclose(fptr);
@@ -308,7 +310,7 @@ s32 fmt_codec::fmt_write_init(const std::string &file, const fmt_image &image, c
 
     writeimage = image;
     writeopt = opt;
-
+    
     m_fptr = fopen(file.c_str(), "wb");
 
     if(!m_fptr)
@@ -372,13 +374,13 @@ s32 fmt_codec::fmt_write_next()
 
     png_set_packswap(m_png_ptr);
 
+    png_set_interlace_handling(m_png_ptr);
+
     return SQE_OK;
 }
 
 s32 fmt_codec::fmt_write_next_pass()
 {
-    png_set_interlace_handling(m_png_ptr);
-
     return SQE_OK;
 }
 

@@ -93,7 +93,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     read_error = false;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -105,55 +104,53 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
         return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
-    image = jas_image_decode(in, -1, 0);
+    jp2_image = jas_image_decode(in, -1, 0);
 
     jas_stream_close(in);
     
-    if(!image)
+    if(!jp2_image)
 	return SQE_R_NOMEMORY;
 
-    gs.image = image;
+    gs.image = jp2_image;
 
     family = jas_clrspc_fam(jas_image_clrspc(gs.image));
 
     if(!convert_colorspace())
 	return SQE_R_BADFILE;
 
-    finfo.image[currentImage].w = jas_image_width(gs.image);
-    finfo.image[currentImage].h = jas_image_height(gs.image);
-
-    finfo.images++;
+    image.w = jas_image_width(gs.image);
+    image.h = jas_image_height(gs.image);
 
     switch(family)
     {
 	case JAS_CLRSPC_FAM_RGB:
-	    finfo.image[currentImage].colorspace = "RGB";
-	    finfo.image[currentImage].bpp = 24;
+	    image.colorspace = "RGB";
+	    image.bpp = 24;
 	break;
 
 	case JAS_CLRSPC_FAM_YCBCR:
-	    finfo.image[currentImage].colorspace = "YCbCr";
-	    finfo.image[currentImage].bpp = 24;
+	    image.colorspace = "YCbCr";
+	    image.bpp = 24;
 	break;
 		
 	case JAS_CLRSPC_FAM_GRAY:
-	    finfo.image[currentImage].colorspace = "Grayscale";
-	    finfo.image[currentImage].bpp = 8;
+	    image.colorspace = "Grayscale";
+	    image.bpp = 8;
 	break;
 
 	case JAS_CLRSPC_FAM_LAB:
-	    finfo.image[currentImage].colorspace = "LAB";
-	    finfo.image[currentImage].bpp = 24;
+	    image.colorspace = "LAB";
+	    image.bpp = 24;
 	break;
 		
 	default:
-	    finfo.image[currentImage].colorspace = "Unknown";
-	    finfo.image[currentImage].bpp = 0;
+	    image.colorspace = "Unknown";
+	    image.bpp = 0;
     }
 
-    finfo.image[currentImage].compression = "JPEG2000";
+    image.compression = "JPEG2000";
 
     if((gs.cmptlut[0] = jas_image_getcmptbytype(gs.altimage, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_R))) < 0 ||
        (gs.cmptlut[1] = jas_image_getcmptbytype(gs.altimage, JAS_IMAGE_CT_COLOR(JAS_CLRSPC_CHANIND_RGB_G))) < 0 ||
@@ -174,6 +171,8 @@ s32 fmt_codec::fmt_read_next()
 
 	return SQE_R_BADFILE;
     }
+
+    finfo.image.push_back(image);
 
     line = -1;
 

@@ -56,22 +56,22 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.6.3");
+    return std::string("0.6.4");
 }
-    
+
 std::string fmt_codec::fmt_quickinfo()
 {
     return std::string("X11 Pixmap");
 }
-	
+
 std::string fmt_codec::fmt_filter()
 {
     return std::string("*.xpm ");
 }
-	    
+
 std::string fmt_codec::fmt_mime()
 {
-    return std::string("/. XPM ./\n");
+    return std::string("/\\* XPM \\*/\n");
 }
 
 std::string fmt_codec::fmt_pixmap()
@@ -89,7 +89,6 @@ s32 fmt_codec::fmt_read_init(const std::string &fl)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     file.clear();
 
@@ -103,7 +102,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
     s32		i;
     s8	str[256];
@@ -117,7 +116,7 @@ s32 fmt_codec::fmt_read_next()
     if(!frs.getS(str, 256)) return SQE_R_BADFILE;
     while(true) { ret = skip_comments(frs); if(ret == 1) continue; else if(!ret) break; else return SQE_R_BADFILE; }
 
-    sscanf(str, "\"%d %d %d %d", &finfo.image[currentImage].w, &finfo.image[currentImage].h, &numcolors, (int*)&cpp);
+    sscanf(str, "\"%d %d %d %d", &image.w, &image.h, &numcolors, (int*)&cpp);
 //    printf("%d %d %d %d\n\n",finfo.image[currentImage].w,finfo.image[currentImage].h,numcolors,cpp);
 
     if(!numcolors)
@@ -174,13 +173,14 @@ s32 fmt_codec::fmt_read_next()
 	printf("\"%s\"  %d %d %d %d\n",Xmap[i].name,Xmap[i].rgba.r,Xmap[i].rgba.g,Xmap[i].rgba.b,Xmap[i].rgba.a);
     }
 */
-    finfo.image[currentImage].bpp = 24;
-    finfo.image[currentImage].hasalpha = true;
 
-    finfo.images++;
-    finfo.image[currentImage].passes = 1;
-    finfo.image[currentImage].compression = "-";
-    finfo.image[currentImage].colorspace = "Indexed RGBA";
+    image.bpp = 24;
+    image.hasalpha = true;
+    image.passes = 1;
+    image.compression = "-";
+    image.colorspace = "Indexed RGBA";
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

@@ -101,7 +101,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
     currentImage = -1;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -113,9 +112,7 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
-
-    finfo.image[currentImage].passes = 1;
+    fmt_image image;
 
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = my_error_exit;
@@ -143,8 +140,8 @@ s32 fmt_codec::fmt_read_next()
 
     jpeg_start_decompress(&cinfo);
 
-    finfo.image[currentImage].w = cinfo.output_width;
-    finfo.image[currentImage].h = cinfo.output_height;
+    image.w = cinfo.output_width;
+    image.h = cinfo.output_height;
     
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
 
@@ -152,18 +149,18 @@ s32 fmt_codec::fmt_read_next()
 
     switch(cinfo.jpeg_color_space)
     {
-	case JCS_GRAYSCALE: type =  "Grayscale"; finfo.image[currentImage].bpp = 8;  break;
-	case JCS_RGB:       type =  "RGB";       finfo.image[currentImage].bpp = 24; break;
-	case JCS_YCbCr:     type =  "YUV";       finfo.image[currentImage].bpp = 24; break;
-	case JCS_CMYK:      type =  "CMYK";      finfo.image[currentImage].bpp = 32; break;
-	case JCS_YCCK:      type =  "YCCK";      finfo.image[currentImage].bpp = 32; break;
+	case JCS_GRAYSCALE: type =  "Grayscale"; image.bpp = 8;  break;
+	case JCS_RGB:       type =  "RGB";       image.bpp = 24; break;
+	case JCS_YCbCr:     type =  "YUV";       image.bpp = 24; break;
+	case JCS_CMYK:      type =  "CMYK";      image.bpp = 32; break;
+	case JCS_YCCK:      type =  "YCCK";      image.bpp = 32; break;
 
 	default:
 	    type = "Unknown";
     }
 
-    finfo.image[currentImage].compression = "JPEG";
-    finfo.image[currentImage].colorspace = type;
+    image.compression = "JPEG";
+    image.colorspace = type;
 
     jpeg_saved_marker_ptr it = cinfo.marker_list;
 
@@ -176,17 +173,20 @@ s32 fmt_codec::fmt_read_next()
 
 	if(it->marker == JPEG_COM)
 	{
-	    finfo.meta.push_back(fmt_metaentry());
+		fmt_metaentry mt;
 
-	    finfo.meta[0].group = "JPEG \"COM\" marker";
+	    mt.group = "JPEG \"COM\" marker";
 
 	    s8 data[it->data_length+1];
 	    memcpy(data, it->data, it->data_length);
 	    data[it->data_length] = '\0';
 //	    memcpy(data, it->data, it->data_length);
-	    finfo.meta[0].data = data;
+	    mt.data = data;
+
+	    finfo.meta.push_back(mt);
 
 	    rr = true;
+
     	    break;
 	}
 
@@ -198,7 +198,7 @@ s32 fmt_codec::fmt_read_next()
 	finfo.meta.clear();
     }
 
-    finfo.images++;
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }
@@ -228,6 +228,9 @@ void fmt_codec::fmt_read_close()
     jpeg_destroy_decompress(&cinfo);
 
     fclose(fptr);
+
+    finfo.meta.clear();
+    finfo.image.clear();
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)

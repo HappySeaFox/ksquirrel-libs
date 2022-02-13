@@ -25,8 +25,6 @@
 #include <vector>
 #include <string>
 
-using namespace std;
-
 /* Metainfo support */
 
 struct fmt_metaentry
@@ -118,8 +116,12 @@ struct fmt_image
 /* General description */
 struct fmt_info
 {
-    fmt_info() : images(0), animated(false)
+    fmt_info() : animated(false)
     {}
+
+    /*
+     *  TODO: make 'image' and 'meta' impicitly shared ?
+     */
 
     // array of images
     std::vector<fmt_image>	image;
@@ -127,9 +129,6 @@ struct fmt_info
     // array of metainfo entries
     std::vector<fmt_metaentry>	meta;
 
-    // number of images
-    s32				images;
-    
     // animated or static
     bool			animated;
 };

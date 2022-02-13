@@ -167,7 +167,6 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 	return SQE_R_NOTSUPPORTED;
 
     finfo.animated = false;
-    finfo.images = 0;
 
     return SQE_OK;
 }
@@ -179,12 +178,12 @@ s32 fmt_codec::fmt_read_next()
     if(currentImage)
 	return SQE_NOTOK;
 
-    finfo.image.push_back(fmt_image());
+    fmt_image image;
 
-    finfo.image[currentImage].hasalpha = (mode == PSD_RGB) ? true : ((channels == 5) ? true : false);
-    finfo.image[currentImage].passes = (channels == 5) ? 4 : channels;
-    finfo.image[currentImage].h = height;
-    finfo.image[currentImage].w = width;
+    image.hasalpha = (mode == PSD_RGB) ? true : ((channels == 5) ? true : false);
+    image.passes = (channels == 5) ? 4 : channels;
+    image.h = height;
+    image.w = width;
     
     if(compression)
     {
@@ -199,22 +198,22 @@ s32 fmt_codec::fmt_read_next()
     {
 	case PSD_RGB:
 	    type = "RGB";
-	    finfo.image[currentImage].bpp = 24;
+	    image.bpp = 24;
 	break;
 
 	case PSD_CMYK:
 	    type = "CMYK";
-	    finfo.image[currentImage].bpp = (channels == 5) ? 32 : 24;
+	    image.bpp = (channels == 5) ? 32 : 24;
 	break;
 	
 	case PSD_INDEXED:
 	    type = "Color indexed";
-	    finfo.image[currentImage].bpp = 8;
+	    image.bpp = 8;
 	break;
 
 	case PSD_GRAYSCALE:
 	    type = "Grayscale";
-	    finfo.image[currentImage].bpp = 8;
+	    image.bpp = 8;
 	break;
     }
 
@@ -247,9 +246,10 @@ s32 fmt_codec::fmt_read_next()
     if(!L)
 	return SQE_R_NOMEMORY;
 
-    finfo.images++;
-    finfo.image[currentImage].compression = ((compression) ? "RLE" : "-");
-    finfo.image[currentImage].colorspace = type;
+    image.compression = ((compression) ? "RLE" : "-");
+    image.colorspace = type;
+
+    finfo.image.push_back(image);
 
     return SQE_OK;
 }

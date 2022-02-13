@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(libSQ_codec_pix_la_SOURCES)
+SOURCES = $(libSQ_codec_pxr_la_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -40,7 +40,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = kernel/pix
+subdir = kernel/pxr
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -58,11 +58,11 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libSQ_codec_pix_la_DEPENDENCIES = ../fileio.lo ../fmt_utils.lo
-am_libSQ_codec_pix_la_OBJECTS = fmt_codec_pix.lo
-#>- libSQ_codec_pix_la_OBJECTS = $(am_libSQ_codec_pix_la_OBJECTS)
+libSQ_codec_pxr_la_LIBADD =
+am_libSQ_codec_pxr_la_OBJECTS = fmt_codec_pxr.lo
+#>- libSQ_codec_pxr_la_OBJECTS = $(am_libSQ_codec_pxr_la_OBJECTS)
 #>+ 1
-libSQ_codec_pix_la_OBJECTS = fmt_codec_pix.lo
+libSQ_codec_pxr_la_OBJECTS = fmt_codec_pxr.lo
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/admin/depcomp
 am__depfiles_maybe = depfiles
@@ -92,8 +92,8 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libSQ_codec_pix_la_SOURCES)
-DIST_SOURCES = $(libSQ_codec_pix_la_SOURCES)
+SOURCES = $(libSQ_codec_pxr_la_SOURCES)
+DIST_SOURCES = $(libSQ_codec_pxr_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -144,7 +144,7 @@ KDE_USE_NMCHECK_FALSE = @KDE_USE_NMCHECK_FALSE@
 KDE_USE_NMCHECK_TRUE = @KDE_USE_NMCHECK_TRUE@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@
+LIBS = ../fileio.lo ../fmt_utils.lo
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -234,10 +234,9 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 INCLUDES = -I.. -I../include
-lib_LTLIBRARIES = libSQ_codec_pix.la
-libSQ_codec_pix_la_SOURCES = fmt_codec_pix.cpp fmt_codec_pix_defs.h
-libSQ_codec_pix_la_LDFLAGS = -release 1.1.0
-libSQ_codec_pix_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+lib_LTLIBRARIES = libSQ_codec_pxr.la
+libSQ_codec_pxr_la_SOURCES = fmt_codec_pxr.cpp fmt_codec_pxr_defs.h
+libSQ_codec_pxr_la_LDFLAGS = -release 0.1.0
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -253,9 +252,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 #>- 	      exit 1;; \
 #>- 	  esac; \
 #>- 	done; \
-#>- 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/pix/Makefile'; \
+#>- 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/pxr/Makefile'; \
 #>- 	cd $(top_srcdir) && \
-#>- 	  $(AUTOMAKE) --gnu  kernel/pix/Makefile
+#>- 	  $(AUTOMAKE) --gnu  kernel/pxr/Makefile
 #>+ 12
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -265,10 +264,10 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/pix/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/pxr/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  kernel/pix/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/pix/Makefile.in
+	  $(AUTOMAKE) --gnu  kernel/pxr/Makefile
+	cd $(top_srcdir) && perl admin/am_edit kernel/pxr/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -313,8 +312,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libSQ_codec_pix.la: $(libSQ_codec_pix_la_OBJECTS) $(libSQ_codec_pix_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libSQ_codec_pix_la_LDFLAGS) $(libSQ_codec_pix_la_OBJECTS) $(libSQ_codec_pix_la_LIBADD) $(LIBS)
+libSQ_codec_pxr.la: $(libSQ_codec_pxr_la_OBJECTS) $(libSQ_codec_pxr_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libSQ_codec_pxr_la_LDFLAGS) $(libSQ_codec_pxr_la_OBJECTS) $(libSQ_codec_pxr_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -322,7 +321,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_codec_pix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_codec_pxr.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -550,10 +549,10 @@ force-reedit:
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/pix/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/pxr/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  kernel/pix/Makefile
-	cd $(top_srcdir) && perl admin/am_edit kernel/pix/Makefile.in
+	  $(AUTOMAKE) --gnu  kernel/pxr/Makefile
+	cd $(top_srcdir) && perl admin/am_edit kernel/pxr/Makefile.in
 
 
 #>+ 21

@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.0-pre6], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.0-pre7], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre6)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre7)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -182,6 +182,7 @@ AC_CONFIG_FILES([kernel/jpeg/Makefile])
 AC_CONFIG_FILES([kernel/xwd/Makefile])
 AC_CONFIG_FILES([kernel/tiff/Makefile])
 AC_CONFIG_FILES([kernel/camera/Makefile])
+AC_CONFIG_FILES([kernel/pxr/Makefile])
 
 AM_CONDITIONAL(CAMERA_NO_JPEG, [ test "x$sq_have_jpeg" = "xno" ])
 
@@ -213,20 +214,22 @@ Installation options:
 Libraries:
 ----------"
 
-sq_enabled="bmp gif pix xbm xpm tga sgi ras pnm pcx ico xcur psd fli iff utah cut rawrgb wbmp sun jpeg2000 openexr koala wal mdl hdr sct lif mtv avs msp mac"
+sq_enabled=""
 sq_disabled=""
+sq_total="33"
 
-if test $sq_have_jpeg = yes; then sq_enabled=`echo -n $sq_enabled jpeg `; else sq_disabled=`echo -n $sq_disabled jpeg `; fi
-if test $sq_have_png = yes; then sq_enabled=`echo -n $sq_enabled png `; else sq_disabled=`echo -n $sq_disabled png `; fi
-if test $sq_have_xwd = yes; then sq_enabled=`echo -n $sq_enabled xwd `; else sq_disabled=`echo -n $sq_disabled xwd `; fi
-if test $sq_have_tiff = yes; then sq_enabled=`echo -n $sq_enabled tiff `; else sq_disabled=`echo -n $sq_disabled tiff `; fi
-if test $sq_have_camera = yes; then sq_enabled=`echo -n $sq_enabled camera `; else sq_disabled=`echo -n $sq_disabled camera `; fi
-if test $sq_have_freetype = yes; then sq_enabled=`echo -n $sq_enabled wmf `; else sq_disabled=`echo -n $sq_disabled wmf `; fi
-if test $sq_have_freetype = yes; then sq_enabled=`echo -n $sq_enabled svg `; else sq_disabled=`echo -n $sq_disabled svg `; fi
+if test $sq_have_jpeg = yes;     then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled jpeg `;   else sq_disabled=`echo -n $sq_disabled jpeg `; fi
+if test $sq_have_png = yes;      then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled png `;    else sq_disabled=`echo -n $sq_disabled png `; fi
+if test $sq_have_xwd = yes;      then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled xwd `;    else sq_disabled=`echo -n $sq_disabled xwd `; fi
+if test $sq_have_tiff = yes;     then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled tiff `;   else sq_disabled=`echo -n $sq_disabled tiff `; fi
+if test $sq_have_camera = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled camera `; else sq_disabled=`echo -n $sq_disabled camera `; fi
+if test $sq_have_freetype = yes; then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled wmf `;    else sq_disabled=`echo -n $sq_disabled wmf `; fi
+if test $sq_have_freetype = yes; then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled svg `;    else sq_disabled=`echo -n $sq_disabled svg `; fi
 
 echo "
-  Enabled:  $sq_enabled
-  Disabled: $sq_disabled
+  Optional formats, enabled:  $sq_enabled
+  Optional formats, disabled: $sq_disabled
+  Total formats:              $sq_total
 
-Now run 'make' to compile libraries
+Now run 'make' to compile ksquirrel-libs
  "

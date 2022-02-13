@@ -8,9 +8,6 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* define if you have expat */
-#undef HAVE_EXPAT
-
 /* Define to 1 if you have the `fprintf' function. */
 #undef HAVE_FPRINTF
 
@@ -22,15 +19,6 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
-
-/* define if you have libjpeg */
-#undef HAVE_LIBJPEG
-
-/* define if you have libpng */
-#undef HAVE_LIBPNG
-
-/* define if you have libxml2 */
-#undef HAVE_LIBXML2
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
