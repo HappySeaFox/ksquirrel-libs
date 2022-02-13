@@ -83,9 +83,16 @@ s32 fmt_codec::read_init(const std::string &file)
 
     transIndex = -1;
 
+    Last = 0;
+    Lines = 0;
+    buf = 0;
+    saved = 0;
+
     gif = DGifOpenFileName(file.c_str());
 
-    Last = 0;
+    // for safety...
+    if(!gif)
+        return SQE_R_BADFILE;
 
     linesz = gif->SWidth * sizeof(GifPixelType);
 
@@ -103,36 +110,30 @@ s32 fmt_codec::read_init(const std::string &file)
 	back.a = 255;
     }
     else
-    {
 	memset(&back, 0, sizeof(RGBA));
-    }
 
     layer = -1;
     line = 0;
     curLine = 0;
 
     Lines_h = gif->SHeight;
-    Lines = (RGBA **)calloc(Lines_h, sizeof(RGBA*));
+    Lines = (RGBA **)malloc(Lines_h * sizeof(RGBA*));
 
     if(!Lines)
 	return SQE_R_NOMEMORY;
 
     for(s32 i = 0;i < Lines_h;i++)
-    {
 	Lines[i] = (RGBA *)0;
-    }
 
     map = (gif->Image.ColorMap) ? gif->Image.ColorMap : gif->SColorMap;
 
-    Last = (RGBA **)calloc(gif->SHeight, sizeof(RGBA*));
+    Last = (RGBA **)malloc(gif->SHeight * sizeof(RGBA*));
 
     if(!Last)
 	return SQE_R_NOMEMORY;
 
     for(s32 i = 0;i < gif->SHeight;i++)
-    {
 	Last[i] = (RGBA *)0;
-    }
 
     for(s32 i = 0;i < gif->SHeight;i++)
     {
@@ -489,18 +490,15 @@ s32 fmt_codec::read_scanline(RGBA *scan)
 
 void fmt_codec::read_close()
 {
-    if(buf)
-	free(buf);
-
-    if(saved)
-	free(saved);
+    if(buf)   free(buf);
+    if(saved) free(saved);
 
     if(Lines)
     {
 	for(s32 i = 0;i < Lines_h;i++)
 	    if(Lines[i])
 		free(Lines[i]);
-		
+
 	free(Lines);
 	Lines = 0;
     }
@@ -518,7 +516,7 @@ void fmt_codec::read_close()
     finfo.meta.clear();
     finfo.image.clear();
 
-    DGifCloseFile(gif);
+    if(gif) DGifCloseFile(gif);
 }
 
 void fmt_codec::getwriteoptions(fmt_writeoptionsabs *opt)

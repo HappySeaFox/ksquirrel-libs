@@ -2,7 +2,7 @@ SUBDIRS = kernel doc
 
 AUTOMAKE_OPTIONS = foreign 
 
-pkgconfigdir = ${exec_prefix}/lib/pkgconfig
+pkgconfigdir = ${libdir}/pkgconfig
 pkgconfig_DATA = ksquirrellibs.pc
 
 $(top_srcdir)/subdirs:
