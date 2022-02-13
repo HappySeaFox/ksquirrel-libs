@@ -27,7 +27,6 @@
 unsigned short sLE2BE(unsigned short a)
 {
     short i = a, b;
-    unsigned short res;
 
     b = i & 255;
     b = b << 8;
@@ -35,14 +34,12 @@ unsigned short sLE2BE(unsigned short a)
     i = i >> 8;
     i = i|0;
     
-    res = i|b;
-    
-    return res;
+    return i|b;
 }
 
 unsigned long lLE2BE(unsigned long a)
 {
-    unsigned long i = a, b, c, res;
+    unsigned long i = a, b, c;
     unsigned short m, n;
     
     b = i >> 16; /* high word */
@@ -62,9 +59,7 @@ unsigned long lLE2BE(unsigned long a)
     b = b|0;
     c = c|0;
     
-    res = b|c;
-    
-    return res;
+    return b|c;
 }
 
 

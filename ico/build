@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_ico.so
-../compile read_ico

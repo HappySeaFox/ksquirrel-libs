@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_pcx.so
-../compile read_pcx

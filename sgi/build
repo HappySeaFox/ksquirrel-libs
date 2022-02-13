@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_sgi.so
-../compile read_sgi

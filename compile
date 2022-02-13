@@ -1,5 +1,0 @@
-#!/bin/sh
-
-gcc -Wall -O2 -fPIC -c $1.c
-gcc -Wall -O2 -shared $2 $1.o -o libSQ_$1.so
-rm -f $1.o

@@ -118,8 +118,8 @@ int fmt_read_info(fmt_info *finfo)
     bAND = (uchar*)calloc(count, sizeof(uchar));
     fread(bAND, count, 1, finfo->fptr);
     
-    for(i = 0;i < count;i++)
-	printf("%4d%s",bAND[i],((i+1)%8)?" ":"\n");
+//    for(i = 0;i < count;i++)
+//	printf("%4d%s",bAND[i],((i+1)%8)?" ":"\n");
     
     fsetpos(finfo->fptr, (fpos_t*)&pos);
 

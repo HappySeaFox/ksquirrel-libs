@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_tiff.so
-../compile read_tiff -ltiff

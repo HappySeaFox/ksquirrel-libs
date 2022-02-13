@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_pix.so
-../compile read_pix

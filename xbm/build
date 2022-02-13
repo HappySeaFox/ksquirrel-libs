@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_xbm.so
-../compile read_xbm

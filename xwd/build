@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_xwd.so
-../compile read_xwd

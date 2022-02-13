@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm -f libSQ_read_jpg.so
-../compile read_jpg -ljpeg
