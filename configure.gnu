@@ -1,6 +1,6 @@
 #!/bin/sh
 
-par="--libdir=/usr/lib/ksquirrel-libs"
+par="--exec-prefix=/usr --prefix=/usr --libdir=/usr/lib/ksquirrel-libs"
 
 echo "*** Doing configure $* $par ..."
 

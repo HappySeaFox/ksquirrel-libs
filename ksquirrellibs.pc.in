@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: ksquirrellibs
+Description: Image codecs for KSquirrel
+Version: @VERSION@
+Libs: -L${libdir} -rpath ${libdir} -lksquirrel-libs
+Cflags: -I${includedir}/ksquirrel-libs

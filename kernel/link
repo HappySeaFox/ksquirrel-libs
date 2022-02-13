@@ -22,3 +22,4 @@ done
 
 ln -s `pwd`/xpm/rgbmap $KSQUIRREL_LIBS
 ln -s `pwd`/../VERSION $KSQUIRREL_LIBS/version
+ln -s `pwd`/lib/.libs/libksquirrel-libs.so $KSQUIRREL_LIBS

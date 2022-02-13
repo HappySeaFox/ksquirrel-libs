@@ -1,4 +1,4 @@
-AC_INIT([ksquirrel-libs], [0.6.0], [ksquirrel@tut.by])
+AC_INIT([ksquirrel-libs], [0.6.1], [ksquirrel@tut.by])
 #AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.1)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -43,6 +43,17 @@ AC_CHECK_HEADER([zlib.h], [
     sq_have_zlib_ff="yes"],
     [ AC_MSG_ERROR([zlib library not found])])
 ], [ AC_MSG_ERROR([zlib header files not found])])
+
+sq_dev="no"
+
+AC_ARG_ENABLE(devel,
+              [AS_HELP_STRING([--enable-devel], [Enable buggy codecs (for developers only)  [default=no]])],
+              [     case "${enableval}" in
+                       yes) sq_dev="yes" ;;
+                       no)  sq_dev="no" ;;
+                       *)   AC_MSG_ERROR([bad value ${enableval} for this parameter]) ;;
+                    esac]
+             )
 
 sq_codec_camera="yes"
 sq_have_camera="yes"
@@ -360,8 +371,10 @@ LDFLAGS=$_ldflags
 
 fi
 
-
 AC_CHECK_HEADERS([X11/XWDFile.h], [sq_have_xwd="yes"],    [sq_have_xwd="no"])
+
+SQ_LOCAL_RPATH="-L../lib -lksquirrel-libs -rpath ${libdir}"
+AC_SUBST(SQ_LOCAL_RPATH)
 
 AC_CONFIG_FILES([
 Makefile
@@ -369,7 +382,6 @@ doc/Makefile
 doc/html/Makefile
 doc/sources/Makefile
 kernel/Makefile
-kernel/aaa/Makefile
 kernel/bmp/Makefile
 kernel/gif/Makefile
 kernel/pix/Makefile
@@ -415,7 +427,11 @@ kernel/ttf/ftview/Makefile
 kernel/mng/Makefile
 kernel/jbig/libjbig/Makefile
 kernel/jbig/Makefile
+kernel/lib/Makefile
+ksquirrellibs.pc
 ])
+
+AM_CONDITIONAL(SQ_DEVEL,        [ test $sq_dev            = yes ])
 
 AM_CONDITIONAL(CAMERA_NO_JPEG,  [ test $sq_have_jpeg      = no  ])
 AM_CONDITIONAL(SQ_HAVE_JPEG,    [ test $sq_have_jpeg      = yes ])
@@ -447,6 +463,7 @@ KSquirrel-libs configuration:
   C Compiler flags:         ${CFLAGS}
   C++ Compiler:             ${CXX}
   C++ Compiler flags:       ${CXXFLAGS}
+  Local ldflags:            ${SQ_LOCAL_RPATH}
 
 Installation options:
 ---------------------
@@ -458,7 +475,9 @@ Libraries:
 sq_enabled=""
 sq_disabled=""
 sq_manual=""
-sq_total="33"
+sq_total="29"
+sq_devel=""
+sq_devel_message=""
 
 if test $sq_have_jpeg = yes;   then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled jpeg `;   else sq_disabled=`echo -n $sq_disabled jpeg `;  fi
 if test $sq_have_png = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled png `;    else sq_disabled=`echo -n $sq_disabled png `;   fi
@@ -470,6 +489,7 @@ if test $sq_have_svg = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=
 if test $sq_have_openexr = yes;then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled openexr `;else sq_disabled=`echo -n $sq_disabled openexr `;fi
 if test $sq_have_ttf = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled ttf `;    else sq_disabled=`echo -n $sq_disabled ttf `;    fi
 if test $sq_have_mng = yes;    then sq_total=`expr $sq_total + 1` && sq_enabled=`echo -n $sq_enabled mng `;    else sq_disabled=`echo -n $sq_disabled mng `;    fi
+if test $sq_dev = yes;         then sq_total=`expr $sq_total + 4`; else sq_devel="mac msp iff utah" && sq_devel_message="(use --enable-devel to enable these codecs)"; fi
 
 if test $sq_codec_camera = no;    then sq_manual=`echo -n $sq_manual camera`;   fi
 if test $sq_codec_gif = no;       then sq_manual=`echo -n $sq_manual gif`;      fi
@@ -480,11 +500,13 @@ if test $sq_codec_jpeg2000 = no;  then sq_manual=`echo -n $sq_manual jpeg2000`; 
 if test $sq_codec_ttf = no;       then sq_manual=`echo -n $sq_manual ttf`;      fi
 if test $sq_codec_mng = no;       then sq_manual=`echo -n $sq_manual mng`;      fi
 
+
 echo "
   Total enabled codecs      : $sq_total
   Optional formats, enabled : $sq_enabled
   Optional formats, disabled: $sq_disabled
   Manually disabled         : $sq_manual
+  Disabled as buggy         : $sq_devel $sq_devel_message
 
 Now run 'make' to compile ksquirrel-libs
  "

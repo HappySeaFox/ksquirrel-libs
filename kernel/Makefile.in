@@ -49,6 +49,9 @@ target_triplet = @target@
 @SQ_HAVE_JPEG2000_TRUE@am__append_10 = jpeg2000
 @SQ_HAVE_TTF_TRUE@am__append_11 = ttf
 @SQ_HAVE_MNG_TRUE@am__append_12 = mng
+
+# unstable/buggy codecs - for developers only
+@SQ_DEVEL_TRUE@am__append_13 = mac msp iff utah
 subdir = kernel
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -75,10 +78,10 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	uninstall-recursive nmcheck-recursive bcheck-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = aaa avs bmp cut fli hdr ico iff jbig koala lif mac mdl \
-	msp mtv pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah \
-	wal wbmp xbm xcur xpm xwd camera jpeg png tiff wmf svg gif \
-	openexr jpeg2000 ttf mng
+DIST_SUBDIRS = lib avs bmp cut fli hdr ico jbig koala lif mdl mtv pcx \
+	pix pnm psd pxr ras rawrgb sct sgi sun tga wal wbmp xbm xcur \
+	xpm xwd camera jpeg png tiff wmf svg gif openexr jpeg2000 ttf \
+	mng mac msp iff utah
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -148,6 +151,8 @@ PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_DEVEL_FALSE = @SQ_DEVEL_FALSE@
+SQ_DEVEL_TRUE = @SQ_DEVEL_TRUE@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
@@ -176,6 +181,7 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
 SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
@@ -242,14 +248,14 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = aaa avs bmp cut fli hdr ico iff jbig koala lif mac mdl msp \
-	mtv pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah wal \
-	wbmp xbm xcur xpm xwd $(am__append_1) $(am__append_2) \
-	$(am__append_3) $(am__append_4) $(am__append_5) \
-	$(am__append_6) $(am__append_7) $(am__append_8) \
-	$(am__append_9) $(am__append_10) $(am__append_11) \
-	$(am__append_12)
-EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_types.h generate link include/*.h
+SUBDIRS = lib avs bmp cut fli hdr ico jbig koala lif mdl mtv pcx pix \
+	pnm psd pxr ras rawrgb sct sgi sun tga wal wbmp xbm xcur xpm \
+	xwd $(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5) $(am__append_6) \
+	$(am__append_7) $(am__append_8) $(am__append_9) \
+	$(am__append_10) $(am__append_11) $(am__append_12) \
+	$(am__append_13)
+EXTRA_DIST = fmt_defs.h error.h fileio.h fmt_codec_base.h fmt_utils.h fmt_types.h generate link include/*.h
 #>- all: all-recursive
 #>+ 1
 all: docs-am  all-recursive
@@ -535,8 +541,6 @@ info: info-recursive
 
 info-am:
 
-install-data-am:
-
 install-exec-am:
 
 install-info: install-info-recursive
@@ -578,6 +582,16 @@ uninstall-info: uninstall-info-recursive
 	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
 	uninstall uninstall-am uninstall-info-am
 
+
+# install headers
+install-data-am:
+	$(mkinstalldirs) $(DESTDIR)$(includedir)/ksquirrel-libs
+	$(INSTALL_HEADER) fileio.h         $(DESTDIR)$(includedir)/ksquirrel-libs/fileio.h
+	$(INSTALL_HEADER) error.h          $(DESTDIR)$(includedir)/ksquirrel-libs/error.h
+	$(INSTALL_HEADER) fmt_utils.h      $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_utils.h
+	$(INSTALL_HEADER) fmt_types.h      $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_types.h
+	$(INSTALL_HEADER) fmt_defs.h       $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_defs.h
+	$(INSTALL_HEADER) fmt_codec_base.h $(DESTDIR)$(includedir)/ksquirrel-libs/fmt_codec_base.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

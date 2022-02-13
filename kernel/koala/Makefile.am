@@ -6,4 +6,4 @@ libSQ_codec_koala_la_SOURCES = fmt_codec_koala.cpp fmt_codec_koala_defs.h
 
 libSQ_codec_koala_la_LDFLAGS = -release 0.2.2
 
-libSQ_codec_koala_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_koala_la_LIBADD = ${SQ_LOCAL_RPATH}

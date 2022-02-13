@@ -183,7 +183,7 @@ mng_bool mymngsettimer(mng_handle mng, mng_uint32 msecs)
 
     mymng = (mngstuff *)mng_get_userdata(mng);
 
-    mymng->codec->priv.ms = msecs;
+    mymng->codec->priv.ms = (msecs == 1) ? 100 : msecs;
 
     return MNG_TRUE;
 }

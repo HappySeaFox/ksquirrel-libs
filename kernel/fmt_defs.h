@@ -120,7 +120,7 @@ struct fmt_info
     {}
 
     /*
-     *  TODO: make 'image' and 'meta' impicitly shared ?
+     *  TODO: make 'image' and 'meta' implicitly shared ?
      */
 
     // array of images

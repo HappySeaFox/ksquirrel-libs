@@ -6,4 +6,4 @@ libSQ_codec_sct_la_SOURCES = fmt_codec_sct.cpp fmt_codec_sct_defs.h
 
 libSQ_codec_sct_la_LDFLAGS = -release 0.2.2
 
-libSQ_codec_sct_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_sct_la_LIBADD = ${SQ_LOCAL_RPATH}

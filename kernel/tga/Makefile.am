@@ -6,4 +6,4 @@ libSQ_codec_tga_la_SOURCES = fmt_codec_tga.cpp fmt_codec_tga_defs.h
 
 libSQ_codec_tga_la_LDFLAGS = -release 0.7.2
 
-libSQ_codec_tga_la_LIBADD = ../fileio.lo
+libSQ_codec_tga_la_LIBADD = ${SQ_LOCAL_RPATH}

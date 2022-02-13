@@ -6,4 +6,4 @@ libSQ_codec_psd_la_SOURCES = fmt_codec_psd.cpp fmt_codec_psd_defs.h
 
 libSQ_codec_psd_la_LDFLAGS = -release 0.8.1
 
-libSQ_codec_psd_la_LIBADD = ../fileio.lo
+libSQ_codec_psd_la_LIBADD = ${SQ_LOCAL_RPATH}

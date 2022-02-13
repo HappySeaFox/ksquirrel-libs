@@ -6,4 +6,4 @@ libSQ_codec_xwd_la_SOURCES = fmt_codec_xwd.cpp fmt_codec_xwd_defs.h
 
 libSQ_codec_xwd_la_LDFLAGS = -release 0.4.3
 
-libSQ_codec_xwd_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_xwd_la_LIBADD = ${SQ_LOCAL_RPATH}

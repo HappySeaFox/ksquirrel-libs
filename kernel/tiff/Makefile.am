@@ -6,4 +6,4 @@ libSQ_codec_tiff_la_SOURCES = fmt_codec_tiff.cpp fmt_codec_tiff_defs.h
 
 libSQ_codec_tiff_la_LDFLAGS = -release 1.0.1
 
-libSQ_codec_tiff_la_LIBADD = -ltiff ../fileio.lo ../fmt_utils.lo
+libSQ_codec_tiff_la_LIBADD = -ltiff ${SQ_LOCAL_RPATH}

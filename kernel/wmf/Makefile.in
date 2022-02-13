@@ -58,7 +58,8 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libSQ_codec_wmf_la_DEPENDENCIES = ../fileio.lo
+am__DEPENDENCIES_1 =
+libSQ_codec_wmf_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libSQ_codec_wmf_la_OBJECTS = fmt_codec_wmf.lo wmf2mem.lo
 #>- libSQ_codec_wmf_la_OBJECTS = $(am_libSQ_codec_wmf_la_OBJECTS)
 #>+ 4
@@ -168,6 +169,8 @@ PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_DEVEL_FALSE = @SQ_DEVEL_FALSE@
+SQ_DEVEL_TRUE = @SQ_DEVEL_TRUE@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
@@ -196,6 +199,7 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
 SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
@@ -266,7 +270,7 @@ INCLUDES = -I.. -I../include @SQ_WMF_CFLAGS@
 lib_LTLIBRARIES = libSQ_codec_wmf.la
 libSQ_codec_wmf_la_SOURCES = fmt_codec_wmf.cpp wmf2mem.cpp fmt_codec_wmf_defs.h
 libSQ_codec_wmf_la_LDFLAGS = -release 0.9.0
-libSQ_codec_wmf_la_LIBADD = @SQ_WMF_LDFLAGS@ ../fileio.lo
+libSQ_codec_wmf_la_LIBADD = @SQ_WMF_LDFLAGS@ ${SQ_LOCAL_RPATH}
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am

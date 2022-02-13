@@ -38,30 +38,24 @@ class fmt_codec : public fmt_codec_base
         virtual std::string     fmt_pixmap();
         virtual std::string     fmt_extension(const s32 bpp);
 
-        virtual s32     fmt_read_init(std::string file);
+	virtual bool    fmt_readable() const;
+        virtual s32     fmt_read_init(const std::string &file);
         virtual s32     fmt_read_next();
         virtual s32     fmt_read_next_pass();
         virtual s32     fmt_read_scanline(RGBA *scan);
-        virtual s32     fmt_readimage(std::string file, RGBA **image, std::string &dump);
         virtual void    fmt_read_close();
 
         virtual bool    fmt_writable() const;
         virtual void    fmt_getwriteoptions(fmt_writeoptionsabs *);
-        virtual s32     fmt_writeimage(std::string file, RGBA *image, s32 w, s32 h, const fmt_writeoptions &opt);
+
+        virtual s32     fmt_write_init(const std::string &file, const fmt_image &image, const fmt_writeoptions &opt);
+	virtual s32     fmt_write_next();
+	virtual s32     fmt_write_next_pass();
+	virtual s32     fmt_write_scanline(RGBA *scan);
+        virtual void    fmt_write_close();
 
     private:
 	// define variables you need here
 };
 
-extern "C" fmt_codec_base* fmt_codec_create()
-{
-    return (new fmt_codec);
-}
-
-extern "C" void fmt_codec_destroy(fmt_codec_base *p)
-{
-    delete p;
-}
-
 #endif
-

@@ -6,4 +6,4 @@ libSQ_codec_ico_la_SOURCES = fmt_codec_ico.cpp fmt_codec_ico_defs.h
 
 libSQ_codec_ico_la_LDFLAGS = -release 0.4.2
 
-libSQ_codec_ico_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_ico_la_LIBADD = ${SQ_LOCAL_RPATH}

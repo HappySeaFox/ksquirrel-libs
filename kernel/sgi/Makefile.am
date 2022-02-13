@@ -6,4 +6,4 @@ libSQ_codec_sgi_la_SOURCES = fmt_codec_sgi.cpp fmt_codec_sgi_defs.h
 
 libSQ_codec_sgi_la_LDFLAGS = -release 0.9.4
 
-libSQ_codec_sgi_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_sgi_la_LIBADD = ${SQ_LOCAL_RPATH}

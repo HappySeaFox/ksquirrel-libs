@@ -6,4 +6,4 @@ libSQ_codec_ras_la_SOURCES = fmt_codec_ras.cpp fmt_codec_ras_defs.h
 
 libSQ_codec_ras_la_LDFLAGS = -release 0.6.3
 
-libSQ_codec_ras_la_LIBADD = ../fileio.lo
+libSQ_codec_ras_la_LIBADD = ${SQ_LOCAL_RPATH}

@@ -6,4 +6,4 @@ libSQ_codec_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h svg2mem.cpp 
 
 libSQ_codec_svg_la_LDFLAGS = -release 0.1.2
 
-libSQ_codec_svg_la_LIBADD = @SQ_SVG_LDFLAGS@ ../fileio.lo
+libSQ_codec_svg_la_LIBADD = @SQ_SVG_LDFLAGS@ ${SQ_LOCAL_RPATH}

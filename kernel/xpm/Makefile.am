@@ -8,7 +8,7 @@ libSQ_codec_xpm_la_LDFLAGS = -release 0.6.4
 
 EXTRA_DIST = rgbmap
 
-libSQ_codec_xpm_la_LIBADD = ../fileio.lo
+libSQ_codec_xpm_la_LIBADD = ${SQ_LOCAL_RPATH}
 
 install-data-am:
 	$(INSTALL) --mode=0644 rgbmap $(DESTDIR)$(libdir)

@@ -19,8 +19,8 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef KSQUIRREL_READ_IMAGE_ttx
-#define KSQUIRREL_READ_IMAGE_ttx
+#ifndef KSQUIRREL_CODEC_DEFS_ttx
+#define KSQUIRREL_CODEC_DEFS_ttx
 
 // define constants here
 

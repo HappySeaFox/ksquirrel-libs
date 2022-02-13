@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(libaaa_la_SOURCES)
+SOURCES = $(libksquirrel_libs_la_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -40,7 +40,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = kernel/aaa
+subdir = kernel/lib
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -49,12 +49,23 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/admin/mkinstalldirs
 CONFIG_CLEAN_FILES =
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-libaaa_la_DEPENDENCIES = ../fileio.lo ../fmt_utils.lo
-am_libaaa_la_OBJECTS = dummy.lo
-#>- libaaa_la_OBJECTS = $(am_libaaa_la_OBJECTS)
-#>+ 1
-libaaa_la_OBJECTS = dummy.lo
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+am__installdirs = "$(DESTDIR)$(libdir)"
+libLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libksquirrel_libs_la_LIBADD =
+am_libksquirrel_libs_la_OBJECTS = fileio.lo fmt_utils.lo
+#>- libksquirrel_libs_la_OBJECTS = $(am_libksquirrel_libs_la_OBJECTS)
+#>+ 4
+libksquirrel_libs_la_final_OBJECTS = libksquirrel_libs_la.all_cpp.lo 
+libksquirrel_libs_la_nofinal_OBJECTS = fileio.lo fmt_utils.lo
+@KDE_USE_FINAL_FALSE@libksquirrel_libs_la_OBJECTS = $(libksquirrel_libs_la_nofinal_OBJECTS)
+@KDE_USE_FINAL_TRUE@libksquirrel_libs_la_OBJECTS = $(libksquirrel_libs_la_final_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/admin/depcomp
 am__depfiles_maybe = depfiles
@@ -76,8 +87,8 @@ CXXLD = $(CXX)
 #>+ 2
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(KDE_CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libaaa_la_SOURCES)
-DIST_SOURCES = $(libaaa_la_SOURCES)
+SOURCES = $(libksquirrel_libs_la_SOURCES)
+DIST_SOURCES = $(libksquirrel_libs_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -149,6 +160,8 @@ PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_DEVEL_FALSE = @SQ_DEVEL_FALSE@
+SQ_DEVEL_TRUE = @SQ_DEVEL_TRUE@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
@@ -177,6 +190,7 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
 SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
@@ -243,9 +257,12 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-noinst_LTLIBRARIES = libaaa.la
-libaaa_la_SOURCES = dummy.cpp
-libaaa_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+INCLUDES = -I..
+
+# create small development library. KSquirrel will use it.
+lib_LTLIBRARIES = libksquirrel-libs.la
+libksquirrel_libs_la_SOURCES = fileio.cpp fmt_utils.cpp
+libksquirrel_libs_la_LDFLAGS = -release 1.0.0
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -261,9 +278,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 #>- 	      exit 1;; \
 #>- 	  esac; \
 #>- 	done; \
-#>- 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/aaa/Makefile'; \
+#>- 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/lib/Makefile'; \
 #>- 	cd $(top_srcdir) && \
-#>- 	  $(AUTOMAKE) --gnu  kernel/aaa/Makefile
+#>- 	  $(AUTOMAKE) --gnu  kernel/lib/Makefile
 #>+ 12
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -273,10 +290,10 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/aaa/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/lib/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  kernel/aaa/Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/aaa/Makefile.in
+	  $(AUTOMAKE) --gnu  kernel/lib/Makefile
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/lib/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -294,17 +311,35 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
+	    $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
+	  else :; fi; \
+	done
 
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@set -x; list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$p'"; \
+	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$p"; \
+	done
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
 	  test "$$dir" != "$$p" || dir=.; \
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libaaa.la: $(libaaa_la_OBJECTS) $(libaaa_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libaaa_la_LDFLAGS) $(libaaa_la_OBJECTS) $(libaaa_la_LIBADD) $(LIBS)
+libksquirrel-libs.la: $(libksquirrel_libs_la_OBJECTS) $(libksquirrel_libs_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libksquirrel_libs_la_LDFLAGS) $(libksquirrel_libs_la_OBJECTS) $(libksquirrel_libs_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -312,7 +347,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dummy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fileio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmt_utils.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -424,6 +460,9 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES)
 installdirs:
+	for dir in "$(DESTDIR)$(libdir)"; do \
+	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
+	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -452,10 +491,10 @@ maintainer-clean-generic:
 #>+ 1
 clean: kde-rpo-clean  clean-am
 
-#>- clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
+#>- clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 #>- 	mostlyclean-am
 #>+ 2
-clean-am: clean-bcheck  clean-generic clean-libtool clean-noinstLTLIBRARIES \
+clean-am: clean-bcheck clean-final  clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -476,7 +515,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am:
+install-exec-am: install-libLTLIBRARIES
 
 install-info: install-info-am
 
@@ -502,19 +541,20 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
+	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-info-am
+	install-exec-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-info-am \
+	uninstall-libLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
@@ -522,7 +562,7 @@ uninstall-am: uninstall-info-am
 
 
 #>+ 2
-KDE_DIST=Makefile.in fileio.Plo fmt_utils.Plo Makefile.am 
+KDE_DIST=Makefile.in Makefile.am 
 
 #>+ 2
 docs-am:
@@ -537,10 +577,10 @@ force-reedit:
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/aaa/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/lib/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  kernel/aaa/Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/aaa/Makefile.in
+	  $(AUTOMAKE) --gnu  kernel/lib/Makefile
+	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/lib/Makefile.in
 
 
 #>+ 21
@@ -565,21 +605,37 @@ bcheck-am:
 	done
 
 
+#>+ 11
+libksquirrel_libs_la.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fileio.cpp $(srcdir)/fmt_utils.cpp 
+	@echo 'creating libksquirrel_libs_la.all_cpp.cpp ...'; \
+	rm -f libksquirrel_libs_la.all_cpp.files libksquirrel_libs_la.all_cpp.final; \
+	echo "#define KDE_USE_FINAL 1" >> libksquirrel_libs_la.all_cpp.final; \
+	for file in fileio.cpp fmt_utils.cpp ; do \
+	  echo "#include \"$$file\"" >> libksquirrel_libs_la.all_cpp.files; \
+	  test ! -f $(srcdir)/$$file || egrep '^#pragma +implementation' $(srcdir)/$$file >> libksquirrel_libs_la.all_cpp.final; \
+	done; \
+	cat libksquirrel_libs_la.all_cpp.final libksquirrel_libs_la.all_cpp.files > libksquirrel_libs_la.all_cpp.cpp; \
+	rm -f libksquirrel_libs_la.all_cpp.final libksquirrel_libs_la.all_cpp.files
+
+#>+ 3
+clean-final:
+	-rm -f libksquirrel_libs_la.all_cpp.cpp
+
 #>+ 3
 final:
-	$(MAKE) all-am
+	$(MAKE) libksquirrel_libs_la_OBJECTS="$(libksquirrel_libs_la_final_OBJECTS)" all-am
 
 #>+ 3
 final-install:
-	$(MAKE) install-am
+	$(MAKE) libksquirrel_libs_la_OBJECTS="$(libksquirrel_libs_la_final_OBJECTS)" install-am
 
 #>+ 3
 no-final:
-	$(MAKE) all-am
+	$(MAKE) libksquirrel_libs_la_OBJECTS="$(libksquirrel_libs_la_nofinal_OBJECTS)" all-am
 
 #>+ 3
 no-final-install:
-	$(MAKE) install-am
+	$(MAKE) libksquirrel_libs_la_OBJECTS="$(libksquirrel_libs_la_nofinal_OBJECTS)" install-am
 
 #>+ 3
 cvs-clean:

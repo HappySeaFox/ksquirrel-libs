@@ -6,4 +6,4 @@ libSQ_codec_mtv_la_SOURCES = fmt_codec_mtv.cpp fmt_codec_mtv_defs.h
 
 libSQ_codec_mtv_la_LDFLAGS = -release 0.1.1
 
-libSQ_codec_mtv_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_mtv_la_LIBADD = ${SQ_LOCAL_RPATH}

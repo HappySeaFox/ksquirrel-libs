@@ -58,10 +58,11 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
+am__DEPENDENCIES_1 =
 @CAMERA_NO_JPEG_FALSE@libSQ_codec_camera_la_DEPENDENCIES =  \
-@CAMERA_NO_JPEG_FALSE@	../fileio.lo ../fmt_utils.lo
+@CAMERA_NO_JPEG_FALSE@	$(am__DEPENDENCIES_1)
 @CAMERA_NO_JPEG_TRUE@libSQ_codec_camera_la_DEPENDENCIES =  \
-@CAMERA_NO_JPEG_TRUE@	../fileio.lo ../fmt_utils.lo
+@CAMERA_NO_JPEG_TRUE@	$(am__DEPENDENCIES_1)
 am_libSQ_codec_camera_la_OBJECTS = fmt_codec_camera.lo dcraw.lo
 #>- libSQ_codec_camera_la_OBJECTS = $(am_libSQ_codec_camera_la_OBJECTS)
 #>+ 4
@@ -171,6 +172,8 @@ PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQ_DEVEL_FALSE = @SQ_DEVEL_FALSE@
+SQ_DEVEL_TRUE = @SQ_DEVEL_TRUE@
 SQ_EXR_CFLAGS = @SQ_EXR_CFLAGS@
 SQ_EXR_LDFLAGS = @SQ_EXR_LDFLAGS@
 SQ_FT_CFLAGS = @SQ_FT_CFLAGS@
@@ -199,6 +202,7 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_LOCAL_RPATH = @SQ_LOCAL_RPATH@
 SQ_SVG_CFLAGS = @SQ_SVG_CFLAGS@
 SQ_SVG_LDFLAGS = @SQ_SVG_LDFLAGS@
 SQ_WMF_CFLAGS = @SQ_WMF_CFLAGS@
@@ -270,9 +274,9 @@ lib_LTLIBRARIES = libSQ_codec_camera.la
 libSQ_codec_camera_la_SOURCES = fmt_codec_camera.cpp fmt_codec_camera_defs.h dcraw.c dcraw.h
 libSQ_codec_camera_la_LDFLAGS = -release 0.9.0
 @CAMERA_NO_JPEG_FALSE@libSQ_codec_camera_la_LIBADD = -ljpeg -lm \
-@CAMERA_NO_JPEG_FALSE@	../fileio.lo ../fmt_utils.lo
-@CAMERA_NO_JPEG_TRUE@libSQ_codec_camera_la_LIBADD = -lm ../fileio.lo \
-@CAMERA_NO_JPEG_TRUE@	../fmt_utils.lo
+@CAMERA_NO_JPEG_FALSE@	${SQ_LOCAL_RPATH}
+@CAMERA_NO_JPEG_TRUE@libSQ_codec_camera_la_LIBADD = -lm \
+@CAMERA_NO_JPEG_TRUE@	${SQ_LOCAL_RPATH}
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am

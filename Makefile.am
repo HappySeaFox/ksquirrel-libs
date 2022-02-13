@@ -2,6 +2,9 @@ SUBDIRS = kernel doc
 
 AUTOMAKE_OPTIONS = foreign 
 
+pkgconfigdir = ${exec_prefix}/lib/pkgconfig
+pkgconfig_DATA = ksquirrellibs.pc
+
 $(top_srcdir)/subdirs:
 	cd $(top_srcdir) && $(MAKE) -f admin/Makefile.common subdirs
 
@@ -19,4 +22,4 @@ install-data-local:
 	$(INSTALL_DATA)  VERSION $(DESTDIR)$(libdir)/version
 
 EXTRA_DIST = examples/w3.bmp examples/qtapp/main.cpp examples/qtapp/myqt.cpp examples/qtapp/myqt.h examples/qtapp/qtapp.pro \
-examples/qtgl/main.cpp  examples/qtgl/myqgl.cpp  examples/qtgl/myqgl.h  examples/qtgl/qtgl.pro
+examples/qtgl/main.cpp  examples/qtgl/myqgl.cpp  examples/qtgl/myqgl.h  examples/qtgl/qtgl.pro ksquirrellibs.pc.in

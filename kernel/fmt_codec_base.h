@@ -22,7 +22,7 @@
 #ifndef KSQUIRREL_LIBS_CLASS_DEFINITION_H
 #define KSQUIRREL_LIBS_CLASS_DEFINITION_H
 
-#include "fmt_defs.h"
+#include <fmt_defs.h>
 
 //////////////////////////////////
 //                              //

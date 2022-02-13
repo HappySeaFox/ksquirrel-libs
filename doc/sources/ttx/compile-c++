@@ -3,6 +3,6 @@
 rm -f libSQ_codec_ttx.so
 
 g++ -I. -I.. -I../include -Wall -O2 -fPIC -c fmt_codec_ttx.cpp
-g++ -I. -I.. -I../include -Wall -O2 -fPIC -c ../fileio.cpp
+g++ -I. -I.. -I../include -Wall -O2 -fPIC -c ../lib/fileio.cpp
 g++ -Wall -shared fileio.o fmt_codec_ttx.o -o libSQ_codec_ttx.so
-rm -f fmt_codec_ttx.o fileio.o fmt_utils.o
+rm -f fmt_codec_ttx.o fileio.o

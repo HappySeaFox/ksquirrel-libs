@@ -5,62 +5,12 @@
 # Usage:
 #  $ ./generate <format>
 #  
-#  or
-#
-#  $ ./generate <format> -build
-#  to create compiling script
-#
-#  or
-#
-#  $ ./generate <format> -build -utils
-#  to create compiling script and add support of fmt_utils
-#
-#  or
-#
-#  $ ./generate <format> -utils
-#  to add support of fmt_utils (but don't generate compiling script)
-#
 
-HAVE_BUILD="no"
-HAVE_UTILS="no"
-
-if [ "x$1" = "x" ]; then echo "Need argument" && exit 0 ; fi
-
-if [ "$2" = "-build" ]; then HAVE_BUILD="yes"; fi
-if [ "$3" = "-build" ]; then HAVE_BUILD="yes"; fi
-
-if [ "$2" = "-utils" ]; then HAVE_UTILS="yes"; fi
-if [ "$3" = "-utils" ]; then HAVE_UTILS="yes"; fi
 
 name=$1
 mkdir $name
 mkdir include > /dev/null 2>&1
 cd $name
-
-create_build()
-{
-cat << EOF > compile-c++
-#!/bin/sh
-
-rm -f libSQ_codec_$1.so
-
-g++ -I. -I.. -I../include -Wall -O2 -fPIC -c fmt_codec_$1.cpp
-g++ -I. -I.. -I../include -Wall -O2 -fPIC -c ../fileio.cpp
-EOF
-
-if test $HAVE_UTILS = yes; then
-echo "g++ -I. -I.. -I../include -Wall -O2 -fPIC -c ../fmt_utils.cpp" >> compile-c++;
-fi
-
-if test $HAVE_UTILS = no; then
-echo "g++ -Wall -shared fileio.o fmt_codec_$1.o -o libSQ_codec_$1.so" >> compile-c++; else
-echo "g++ -Wall -shared fileio.o fmt_utils.o fmt_codec_$1.o -o libSQ_codec_$1.so" >> compile-c++;
-fi
-
-echo "rm -f fmt_codec_$1.o fileio.o fmt_utils.o" >> compile-c++
-
-chmod +x compile-c++
-} # function
 
 cat << EOF > Makefile.am
 INCLUDES = -I.. -I../include
@@ -71,12 +21,8 @@ libSQ_codec_${name}_la_SOURCES = fmt_codec_${name}.cpp fmt_codec_${name}_defs.h
 
 libSQ_codec_${name}_la_LDFLAGS = -release 0.1.0
 
+libSQ_codec_${name}_la_LIBADD = ${SQ_LOCAL_RPATH}
 EOF
-
-if test $HAVE_UTILS = yes ; then
-echo "libSQ_codec_${name}_la_LIBADD = ../fileio.lo ../fmt_utils.lo" >> Makefile.am; else
-echo "libSQ_codec_${name}_la_LIBADD = ../fileio.lo" >> Makefile.am;
-fi
 
 cat << EOF > ../include/fmt_codec_${name}.h
 /*  This file is part of ksquirrel-libs (http://ksquirrel.sf.net)
@@ -204,14 +150,6 @@ cat << EOF > fmt_codec_${name}.cpp
 
 #include "error.h"
 EOF
-
-if test $HAVE_UTILS = yes ; then
-cat << EOF >> fmt_codec_${name}.cpp
-
-#include "fmt_utils.h"
-
-EOF
-fi
 
 cat << EOF >> fmt_codec_${name}.cpp
 
@@ -374,8 +312,6 @@ std::string fmt_codec::fmt_extension(const s32 /*bpp*/)
 
 #include "fmt_codec_cd_func.h"
 EOF
-
-if test $HAVE_BUILD = yes ; then create_build $name; fi
 
 echo
 echo "All done!"

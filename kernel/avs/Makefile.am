@@ -6,4 +6,4 @@ libSQ_codec_avs_la_SOURCES = fmt_codec_avs.cpp fmt_codec_avs_defs.h
 
 libSQ_codec_avs_la_LDFLAGS = -release 0.1.1
 
-libSQ_codec_avs_la_LIBADD = ../fileio.lo ../fmt_utils.lo
+libSQ_codec_avs_la_LIBADD = ${SQ_LOCAL_RPATH}
