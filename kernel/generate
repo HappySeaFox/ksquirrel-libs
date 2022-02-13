@@ -153,7 +153,6 @@ extern "C" void fmt_codec_destroy(fmt_codec_base *p)
 }
 
 #endif
-
 EOF
 
 cat << EOF > fmt_codec_${name}_defs.h

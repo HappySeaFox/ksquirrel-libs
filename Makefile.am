@@ -13,10 +13,10 @@ $(top_srcdir)/acinclude.m4: $(top_srcdir)/admin/acinclude.m4.in $(top_srcdir)/ad
 
 MAINTAINERCLEANFILES = subdirs configure.in acinclude.m4 configure.files 
 
-package-messages:
-	$(MAKE) -f admin/Makefile.common package-messages
-	$(MAKE) -C po merge
-
 dist-hook:
 	cd $(top_distdir) && perl admin/am_edit -padmin
 	cd $(top_distdir) && $(MAKE) -f admin/Makefile.common subdirs
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	$(INSTALL_DATA)  VERSION $(DESTDIR)$(libdir)/version

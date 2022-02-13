@@ -4,11 +4,11 @@ Important
   please install libpng, libjpeg and libtiff. You should also install devel packages.
 * XWD library requires X11/XWDFile.h.
 * WMF library requires freetype2 and freetype2-devel
-* SVG library requires libxml2 and freetype2 and freetype2-devel
+* SVG library requires libxml2, freetype2 and freetype2-devel
 
 About
 -----
-* ksquirrel-libs is a set of image decoders.
+* ksquirrel-libs is a set of image codecs.
 * It contains regular libraries for KSquirrel.
 * It contains different image decoders for JPEG, PNG, BMP, TIFF, PSD, GIF etc.
   You can use ksquirrel-libs in other projects, just write your
@@ -25,4 +25,4 @@ About
 
 Version
 -------
-Current version: 0.6.0-pre3
+Current version: 0.6.0-pre4

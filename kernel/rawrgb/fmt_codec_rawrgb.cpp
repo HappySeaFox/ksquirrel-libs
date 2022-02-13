@@ -184,10 +184,10 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
 
 s32 fmt_codec::fmt_write_next()
 {
-    u32 bpp = 32;
+    s32 bpp = 32;
 
-    if(!fws.writeK((u32*)&writeimage.w, sizeof(s32))) return SQE_W_ERROR;
-    if(!fws.writeK((u32*)&writeimage.h, sizeof(s32))) return SQE_W_ERROR;
+    if(!fws.writeK(&writeimage.w, sizeof(s32))) return SQE_W_ERROR;
+    if(!fws.writeK(&writeimage.h, sizeof(s32))) return SQE_W_ERROR;
     if(!fws.writeK(&bpp, sizeof(s32))) return SQE_W_ERROR;
 
     return SQE_OK;
@@ -204,7 +204,7 @@ s32 fmt_codec::fmt_write_scanline(RGBA *scan)
 
     for(s32 j = 0;j < writeimage.w;j++)
     {
-        p = (u8 *)scan;
+        p = (u8 *)(scan +j);
 
         fws.writeK(p,   sizeof(u8));
         fws.writeK(p+1, sizeof(u8));

@@ -372,14 +372,21 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
     if(!fws.good())
 	return SQE_W_NOFILE;
 
+    m_FILLER = (image.w < 4) ? (4-image.w) : image.w%4;
+
+    return SQE_OK;
+}
+
+s32 fmt_codec::fmt_write_next()
+{
     m_bfh.Type = BMP_IDENTIFIER;
     m_bfh.Size = 0;
     m_bfh.Reserved1 = 0;
     m_bfh.OffBits = sizeof(BITMAPFILE_HEADER) + sizeof(BITMAPINFO_HEADER);
 
     m_bih.Size = 40;
-    m_bih.Width = image.w;
-    m_bih.Height = image.h;
+    m_bih.Width = writeimage.w;
+    m_bih.Height = writeimage.h;
     m_bih.Planes = 1;
     m_bih.BitCount = 24;
     m_bih.Compression = BI_RGB;
@@ -395,13 +402,6 @@ s32 fmt_codec::fmt_write_init(std::string file, const fmt_image &image, const fm
     if(!fws.writeK(&m_bih, sizeof(BITMAPINFO_HEADER)))
 	return SQE_W_ERROR;
 
-    m_FILLER = (image.w < 4) ? (4-image.w) : image.w%4;
-
-    return SQE_OK;
-}
-
-s32 fmt_codec::fmt_write_next()
-{
     return SQE_OK;
 }
 
