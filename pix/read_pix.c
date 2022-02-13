@@ -25,25 +25,26 @@
 #include <string.h>
 #include <libiberty.h>
 
-#include <jpeglib.h>
+#define BE_SHORT
 
-#include "read_jpg.h"
-
+#include "read_pix.h"
+#include "../endian.h"
 
 char* fmt_version()
 {
-    return "0.8.2";
+    return "1.0";
 }
 
 char* fmt_quickinfo()
 {
-    return "JPEG compressed";
+    return "Irix PIX image";
 }
 
 char* fmt_extension()
 {
-    return "*.jpg *.jpeg *.jpe";
+    return "*.pix";
 }
+
 
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
 int fmt_init(fmt_info **finfo, const char *file)
@@ -60,12 +61,12 @@ int fmt_init(fmt_info **finfo, const char *file)
     (*finfo)->needflip = FALSE;
     (*finfo)->images = 1;
     (*finfo)->animated = FALSE;
+    
 
     (*finfo)->fptr = fopen(file, "rb");
     
     if(!((*finfo)->fptr))
     {
-	fclose((*finfo)->fptr);
 	free(*finfo);
 	return SQERR_NOFILE;
     }
@@ -73,61 +74,25 @@ int fmt_init(fmt_info **finfo, const char *file)
     return SQERR_OK;
 }
 
-METHODDEF(void) my_error_exit(j_common_ptr cinfo)
-{
-    my_error_ptr myerr = (my_error_ptr) cinfo->err;
 
-    (*cinfo->err->output_message) (cinfo);
+PIX_HEADER	pfh;
 
-    longjmp(myerr->setjmp_buffer, 1);
-}
-
-struct jpeg_decompress_struct	cinfo;
-struct my_error_mgr 		jerr;
-int 				row_stride;
-JSAMPARRAY 			buffer;
-
+/*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
 int fmt_read_info(fmt_info *finfo)
 {
-    int i;
-
-    cinfo.err = jpeg_std_error(&jerr.pub);
-    jerr.pub.error_exit = my_error_exit;
+    pfh.width = BE_getshort(finfo->fptr);
+    pfh.height = BE_getshort(finfo->fptr);
+    pfh.x = BE_getshort(finfo->fptr);
+    pfh.y = BE_getshort(finfo->fptr);
+    pfh.bpp = BE_getshort(finfo->fptr);
     
-    if(setjmp(jerr.setjmp_buffer)) 
-    {
-	jpeg_destroy_decompress(&cinfo);
-	fclose(finfo->fptr);
-	return SQERR_NOTOK;
-    }
+    if(pfh.bpp != 24) return SQERR_BADFILE;
 
-    jpeg_create_decompress(&cinfo);
-    jpeg_stdio_src(&cinfo, finfo->fptr);
-    jpeg_read_header(&cinfo, TRUE);
-
-    if(cinfo.jpeg_color_space == JCS_GRAYSCALE)
-    {
-	finfo->bpp = 8;
-        cinfo.out_color_space = JCS_RGB;
-	cinfo.desired_number_of_colors = 256;
-	cinfo.quantize_colors = FALSE;
-	cinfo.two_pass_quantize = FALSE;
-
-	finfo->pal = (RGB*)calloc(256, sizeof(RGB));
-	
-	for(i = 0;i < 256;i++)
-	    (finfo->pal)[i].r = (finfo->pal)[i].g = (finfo->pal)[i].b = i;
-    }
-    else
-	finfo->bpp = 24;
-
-    jpeg_start_decompress(&cinfo);
-
-    finfo->w = cinfo.output_width;
-    finfo->h = cinfo.output_height;
-    finfo->pal_entr = 256;
-    
-    buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
+    finfo->w = pfh.width;
+    finfo->h = pfh.height;
+    finfo->bpp = pfh.bpp;
+    finfo->pal = 0;
+    finfo->pal_entr = 0;
 
     asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
     finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
@@ -135,29 +100,49 @@ int fmt_read_info(fmt_info *finfo)
     return SQERR_OK;
 }
 
+
 /*  
  *    reads scanline
  *    scan should exist, e.g. RGBA scan[N], not RGBA *scan  
  */
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    int i;
+    uint	len = 0, i, counter = 0;
+    uchar	count;
+    RGB		rgb;
 
     memset(scan, 255, finfo->w * 4);
 
-    (void)jpeg_read_scanlines(&cinfo, buffer, 1);
+    switch(finfo->bpp)
+    {
+	case 24:
+	    do
+	    {
+		count = fgetc(finfo->fptr);
+		len += count;
+		
+		fread(&rgb.b, 1, 1, finfo->fptr);
+		fread(&rgb.g, 1, 1, finfo->fptr);
+		fread(&rgb.r, 1, 1, finfo->fptr);
+		
+		for(i = 0;i < count;i++)
+		    memcpy(scan+counter++, &rgb, 3);
+		    
+	    }while(len < finfo->w);
+	break;
 
-    for(i = 0;i < finfo->w;i++)
-	memcpy(scan+i, buffer[0] + i*3, 3);
+	default:
+	{
+		//@TODO:  free memory !!
+		return SQERR_BADFILE;
+	}
+    }
 
     return SQERR_OK;
 }
 
 int fmt_close(fmt_info *finfo)
 {
-    (void)jpeg_finish_decompress(&cinfo);
-    jpeg_destroy_decompress(&cinfo);
     fclose(finfo->fptr);
-
     return SQERR_OK;
 }

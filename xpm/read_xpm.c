@@ -25,24 +25,21 @@
 #include <string.h>
 #include <libiberty.h>
 
-#include <jpeglib.h>
-
-#include "read_jpg.h"
-
+#include "xpm_utils.h"
 
 char* fmt_version()
 {
-    return "0.8.2";
+    return "0.5.1";
 }
 
 char* fmt_quickinfo()
 {
-    return "JPEG compressed";
+    return "X11 PixMap";
 }
 
 char* fmt_extension()
 {
-    return "*.jpg *.jpeg *.jpe";
+    return "*.xpm";
 }
 
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
@@ -60,12 +57,12 @@ int fmt_init(fmt_info **finfo, const char *file)
     (*finfo)->needflip = FALSE;
     (*finfo)->images = 1;
     (*finfo)->animated = FALSE;
+    
 
     (*finfo)->fptr = fopen(file, "rb");
     
     if(!((*finfo)->fptr))
     {
-	fclose((*finfo)->fptr);
 	free(*finfo);
 	return SQERR_NOFILE;
     }
@@ -73,61 +70,67 @@ int fmt_init(fmt_info **finfo, const char *file)
     return SQERR_OK;
 }
 
-METHODDEF(void) my_error_exit(j_common_ptr cinfo)
-{
-    my_error_ptr myerr = (my_error_ptr) cinfo->err;
+ulong		numcolors;
+uchar		cpp;
+XPM_VALUE	*Xmap;
 
-    (*cinfo->err->output_message) (cinfo);
 
-    longjmp(myerr->setjmp_buffer, 1);
-}
-
-struct jpeg_decompress_struct	cinfo;
-struct my_error_mgr 		jerr;
-int 				row_stride;
-JSAMPARRAY 			buffer;
-
+/*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
 int fmt_read_info(fmt_info *finfo)
 {
-    int i;
+    long		i;
+    uchar		str[256];
 
-    cinfo.err = jpeg_std_error(&jerr.pub);
-    jerr.pub.error_exit = my_error_exit;
+    skip_comments(finfo->fptr);
+    fgets(str, 256, finfo->fptr);  /*  static char* ....  */
+    skip_comments(finfo->fptr);
+    fgets(str, 256, finfo->fptr);
+    skip_comments(finfo->fptr);
     
-    if(setjmp(jerr.setjmp_buffer)) 
+    sscanf(str, "\"%ld %ld %ld %d", &finfo->w, &finfo->h, &numcolors, (int*)&cpp);
+//    printf("%d %d %d %d\n\n",finfo->w,finfo->h,numcolors,cpp);
+    
+    if((Xmap = (XPM_VALUE*)calloc(numcolors, sizeof(XPM_VALUE))) == NULL)
     {
-	jpeg_destroy_decompress(&cinfo);
 	fclose(finfo->fptr);
-	return SQERR_NOTOK;
+	return SQERR_NOMEMORY;
     }
 
-    jpeg_create_decompress(&cinfo);
-    jpeg_stdio_src(&cinfo, finfo->fptr);
-    jpeg_read_header(&cinfo, TRUE);
+    uchar name[KEY_LENGTH], c[3], color[10], *found;
 
-    if(cinfo.jpeg_color_space == JCS_GRAYSCALE)
+    for(i = 0;i < numcolors;i++)
     {
-	finfo->bpp = 8;
-        cinfo.out_color_space = JCS_RGB;
-	cinfo.desired_number_of_colors = 256;
-	cinfo.quantize_colors = FALSE;
-	cinfo.two_pass_quantize = FALSE;
+	fgets(str, 256, finfo->fptr);
 
-	finfo->pal = (RGB*)calloc(256, sizeof(RGB));
+	strcpy(name, "");
+
+	found = strstr(str, "\"");
+	found++;
+
+	strncpy(name, found, cpp);
+	name[cpp] = 0;
+
+	sscanf(found+cpp+1, "%s %s", c, color);
 	
-	for(i = 0;i < 256;i++)
-	    (finfo->pal)[i].r = (finfo->pal)[i].g = (finfo->pal)[i].b = i;
+	found = strstr(color, "\"");
+	if(found) *found = 0;
+
+//	if(!i)printf("%s\n",color);
+
+	memcpy(Xmap[i].name, name, cpp);
+	Xmap[i].rgba = hex2rgb(color);
     }
-    else
-	finfo->bpp = 24;
 
-    jpeg_start_decompress(&cinfo);
+    skip_comments(finfo->fptr);
 
-    finfo->w = cinfo.output_width;
-    finfo->h = cinfo.output_height;
-    finfo->pal_entr = 256;
-    
-    buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
+    QuickSort(Xmap, 0, numcolors-1);
+/*
+    for(i = 0;i < numcolors;i++)
+    {
+	printf("\"%s\"  %d %d %d %d\n",Xmap[i].name,Xmap[i].rgba.r,Xmap[i].rgba.g,Xmap[i].rgba.b,Xmap[i].rgba.a);
+    }
+*/
+    finfo->bpp = 24;
 
     asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
     finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
@@ -135,29 +138,66 @@ int fmt_read_info(fmt_info *finfo)
     return SQERR_OK;
 }
 
+
 /*  
  *    reads scanline
  *    scan should exist, e.g. RGBA scan[N], not RGBA *scan  
  */
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    int i;
-
+    const int	bpl = finfo->w * (cpp+2);
+    int		i, j;
+    uchar 	line[bpl], key[KEY_LENGTH];
+    
     memset(scan, 255, finfo->w * 4);
+    memset(key, 0, sizeof(key));
+    memset(line, 0, sizeof(line));
 
-    (void)jpeg_read_scanlines(&cinfo, buffer, 1);
+    switch(finfo->bpp)
+    {
+	case 24:
+	{
+	    static RGBA *trgba;
 
-    for(i = 0;i < finfo->w;i++)
-	memcpy(scan+i, buffer[0] + i*3, 3);
+	    i = j = 0;
+	    fgets(line, sizeof(line), finfo->fptr);
+
+	    while(line[i++] != '\"') // skip spaces
+	    {}
+
+	    for(;j < finfo->w;j++)
+	    {
+		strncpy(key, line+i, cpp);
+		i += cpp;
+		
+//		printf("\"%s\" %d  \"%s\"\n",line,i,key);
+
+		trgba = BinSearch(Xmap, 0, numcolors-1, key);
+		
+		if(!trgba)
+		{
+		    printf("XPM decoder: WARNING: color \"%s\" not found, assuming black instead\n", key);
+		    memset(trgba, 0, sizeof(RGBA));
+		    trgba->a = 255;
+		}
+
+		memcpy(scan+j, trgba, sizeof(RGBA));
+	    }
+	}
+	break;
+
+	default:
+	{
+		//@TODO:  free memory !!
+		return SQERR_BADFILE;
+	}
+    }
 
     return SQERR_OK;
 }
 
 int fmt_close(fmt_info *finfo)
 {
-    (void)jpeg_finish_decompress(&cinfo);
-    jpeg_destroy_decompress(&cinfo);
     fclose(finfo->fptr);
-
     return SQERR_OK;
 }

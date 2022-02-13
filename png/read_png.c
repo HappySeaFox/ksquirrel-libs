@@ -1,6 +1,28 @@
+/*  This file is part of SQuirrel (http://ksquirrel.sf.net) libraries
+
+    Copyright (c) 2004 Dmitry Baryshev <ckult@yandex.ru>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation;
+    either version 2 of the License, or (at your option) any later
+    version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+
+    You should have received a copy of the GNU Library General Public License
+    along with this library; see the file COPYING.  If not, write to
+    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+    Boston, MA 02111-1307, USA.
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <libiberty.h>
 
 #include "read_png.h"
 
@@ -48,6 +70,9 @@ int fmt_init(fmt_info **finfo, const char *file)
     (*finfo)->h = 0;
     (*finfo)->bpp = 0;
     (*finfo)->hasalpha = FALSE;
+    (*finfo)->needflip = FALSE;
+    (*finfo)->images = 1;
+    (*finfo)->animated = FALSE;
 
     (*finfo)->fptr = fopen(file, "rb");
     
@@ -67,6 +92,8 @@ png_structp	png_ptr;
 png_infop	info_ptr;
 png_uint_32	width, height, number_passes;
 int		color_type;
+png_bytep	*row_pointers;
+int row;
 
 /*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
 int fmt_read_info(fmt_info *finfo)
@@ -129,9 +156,44 @@ int fmt_read_info(fmt_info *finfo)
     if(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
 	png_set_tRNS_to_alpha(png_ptr);
 
+    png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
+
     number_passes = png_set_interlace_handling(png_ptr);
     
     png_read_update_info(png_ptr, info_ptr);
+/*    
+    row_pointers = (png_bytep*)calloc(finfo->h, sizeof(png_bytep));
+
+    for(row = 0; row < finfo->h; row++)
+	row_pointers[row] = png_malloc(png_ptr, png_get_rowbytes(png_ptr, info_ptr));
+
+    row = 0;
+	
+    png_read_image(png_ptr, row_pointers);
+*/
+    asprintf(&finfo->dump, 
+"Width: %ld\n\
+Height: %ld\n\
+Bits per pixel: %d\n\
+Number of images: %d\n\
+Animated: %s\n\
+Has palette: %s\n\
+Palette has %d entries\n\
+Interlaced: %s\n\
+Number of passes: %ld\n\
+Channels per pixel: %d\n",
+
+finfo->w,
+finfo->h,
+finfo->bpp,
+finfo->images,
+(finfo->animated)?"yes":"no",
+(finfo->pal_entr)?"yes":"no",
+info_ptr->num_palette,
+(number_passes>1)?"yes":"no",
+number_passes,
+info_ptr->channels
+);
 
     return SQERR_OK;
 }
@@ -144,26 +206,25 @@ int fmt_read_info(fmt_info *finfo)
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
     png_bytep rows[1];
-    int i;
+
+    memset(scan, 255, finfo->w * 4);
 
     int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 
     rows[0] = png_malloc(png_ptr, row_bytes);
     
     png_read_rows(png_ptr, &rows[0], png_bytepp_NULL, 1);
-    
-    if(color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-	memcpy(scan, rows[0], finfo->w * 4);
 
-    else
-	for(i = 0;i < finfo->w;i++)
-	    memcpy(scan+i, rows[0]+i*3, 3);
+    memcpy(scan, rows[0], finfo->w * 4);
 
     return SQERR_OK;
 }
 
 int fmt_close(fmt_info *finfo)
 {
+//    for(row = 0; row < finfo->h; row++)
+//	png_free(png_ptr, row_pointers[row]);
+
     png_read_end(png_ptr, info_ptr);
     png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 

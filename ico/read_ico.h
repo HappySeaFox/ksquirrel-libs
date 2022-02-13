@@ -19,20 +19,48 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef _SQUIRREL_READ_IMAGE_jpg
-#define _SQUIRREL_READ_IMAGE_jpg
+#ifndef _SQUIRREL_READ_IMAGE_ico
+#define _SQUIRREL_READ_IMAGE_ico
 
 #include "../defs.h"
 #include "../err.h"
 
-#include <setjmp.h>
-
-struct my_error_mgr
+typedef struct
 {
-    struct jpeg_error_mgr pub;
-    jmp_buf setjmp_buffer;
-};
+    unsigned char	bWidth;
+    unsigned char	bHeight;
+    unsigned char	bColorCount;
+    unsigned char	bReserved; /*  0  */
+    unsigned short	wPlanes;   /*  0  */
+    unsigned short	wBitCount; /*  0  */
+    unsigned long	dwBytes;
+    unsigned long	dwImageOffset;
+}ATTR_ ICO_DIRENTRY;
 
-typedef struct my_error_mgr * my_error_ptr;
+
+typedef struct
+{
+    unsigned short	idReserved;
+    unsigned short	idType;  /*  must be  1  */
+    unsigned short	idCount;
+}ATTR_ ICO_HEADER;
+
+// ICO_DIRENTRY*
+
+typedef struct
+{
+    unsigned long	Size;
+    unsigned long	Width;
+    unsigned long	Height;
+    unsigned short	Planes;
+    unsigned short	BitCount;
+    unsigned long	Compression; /*  not used -->>  */
+    unsigned long	SizeImage;
+    unsigned long	XPelsPerMeter;
+    unsigned long	YPelsPerMeter;
+    unsigned long	ClrUsed;
+    unsigned long	ClrImportant;
+
+}ATTR_ BITMAPINFO_HEADER;
 
 #endif

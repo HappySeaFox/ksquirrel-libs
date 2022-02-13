@@ -19,20 +19,12 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef _SQUIRREL_READ_IMAGE_jpg
-#define _SQUIRREL_READ_IMAGE_jpg
+#ifndef _SQUIRREL_READ_IMAGE_xwd
+#define _SQUIRREL_READ_IMAGE_xwd
 
 #include "../defs.h"
 #include "../err.h"
 
-#include <setjmp.h>
-
-struct my_error_mgr
-{
-    struct jpeg_error_mgr pub;
-    jmp_buf setjmp_buffer;
-};
-
-typedef struct my_error_mgr * my_error_ptr;
+#include <X11/XWDFile.h>
 
 #endif

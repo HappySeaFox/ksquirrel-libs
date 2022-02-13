@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -f libSQ_read_xpm.so
+../compile read_xpm

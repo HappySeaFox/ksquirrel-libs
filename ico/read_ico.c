@@ -1,55 +1,3 @@
-#!/bin/sh
-
-# generates new development directory for some format
-# Usage: "./generate <format>"
-
-
-name=$1
-mkdir $name
-cd $name
-
-cat << EOF > read_$name.h
-/*  This file is part of SQuirrel (http://ksquirrel.sf.net) libraries
-
-    Copyright (c) 2004 Dmitry Baryshev <ckult@yandex.ru>
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
-    License as published by the Free Software Foundation;
-    either version 2 of the License, or (at your option) any later
-    version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
-
-    You should have received a copy of the GNU Library General Public License
-    along with this library; see the file COPYING.  If not, write to
-    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA 02111-1307, USA.
-*/
-
-#ifndef _SQUIRREL_READ_IMAGE_$name
-#define _SQUIRREL_READ_IMAGE_$name
-
-#include "../defs.h"
-#include "../err.h"
-
-typedef struct
-{
-
-};
-
-typedef struct
-{
-
-};
-
-#endif
-EOF
-
-cat << EOF > read_$name.c
 /*  This file is part of SQuirrel (http://ksquirrel.sf.net) libraries
 
     Copyright (c) 2004 Dmitry Baryshev <ckult@yandex.ru>
@@ -77,22 +25,22 @@ cat << EOF > read_$name.c
 #include <string.h>
 #include <libiberty.h>
 
-#include "read_$name.h"
+#include "read_ico.h"
 
 
 char* fmt_version()
 {
-    return "";
+    return "0.1";
 }
 
 char* fmt_quickinfo()
 {
-    return "";
+    return "Windows Icons";
 }
 
 char* fmt_extension()
 {
-    return "*.";
+    return "*.ico *.cur";
 }
 
 
@@ -107,11 +55,10 @@ int fmt_init(fmt_info **finfo, const char *file)
     (*finfo)->w = 0;
     (*finfo)->h = 0;
     (*finfo)->bpp = 0;
-    (*finfo)->hasalpha = FALSE;
-    (*finfo)->needflip = FALSE;
+    (*finfo)->hasalpha = TRUE;
+    (*finfo)->needflip = TRUE;
     (*finfo)->images = 1;
     (*finfo)->animated = FALSE;
-    
 
     (*finfo)->fptr = fopen(file, "rb");
     
@@ -125,26 +72,59 @@ int fmt_init(fmt_info **finfo, const char *file)
 }
 
 
+uchar			*bAND;
+ICO_HEADER		ifh;
+ICO_DIRENTRY		ide;
+BITMAPINFO_HEADER	bih;
+
+
 /*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
 int fmt_read_info(fmt_info *finfo)
 {
     RGBA		rgba;
-    RGB			rgb;
-    long		i, j;
-    uchar		bt;
+    long		i, pos;
 
-    /* read info about a file  here  */
+    fread(&ifh, sizeof(ICO_HEADER), 1, finfo->fptr);
+    
+    if(ifh.idType != 1 && ifh.idType != 2)
+	return SQERR_BADFILE;
 
-    /* init palette, w, h, bpp */
-    if(/* bpp! */0 < 16)
-    	finfo->pal_entr = 1 << 0/* bpp! */;
-    else
-	finfo->pal_entr = 0;
+    fread(&ide, sizeof(ICO_DIRENTRY), 1, finfo->fptr);
 
-    finfo->w = 0;
-    finfo->h = 0;
-    finfo->bpp = 0;
+    finfo->w = ide.bWidth;
+    finfo->h = ide.bHeight;
+    finfo->images = ifh.idCount;
+    
+/*
+    if(finfo->w != 16 && finfo->w != 32 && finfo->w != 64)
+	return SQERR_BADFILE;
 
+    if(finfo->h != 16 && finfo->h != 32 && finfo->h != 64)
+	return SQERR_BADFILE;
+
+    if(ide.bColorCount != 2 && ide.bColorCount != 8 && ide.bColorCount != 16)
+	return SQERR_BADFILE;
+*/
+
+    fseek(finfo->fptr, ide.dwImageOffset, SEEK_SET);
+    fread(&bih, sizeof(BITMAPINFO_HEADER), 1, finfo->fptr);
+
+    pos = ftell(finfo->fptr);
+    
+    fseek(finfo->fptr, finfo->h * bih.Planes * bih.BitCount * finfo->w / 8, SEEK_CUR);
+    
+    int count = finfo->w * finfo->h / 8;
+    
+    bAND = (uchar*)calloc(count, sizeof(uchar));
+    fread(bAND, count, 1, finfo->fptr);
+    
+    for(i = 0;i < count;i++)
+	printf("%4d%s",bAND[i],((i+1)%8)?" ":"\n");
+    
+    fsetpos(finfo->fptr, (fpos_t*)&pos);
+
+    finfo->bpp = bih.BitCount;
+    finfo->pal_entr = 1 << finfo->bpp;
 
     if(finfo->bpp < 16)
     {
@@ -154,8 +134,6 @@ int fmt_read_info(fmt_info *finfo)
 		free(finfo);
 		return SQERR_NOMEMORY;
 	}
-
-	fseek(finfo->fptr, 0/* move to palette! */, SEEK_SET);
 
 	/*  read palette  */
 	for(i = 0;i < finfo->pal_entr;i++)
@@ -169,16 +147,16 @@ int fmt_read_info(fmt_info *finfo)
     }
     else
 	finfo->pal = 0;
-
-    /*  fseek to image bits  */
-    fseek(finfo->fptr, 0, SEEK_SET);
+/*
+    for(i = 0;i < finfo->pal_entr;i++)
+	printf("%d %d %d\n",(finfo->pal)[i].r,(finfo->pal)[i].g,(finfo->pal)[i].b);
+*/
 
     asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
     finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
 
     return SQERR_OK;
 }
-
 
 
 /*  
@@ -188,8 +166,8 @@ int fmt_read_info(fmt_info *finfo)
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
 
-    long j, counter = 0;
-    unsigned char bt;
+    long i, j;
+    unsigned char bt, ind;
 
     memset(scan, 255, finfo->w * 4);
 
@@ -199,9 +177,24 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	break;
 
 	case 4:
+	    j = 0;
+	    do
+	    {
+		bt = fgetc(finfo->fptr);
+		ind = bt >> 4;
+		memcpy(scan+j++, (finfo->pal)+ind, 3);
+		ind = bt&15;
+		memcpy(scan+j++, (finfo->pal)+ind, 3);
+	    }while(j < finfo->w);
+
 	break;
 
 	case 8:
+	    for(i = 0;i < finfo->w;i++)
+	    {
+		bt = fgetc(finfo->fptr);
+		memcpy(scan+i, (finfo->pal)+bt, 3);
+	    }
 	break;
 
 	case 16:
@@ -228,23 +221,3 @@ int fmt_close(fmt_info *finfo)
     fclose(finfo->fptr);
     return SQERR_OK;
 }
-EOF
-
-echo "#!/bin/sh" > build
-echo >> build
-echo "rm -f libSQ_read_$name.so" >> build
-echo "../compile read_$name" >> build
-chmod +x ./build
-
-#cd ..
-
-#echo "#!/bin/sh" > compile
-#echo >> compile
-#echo "gcc -fPIC -c $1.c" >> compile
-#echo "gcc -shared -o libSQ_$1.so $1.o" >> compile
-#echo "rm -f $1.o" >> compile
-#chmod +x ./compile
-
-echo
-echo "All done!"
-echo

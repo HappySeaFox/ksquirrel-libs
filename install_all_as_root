@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# Compile and install SQuirrel libs into /usr/lib/squirrel/
+
+if [ `id -u` = 0 ]; then goto cont; else echo "Run as root!" && exit 0; fi
+
+cont:
+WHICH_FORMAT=
+LIBDIR=/usr/lib/squirrel/
+
+WHICH_FORMAT=bmp  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=ico  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=jpg  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=pcx  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=pix  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=png  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=pnm  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=sgi  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=tga  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=tiff && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=xbm  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=xpm  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=xwd  && echo "Compiling ${WHICH_FORMAT}" && cd ${WHICH_FORMAT} && ./build && cd ..
+WHICH_FORMAT=
+
+echo "Making derectory ..."
+mkdir ${LIBDIR}
+
+echo "Copying libraries ..."
+WHICH_FORMAT=bmp && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=ico && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=jpg && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=pcx && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=pix && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=png && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=pnm && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=sgi && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=tga && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=tiff && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=xbm && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=xpm && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+WHICH_FORMAT=xwd && cp ${WHICH_FORMAT}/libSQ_read_${WHICH_FORMAT}.so ${LIBDIR}
+
+echo
+echo "All done!"
+echo

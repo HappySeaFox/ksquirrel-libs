@@ -19,20 +19,36 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef _SQUIRREL_READ_IMAGE_jpg
-#define _SQUIRREL_READ_IMAGE_jpg
+#ifndef _SQUIRREL_READ_IMAGE_sgi
+#define _SQUIRREL_READ_IMAGE_sgi
 
 #include "../defs.h"
 #include "../err.h"
 
-#include <setjmp.h>
-
-struct my_error_mgr
+typedef struct
 {
-    struct jpeg_error_mgr pub;
-    jmp_buf setjmp_buffer;
-};
+    unsigned short	Magik; /*  should be 474  */
+    unsigned char	StorageFormat; /* 1 == RLE, 0 = Verbatim  */
+    unsigned char	bpc;		/*  1|2  */
+    unsigned short	Dimensions;	/* 1|2|3 1==1channle+1scanline, 2==1channle+some scanlines, 3==number of channels */
+    unsigned short	x;
+    unsigned short	y;
+    unsigned short	z;
+    unsigned long	pixmin;
+    unsigned long	pixmax;
+    unsigned long	dummy;
+    unsigned char	name[80]; /*  ascii string  */
+    unsigned long	ColormapID;
+    
+		/*  0=Normal
+		    1=Dither. RGB==3:3:2 per byte, 1 channel
+		    2=Screen. Obsolete
+		    3=Colormap. Has ONLY colormap, nothing else. 
+		*/
 
-typedef struct my_error_mgr * my_error_ptr;
+    unsigned char	dummy2[404];
+    
+}SGI_HEADER;
+
 
 #endif

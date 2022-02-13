@@ -25,25 +25,26 @@
 #include <string.h>
 #include <libiberty.h>
 
-#include <jpeglib.h>
+#define BE_SHORT
 
-#include "read_jpg.h"
-
+#include "read_xwd.h"
+#include "../endian.h"
 
 char* fmt_version()
 {
-    return "0.8.2";
+    return "0.3";
 }
 
 char* fmt_quickinfo()
 {
-    return "JPEG compressed";
+    return "X Window Dump";
 }
 
 char* fmt_extension()
 {
-    return "*.jpg *.jpeg *.jpe";
+    return "*.xwd";
 }
+
 
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
 int fmt_init(fmt_info **finfo, const char *file)
@@ -65,7 +66,6 @@ int fmt_init(fmt_info **finfo, const char *file)
     
     if(!((*finfo)->fptr))
     {
-	fclose((*finfo)->fptr);
 	free(*finfo);
 	return SQERR_NOFILE;
     }
@@ -73,61 +73,41 @@ int fmt_init(fmt_info **finfo, const char *file)
     return SQERR_OK;
 }
 
-METHODDEF(void) my_error_exit(j_common_ptr cinfo)
-{
-    my_error_ptr myerr = (my_error_ptr) cinfo->err;
+XWDFileHeader	xfh;
 
-    (*cinfo->err->output_message) (cinfo);
-
-    longjmp(myerr->setjmp_buffer, 1);
-}
-
-struct jpeg_decompress_struct	cinfo;
-struct my_error_mgr 		jerr;
-int 				row_stride;
-JSAMPARRAY 			buffer;
-
+/*  init info about file, e.g. width, height, bpp, alpha, 'fseek' to image bits  */
 int fmt_read_info(fmt_info *finfo)
 {
-    int i;
+    XWDColor	color;
+    char 	str[256];
+    int		i, ncolors;
 
-    cinfo.err = jpeg_std_error(&jerr.pub);
-    jerr.pub.error_exit = my_error_exit;
+    fread(&xfh, sizeof(XWDFileHeader), 1, finfo->fptr);
     
-    if(setjmp(jerr.setjmp_buffer)) 
+    fgets(str, 255, finfo->fptr); // get window name
+    
+    fseek(finfo->fptr, lLE2BE(xfh.header_size), SEEK_SET);
+
+    finfo->pal_entr = ncolors = lLE2BE(xfh.ncolors);
+    
+    if((finfo->pal = (RGB*)calloc(ncolors, sizeof(RGB))) == NULL)
     {
-	jpeg_destroy_decompress(&cinfo);
-	fclose(finfo->fptr);
-	return SQERR_NOTOK;
+	fclose(finfo->fptr);	
+	return SQERR_NOMEMORY;
     }
-
-    jpeg_create_decompress(&cinfo);
-    jpeg_stdio_src(&cinfo, finfo->fptr);
-    jpeg_read_header(&cinfo, TRUE);
-
-    if(cinfo.jpeg_color_space == JCS_GRAYSCALE)
+    
+    for(i = 0;i < ncolors;i++)
     {
-	finfo->bpp = 8;
-        cinfo.out_color_space = JCS_RGB;
-	cinfo.desired_number_of_colors = 256;
-	cinfo.quantize_colors = FALSE;
-	cinfo.two_pass_quantize = FALSE;
-
-	finfo->pal = (RGB*)calloc(256, sizeof(RGB));
+	fread(&color, sizeof(XWDColor), 1, finfo->fptr);
 	
-	for(i = 0;i < 256;i++)
-	    (finfo->pal)[i].r = (finfo->pal)[i].g = (finfo->pal)[i].b = i;
+	(finfo->pal)[i].r = (uchar)sLE2BE(color.red);
+	(finfo->pal)[i].g = (uchar)sLE2BE(color.green);
+	(finfo->pal)[i].b = (uchar)sLE2BE(color.blue);
     }
-    else
-	finfo->bpp = 24;
 
-    jpeg_start_decompress(&cinfo);
-
-    finfo->w = cinfo.output_width;
-    finfo->h = cinfo.output_height;
-    finfo->pal_entr = 256;
-    
-    buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
+    finfo->w = lLE2BE(xfh.pixmap_width);
+    finfo->h = lLE2BE(xfh.pixmap_height);
+    finfo->bpp = lLE2BE(xfh.pixmap_depth);
 
     asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
     finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
@@ -141,23 +121,26 @@ int fmt_read_info(fmt_info *finfo)
  */
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    int i;
+    int 	i;
+    RGBA	rgba;
 
     memset(scan, 255, finfo->w * 4);
 
-    (void)jpeg_read_scanlines(&cinfo, buffer, 1);
-
     for(i = 0;i < finfo->w;i++)
-	memcpy(scan+i, buffer[0] + i*3, 3);
+    {
+	fread(&rgba, sizeof(RGBA), 1, finfo->fptr);
+
+	scan[i].r = rgba.b;
+	scan[i].g = rgba.g;
+	scan[i].b = rgba.r;
+	scan[i].a = 255;
+    }
 
     return SQERR_OK;
 }
 
 int fmt_close(fmt_info *finfo)
 {
-    (void)jpeg_finish_decompress(&cinfo);
-    jpeg_destroy_decompress(&cinfo);
     fclose(finfo->fptr);
-
     return SQERR_OK;
 }

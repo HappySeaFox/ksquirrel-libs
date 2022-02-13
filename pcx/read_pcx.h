@@ -19,20 +19,30 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef _SQUIRREL_READ_IMAGE_jpg
-#define _SQUIRREL_READ_IMAGE_jpg
+#ifndef _SQUIRREL_READ_IMAGE_pcx
+#define _SQUIRREL_READ_IMAGE_pcx
 
 #include "../defs.h"
 #include "../err.h"
 
-#include <setjmp.h>
-
-struct my_error_mgr
+typedef struct
 {
-    struct jpeg_error_mgr pub;
-    jmp_buf setjmp_buffer;
-};
+	unsigned char	ID;
+	unsigned char	Version;
+	unsigned char	Encoding;
+	unsigned char	bpp;
+	unsigned short	Xmin,Ymin,Xmax,Ymax;
+	unsigned short	VDpi;
+	unsigned short	HDpi;
+	unsigned char	Palette[48];
+	unsigned char	Reserved;
+	unsigned char	NPlanes;
+	unsigned short	BytesPerLine;
+	unsigned short	PaletteInfo;
+	unsigned short	HScreenSize;
+	unsigned short	VScreenSize;
+	unsigned char	Filler[54];       /*        Header should be 128 byte  length  */
 
-typedef struct my_error_mgr * my_error_ptr;
+}PCX_HEADER;
 
 #endif

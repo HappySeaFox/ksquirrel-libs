@@ -1,14 +1,36 @@
+/*  This file is part of SQuirrel (http://ksquirrel.sf.net) libraries
+
+    Copyright (c) 2004 Dmitry Baryshev <ckult@yandex.ru>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation;
+    either version 2 of the License, or (at your option) any later
+    version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+
+    You should have received a copy of the GNU Library General Public License
+    along with this library; see the file COPYING.  If not, write to
+    the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+    Boston, MA 02111-1307, USA.
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libiberty.h>
 
 #include "read_tga.h"
 
 
 char* fmt_version()
 {
-    return "0.2";
+    return "0.6";
 }
 
 char* fmt_quickinfo()
@@ -34,6 +56,9 @@ int fmt_init(fmt_info **finfo, const char *file)
     (*finfo)->h = 0;
     (*finfo)->bpp = 0;
     (*finfo)->hasalpha = FALSE;
+    (*finfo)->needflip = TRUE;
+    (*finfo)->images = 1;
+    (*finfo)->animated = FALSE;
 
     (*finfo)->fptr = fopen(file, "rb");
     
@@ -94,6 +119,9 @@ int fmt_read_info(fmt_info *finfo)
     if(tfh.ImageType == 0)
 	return SQERR_BADFILE;
 
+    asprintf(&finfo->dump, "Width: %ld\nHeight: %ld\nBits per pixel: %d\nNumber of images: %d\nAnimated: %s\nHas palette: %s\n",
+    finfo->w,finfo->h,finfo->bpp,finfo->images,(finfo->animated)?"yes":"no",(finfo->pal_entr)?"yes":"no");
+
     return SQERR_OK;
 }
 
@@ -107,6 +135,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
 
     long j, counter = 0;
+
+    memset(scan, 255, finfo->w * 4);
 
     switch(tfh.ImageType)
     {
