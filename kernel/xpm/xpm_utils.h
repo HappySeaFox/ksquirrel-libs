@@ -23,6 +23,7 @@
 #define SQ_XPM_UTILS
 
 #include "read_xpm.h"
+#include "utils.h"
 #include "rgb.h"
 #include <ctype.h>
 
@@ -36,7 +37,7 @@ template <class T>
 void Swap(T *a, T *b);
 
 RGBA hex2rgb(const char *hex);
-void skip_comments(FILE *fp);
+int skip_comments(FILE *fp);
 
 template <class T>
 RGBA* BinSearch(T A[], int low, int high, const char *key);
@@ -115,11 +116,11 @@ RGBA hex2rgb(const char *hex)
     if(isalpha(*hex))
     {
 	RGBA *trgba = BinSearch(named, 0, sizeof(named) / sizeof(XPM_NAMED_COLOR) - 1, hex);
+
 	if(!trgba)
 	{
 	    fprintf(stderr, "XPM decoder: WARNING: named color \"%s\" not found, assuming black instead\n", hex);
-    	    rgba.r = rgba.g = rgba.b = 0;
-	    rgba.a = 255;
+    	    memset(&rgba, 0, sizeof(RGBA));
 	    return rgba;
 	}
 	
@@ -171,42 +172,26 @@ RGBA* BinSearch(T A[], int low, int high, const char *key)
 }
 
 /*  skip a single line C-like comment  */
-void skip_comments(FILE *fp)
+int skip_comments(FILE *fp)
 {
     char str[513];
     long pos;
+    bool skipped = false;
 
-    do
-    {
-	pos = ftell(fp);
-	fgets(str, 512, fp);
+    pos = ftell(fp);
 
-	if(!strstr(str, "/*"))
-	    break;
-    }while(true);
+    if(!sq_fgets(str, 512, fp)) return 2;
 
-    fsetpos(fp, (fpos_t*)&pos);
-}
+    if((*str == '\n' && *(str+1) == '\0') || (*str == '\n' && *(str+1) == '\r' && *(str+2) == '\0') || (*str == '\r' && *(str+1) == '\n' && *(str+2) == '\0'))
+        skipped = true;
 
-/*  skip a single line, if it's empty  */
-void skip_empty_lines(FILE *fp)
-{
-    char str[513];
-    long pos;
+    if(strstr(str, "/*") || *str == '#')
+        skipped = true;
 
-    do
-    {
-	pos = ftell(fp);
-	fgets(str, 512, fp);
+    if(!skipped)
+	fsetpos(fp, (fpos_t*)&pos);
 
-	if(*str == '\n' && *(str+1) == '\0')
-	    continue;
-	else
-	    break;
-
-    }while(true);
-
-    fsetpos(fp, (fpos_t*)&pos);
+    return (int)skipped;
 }
 
 #endif

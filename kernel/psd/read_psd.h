@@ -24,6 +24,7 @@
 
 #include "defs.h"
 #include "err.h"
+#include "fio.h"
 
 //   0: Bitmap
 //   1: Grayscale
@@ -43,24 +44,6 @@
 #define PSD_DUOTONE		8
 #define PSD_LAB			9
 
-/*
-#define BP_START(DIB, WIDTH, HEIGHT) \
-	int xxxscanline = 0; \
-	unsigned *xxxbits = (unsigned *)FreeImage_GetScanLine(DIB, HEIGHT - 1 - xxxscanline); \
-	unsigned *xxxp = xxxbits;
-
-#define BP_NEXT(DIB, WIDTH, HEIGHT) \
-	xxxp++; \
-	if (xxxp - xxxbits == WIDTH) { \
-		xxxscanline++; \
-		xxxbits = (unsigned *)FreeImage_GetScanLine(DIB, HEIGHT - 1 - xxxscanline); \
-		xxxp = xxxbits; \
-	}
-
-#define BP_SETVALUE(VALUE, OFFSET) \
-	((unsigned char *)xxxp)[OFFSET] = VALUE;
-*/
-
 extern "C" {
 
 const char*	fmt_version();
@@ -71,8 +54,8 @@ const char*	fmt_pixmap();
 
 int 	fmt_init(fmt_info *finfo, const char *file);
 int	fmt_read_scanline(fmt_info *finfo, RGBA *scan);
-int	fmt_readimage(const char*, RGBA **scan, char **dump);
-int	fmt_close();
+int	fmt_readimage(const char*, RGBA **scan, char *dump);
+void	fmt_close();
 
 int    fmt_next(fmt_info *finfo);
 int    fmt_next_pass(fmt_info *finfo);

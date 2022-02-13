@@ -29,16 +29,16 @@
 
 extern "C" {
 
-const char*     fmt_version(void);
-const char*     fmt_quickinfo(void);
-const char*     fmt_filter(void);
-const char*     fmt_mime(void);
-const char*     fmt_pixmap(void);
+const char*     fmt_version();
+const char*     fmt_quickinfo();
+const char*     fmt_filter();
+const char*     fmt_mime();
+const char*     fmt_pixmap();
 
 int     fmt_init(fmt_info *finfo, const char *file);
 int     fmt_read_scanline(fmt_info *finfo, RGBA *scan);
-int     fmt_readimage(const char*, RGBA **scan, char **);
-int     fmt_close();
+int     fmt_readimage(const char*, RGBA **scan, char *);
+void    fmt_close();
 
 int	fmt_next(fmt_info *finfo);
 int	fmt_next_pass(fmt_info *finfo);

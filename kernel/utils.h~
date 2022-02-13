@@ -1,0 +1,23 @@
+#ifndef SQ_UTILS_H
+#define SQ_UTILS_H
+
+void flip(unsigned char * image, unsigned int w, unsigned int h)
+{
+    unsigned int i;
+    unsigned char *hptr;
+	
+    if((hptr = (unsigned char *)malloc(w)) == 0)
+	return;
+		    
+    for (i = 0; i < h/2; i++)
+    {
+        memcpy(hptr, image + i * w, w);
+        memcpy(image + i * w, image + (h - i - 1) * w, w);
+        memcpy(image + (h - i - 1) * w, hptr, w);
+    }
+							
+    free(hptr);
+}
+
+#endif
+						    

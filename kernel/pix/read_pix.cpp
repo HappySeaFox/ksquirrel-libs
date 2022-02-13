@@ -20,11 +20,12 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_pix.h"
+#include "utils.h"
 
 FILE *fptr;
 int currentImage, bytes;
@@ -56,11 +57,8 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,255,204,51,4,4,4,195,151,166,176,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,76,73,68,65,84,120,218,99,96,96,8,5,1,6,32,8,20,20,20,20,5,51,148,148,148,68,67,161,12,160,144,49,20,48,152,184,128,129,51,144,97,236,98,98,98,2,98,152,152,64,25,64,17,103,176,148,9,92,10,198,128,234,130,155,3,49,89,73,20,106,41,216,86,176,51,2,0,148,190,24,56,148,160,248,187,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-	
     fptr = fopen(file, "rb");
 	        
     if(!fptr)
@@ -81,6 +79,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 	    
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
         return SQERR_NOMEMORY;
 
@@ -90,8 +91,10 @@ int fmt_next(fmt_info *finfo)
 
     pfh.width = BE_getshort(fptr);
     pfh.height = BE_getshort(fptr);
-    fread(&tmp, sizeof(unsigned short), 1, fptr);
-    fread(&tmp, sizeof(unsigned short), 1, fptr);
+
+    if(!sq_fread(&tmp, sizeof(unsigned short), 1, fptr)) return SQERR_BADFILE;
+    if(!sq_fread(&tmp, sizeof(unsigned short), 1, fptr)) return SQERR_BADFILE;
+
     pfh.bpp = BE_getshort(fptr);
 
     if(pfh.bpp != 24)	
@@ -105,7 +108,7 @@ int fmt_next(fmt_info *finfo)
 
     finfo->images++;
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\nRLE\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\nRLE\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -124,7 +127,7 @@ int fmt_next_pass(fmt_info *)
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
     int	len = 0, i, counter = 0;
-    int	count;
+    unsigned char count;
     RGB	rgb;
 
     memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
@@ -134,13 +137,13 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	case 24:
 	    do
 	    {
-		count = fgetc(fptr);
+		if(!sq_fgetc(fptr, &count)) return SQERR_BADFILE;
 		len += count;
 		
-		fread(&rgb.b, 1, 1, fptr);
-		fread(&rgb.g, 1, 1, fptr);
-		fread(&rgb.r, 1, 1, fptr);
-		
+		if(!sq_fread(&rgb.b, 1, 1, fptr)) return SQERR_BADFILE;
+		if(!sq_fread(&rgb.g, 1, 1, fptr)) return SQERR_BADFILE;
+		if(!sq_fread(&rgb.r, 1, 1, fptr)) return SQERR_BADFILE;
+
 		for(i = 0;i < count;i++)
 		    memcpy(scan+counter++, &rgb, 3);
 		    
@@ -149,37 +152,47 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
-    PIX_HEADER	pfh;
-    FILE *m_fptr;
-    int w, h, bpp;
-    unsigned short tmp;
+    PIX_HEADER		pfh;
+    FILE 		*m_fptr;
+    int 		w, h, bpp;
+    unsigned short 	tmp;
+    int 		m_bytes;
+    jmp_buf		jmp;
 
     m_fptr = fopen(file, "rb");
 
     if(!m_fptr)
         return SQERR_NOFILE;
+	
+    if(setjmp(jmp))
+    {
+	fclose(m_fptr);
+	return SQERR_BADFILE;
+    }
 
     pfh.width = BE_getshort(m_fptr);
     pfh.height = BE_getshort(m_fptr);
-    fread(&tmp, sizeof(unsigned short), 1, m_fptr);
-    fread(&tmp, sizeof(unsigned short), 1, m_fptr);
+
+    if(!sq_fread(&tmp, sizeof(unsigned short), 1, m_fptr)) longjmp(jmp, 1);
+    if(!sq_fread(&tmp, sizeof(unsigned short), 1, m_fptr)) longjmp(jmp, 1);
+
     pfh.bpp = BE_getshort(m_fptr);
 
     if(pfh.bpp != 24)	
-	return SQERR_BADFILE;
+	longjmp(jmp, 1);
 
     w = pfh.width;
     h = pfh.height;
     bpp = pfh.bpp;
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nRLE\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\nRLE\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -193,37 +206,32 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_pix: Image is null!\n");
-        fclose(m_fptr);
-        return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
 
     memset(*image, 255, m_bytes);
 
     /*  reading ... */
 
-    int W = w * sizeof(RGBA);
-    
     for(int h2 = 0;h2 < h;h2++)
     {
 	int len = 0, i, counter = 0;
-        int		count;
+        unsigned char	count;
 	RGB		rgb;
         RGBA 	*scan = *image + h2 * w;
-
-	memset(scan, 255, W);
 
         switch(bpp)
 	{
 	    case 24:
 		do
     		{
-		    count = fgetc(m_fptr);
+		    if(!sq_fgetc(m_fptr, &count)) longjmp(jmp, 1);
 		    len += count;
-		
-		    fread(&rgb.b, 1, 1, m_fptr);
-		    fread(&rgb.g, 1, 1, m_fptr);
-		    fread(&rgb.r, 1, 1, m_fptr);
-		
+
+		    if(!sq_fread(&rgb.b, 1, 1, m_fptr)) longjmp(jmp, 1);
+		    if(!sq_fread(&rgb.g, 1, 1, m_fptr)) longjmp(jmp, 1);
+		    if(!sq_fread(&rgb.r, 1, 1, m_fptr)) longjmp(jmp, 1);
+
 		    for(i = 0;i < count;i++)
 			memcpy(scan+counter++, &rgb, sizeof(RGB));
 
@@ -237,9 +245,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
-
-    return SQERR_OK;
 }

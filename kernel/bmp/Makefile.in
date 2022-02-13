@@ -200,7 +200,6 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -211,7 +210,7 @@ INCLUDES = -I..
 lib_LTLIBRARIES = libSQ_read_bmp.la
 libSQ_read_bmp_la_SOURCES = read_bmp.cpp read_bmp.h
 EXTRA_DIST = read_bmp.cpp read_bmp.h
-libSQ_read_bmp_la_LDFLAGS = -release 0.9.1
+libSQ_read_bmp_la_LDFLAGS = -release 1.0.2
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -242,7 +241,7 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/bmp/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/bmp/Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/bmp/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit kernel/bmp/Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -507,7 +506,6 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
 
-
 #>+ 2
 KDE_DIST=Makefile.in Makefile.am 
 
@@ -527,7 +525,7 @@ force-reedit:
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  kernel/bmp/Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  kernel/bmp/Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin kernel/bmp/Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit kernel/bmp/Makefile.in
 
 
 #>+ 21

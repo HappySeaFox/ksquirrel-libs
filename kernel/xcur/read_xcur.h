@@ -24,6 +24,7 @@
 
 #include "defs.h"
 #include "err.h"
+#include "fio.h"
 
 struct XCUR_CHUNK_DESC
 {
@@ -88,8 +89,8 @@ const char*	fmt_pixmap();
 
 int 	fmt_init(fmt_info *finfo, const char *file);
 int	fmt_read_scanline(fmt_info *finfo, RGBA *scan);
-int	fmt_readimage(const char*, RGBA **scan, char **dump);
-int	fmt_close();
+int	fmt_readimage(const char*, RGBA **scan, char *dump);
+void	fmt_close();
 
 int    fmt_next(fmt_info *finfo);
 int    fmt_next_pass(fmt_info *finfo);

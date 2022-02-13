@@ -20,7 +20,6 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 
 #include "read_png.h"
@@ -28,25 +27,26 @@
 #include <png.h>
 
 #ifndef png_jmpbuf
-#define png_jmpbuf(png_ptr) ((png_ptr)->jmpbuf)
+#define png_jmpbuf(p) ((p)->jmpbuf)
 #endif
 
 png_structp	png_ptr;
 png_infop	info_ptr;
 png_uint_32	width, height, number_passes;
 int		color_type;
-png_bytep	*row_pointers;
-png_bytep	rows;
-int		currentImage, bytes;
+png_bytep	*rows;
+int		currentImage, bytes, line;
+bool		zerror;
 
 void my_error_exit(png_struct *, const char *mes)
 {
     printf("libSQ_read_png: %s\n", mes);
+    zerror = true;
 }
 
 const char* fmt_version()
 {
-    return (const char *)"0.9.1";
+    return (const char *)"1.0.3";
 }
 
 const char* fmt_quickinfo()
@@ -72,21 +72,19 @@ const char* fmt_pixmap()
 FILE *fptr;
     
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-
-    if(!finfo->image)
-	return SQERR_NOMEMORY;
-
     fptr = fopen(file, "rb");
 
     if(!fptr)
 	return SQERR_NOFILE;
 	
     currentImage = -1;
-
+    
+    zerror = false;
+    
+    rows = 0L;
+    
     return SQERR_OK;
 }
 
@@ -94,34 +92,40 @@ int fmt_next(fmt_info *finfo)
 {
     char	color_[30];
     int		bit_depth, interlace_type;
-    
+
     currentImage++;
 
     if(currentImage)
 	return SQERR_NOTOK;
 
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
 	return SQERR_NOMEMORY;
 
     memset(&finfo->image[currentImage], 0, sizeof(fmt_image));
-	
+    
     if((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, my_error_exit, 0)) == NULL)
     {
-	fclose(fptr);
+//	fclose(fptr);
+	zerror = true;
 	return SQERR_NOMEMORY;
     }
 
     if((info_ptr = png_create_info_struct(png_ptr)) == NULL)
     {
-	fclose(fptr);
-	png_destroy_read_struct(&png_ptr, 0, 0);
+//	png_destroy_read_struct(&png_ptr, 0, 0);
+//	fclose(fptr);
+	zerror = true;
 	return SQERR_NOMEMORY;
     }
-
+    
     if(setjmp(png_jmpbuf(png_ptr)))
     {
 //	png_destroy_read_struct(&png_ptr, &info_ptr, 0);
 //	fclose(fptr);
+	zerror = true;
 	return SQERR_BADFILE;
     }
 
@@ -156,11 +160,31 @@ int fmt_next(fmt_info *finfo)
     png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
 
     number_passes = png_set_interlace_handling(png_ptr);
+
+//    printf("passes: %d\n", number_passes);
     
     finfo->image[currentImage].interlaced = number_passes > 1;
     finfo->image[currentImage].passes = number_passes;
 
     png_read_update_info(png_ptr, info_ptr);
+
+    rows = (png_bytep*)calloc(finfo->image[currentImage].h, sizeof(png_bytep));
+    
+    if(!rows)
+	return SQERR_NOMEMORY;
+
+    for(int row = 0; row < finfo->image[currentImage].h; row++)
+    {
+	rows[row] = (png_bytep)0;
+    }
+
+    for(int row = 0; row < finfo->image[currentImage].h; row++)
+    {
+	rows[row] = (png_bytep)malloc(png_get_rowbytes(png_ptr, info_ptr));
+
+	if(!rows[row])
+	    return SQERR_NOMEMORY;
+    }
 
     switch(color_type)
     {
@@ -190,12 +214,12 @@ int fmt_next(fmt_info *finfo)
 	    strcpy(color_, "Unknown");
     }
 
-    int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
-    rows = (png_bytep)png_malloc(png_ptr, row_bytes);
-    
+//    int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
+//    rows = (png_bytep)png_malloc(png_ptr, row_bytes);
+
     bytes = finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA);
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\nDeflate method 8, 32K window\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\nDeflate method 8, 32K window\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -204,30 +228,30 @@ int fmt_next(fmt_info *finfo)
 	bytes);
 
 #if defined(PNG_TEXT_SUPPORTED)
-    finfo->image[currentImage].meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
+    finfo->meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
 
-    if(finfo->image[currentImage].meta)
+    if(finfo->meta)
     {
 	png_textp lines = info_ptr->text;
 
 	if(!lines || !info_ptr->num_text)
 	{
 	    finfo->images++;
-	    free(finfo->image[currentImage].meta);
-	    finfo->image[currentImage].meta = 0;
+	    free(finfo->meta);
+	    finfo->meta = (fmt_metainfo *)0;
 	    return SQERR_OK;
 	}
 
-        finfo->image[currentImage].meta->m = (fmt_meta_entry *)calloc(info_ptr->num_text, sizeof(fmt_meta_entry));
-        finfo->image[currentImage].meta->entries = info_ptr->num_text;
-        fmt_meta_entry *entry = finfo->image[currentImage].meta->m;
+        finfo->meta->m = (fmt_meta_entry *)calloc(info_ptr->num_text, sizeof(fmt_meta_entry));
+        finfo->meta->entries = info_ptr->num_text;
+        fmt_meta_entry *entry = finfo->meta->m;
 
         for(int i = 0;i < info_ptr->num_text;i++)
         {
             if(entry)
             {
                 entry[i].datalen = lines[i].text_length;
-                sprintf(entry[i].group, "PNG key [%s]", lines[i].key);
+                snprintf(entry[i].group, sizeof(entry[i].group), "PNG key [%s]", lines[i].key);
                 entry[i].data = (char *)malloc(entry[i].datalen);
 
                 if(entry[i].data)
@@ -245,23 +269,26 @@ int fmt_next(fmt_info *finfo)
 
 int fmt_next_pass(fmt_info *)
 {
+    line = -1;
+
     return SQERR_OK;
 }
 
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
-    memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
+    line++;
 
-    png_read_rows(png_ptr, &rows, png_bytepp_NULL, 1);
+    png_read_rows(png_ptr, &rows[line], NULL, 1);
 
-    memcpy(scan, rows, finfo->image[currentImage].w * sizeof(RGBA));
+    memcpy(scan, rows[line], finfo->image[currentImage].w * sizeof(RGBA));
 
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     int w, h, bpp, hasalpha = 0;
+    int m_bytes;
 
     FILE *m_fptr = fopen(file, "rb");
 
@@ -284,8 +311,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     if((m_info_ptr = png_create_info_struct(m_png_ptr)) == NULL)
     {
-	fclose(m_fptr);
 	png_destroy_read_struct(&m_png_ptr, 0, 0);
+	fclose(m_fptr);
 	return SQERR_NOMEMORY;
     }
 
@@ -357,20 +384,32 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     m_number_passes = png_set_interlace_handling(m_png_ptr);
 
     png_read_update_info(m_png_ptr, m_info_ptr);
-/*    
-    row_pointers = (png_bytep*)calloc(finfo->h, sizeof(png_bytep));
 
-    for(row = 0; row < finfo->h; row++)
-	row_pointers[row] = png_malloc(png_ptr, png_get_rowbytes(png_ptr, info_ptr));
-
-    row = 0;
-	
-    png_read_image(png_ptr, row_pointers);
+    png_bytep m_rows[h];
+/*
+    for(int row = 0; row < h; row++)
+	m_rows[row] = (png_bytep)png_malloc(m_png_ptr, png_get_rowbytes(m_png_ptr, m_info_ptr));
 */
+    for(int row = 0; row < h; row++)
+    {
+	m_rows[row] = (png_bytep)malloc(png_get_rowbytes(m_png_ptr, m_info_ptr));
+	
+	if(!m_rows[row])
+	{
+	    for(int s = 0;s < row;s++)
+		free(m_rows[s]);
+		
+	    png_read_end(m_png_ptr, m_info_ptr);
+	    png_destroy_read_struct(&m_png_ptr, &m_info_ptr, png_infopp_NULL);
+	    fclose(m_fptr);
 
-    const int m_bytes = w * h * sizeof(RGBA);
+	    return SQERR_NOMEMORY;
+	}
+    }
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nDeflate method 8, 32K window\n%d\n%d\n",
+    m_bytes = w * h * sizeof(RGBA);
+
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\nDeflate method 8, 32K window\n%d\n%d\n",
     fmt_quickinfo(),
     w, h,
     bpp, m_color_,
@@ -382,44 +421,165 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
 	fprintf(stderr, "libSQ_read_png: Image is null!\n");
+
+	png_read_end(m_png_ptr, m_info_ptr);
+	png_destroy_read_struct(&m_png_ptr, &m_info_ptr, png_infopp_NULL);
 	fclose(m_fptr);
+
 	return SQERR_NOMEMORY;
     }
 
     memset(*image, 255, m_bytes);
 
-    png_bytep m_rows;
-
-    int m_row_bytes = png_get_rowbytes(m_png_ptr, m_info_ptr);
-    m_rows = (png_bytep)png_malloc(m_png_ptr, m_row_bytes);
-    
     const int sss = w * sizeof(RGBA);
 
+    int m_line;
+
     for(unsigned int m_pass = 0;m_pass < m_number_passes;m_pass++)
-    for(i = 0;i < h;i++)
     {
-	png_read_rows(m_png_ptr, &m_rows, png_bytepp_NULL, 1);
-	memcpy(*image + i*w, m_rows, sss);
+	m_line = 0;
+
+	for(i = 0;i < h;i++)
+	{
+	    png_read_rows(m_png_ptr, &m_rows[m_line], NULL, 1);
+
+	    if(m_pass == m_number_passes-1)
+		memcpy(*image + i*w, m_rows[m_line], sss);
+
+	    m_line++;
+	}
     }
-    
-    png_free(m_png_ptr, m_rows);
+
     png_read_end(m_png_ptr, m_info_ptr);
     png_destroy_read_struct(&m_png_ptr, &m_info_ptr, png_infopp_NULL);
     fclose(m_fptr);
 
+    for(int row = 0; row < h; row++)
+	free(m_rows[row]);
+	
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
-//    for(row = 0; row < finfo->h; row++)
-//	png_free(png_ptr, row_pointers[row]);
+    if(!zerror)
+	png_read_end(png_ptr, info_ptr);
 
-    png_read_end(png_ptr, info_ptr);
     png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-    png_free(png_ptr, rows);
 
     fclose(fptr);
+
+    if(rows)
+    {
+	for(unsigned int row = 0; row < height; row++)
+	{
+	    if(rows[row])
+		free(rows[row]);
+	}
+
+	free(rows);
+    }
+}
+
+void fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+{
+    opt->interlaced = true;
+    opt->compression_scheme = CompressionInternal;
+    opt->compression_min = 1;
+    opt->compression_max = 9;
+    opt->compression_def = 7;
+}
+
+int fmt_writeimage(const char *file, RGBA *image, int w, int h, const fmt_writeoptions &opt)
+{
+    FILE 	*m_fptr;
+    png_structp	m_png_ptr;
+    png_infop	m_info_ptr;
+    int		bpp = 8;
+    
+    if(!image || !file || !w || !h || !opt.compression_factor)
+	return SQERR_NOMEMORY;
+
+    m_fptr = fopen(file, "wb");
+
+    if(!m_fptr)
+	return SQERR_NOFILE;
+
+    m_png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, my_error_exit, NULL);
+
+    if(!m_png_ptr)
+    {
+	fclose(m_fptr);
+	return SQERR_NOMEMORY;
+    }
+
+    m_info_ptr = png_create_info_struct(m_png_ptr);
+
+    if(!m_info_ptr)
+    {
+	png_destroy_write_struct(&m_png_ptr, png_infopp_NULL);
+	fclose(m_fptr);
+	return SQERR_NOMEMORY;
+    }
+
+    if(setjmp(png_jmpbuf(m_png_ptr)))
+    {
+	png_destroy_write_struct(&m_png_ptr, &m_info_ptr);
+	fclose(m_fptr);
+	return SQERR_BADFILE;
+    }
+
+    png_init_io(m_png_ptr, m_fptr);
+
+    png_set_IHDR(m_png_ptr, m_info_ptr, w, h, bpp, PNG_COLOR_TYPE_RGB_ALPHA,
+	((opt.interlaced) ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE), 
+	PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    png_color_8 sig_bit;
+
+    sig_bit.red = 8;
+    sig_bit.green = 8;
+    sig_bit.blue = 8;
+    sig_bit.alpha = 8;
+    
+    png_set_sBIT(m_png_ptr, m_info_ptr, &sig_bit);
+
+    int factor = (opt.compression_factor < 1 || opt.compression_factor > 9) ? 1 : opt.compression_factor;
+
+    png_set_compression_level(m_png_ptr, factor);
+
+//    png_set_gAMA(m_png_ptr, m_info_ptr, 1.2);
+
+    png_write_info(m_png_ptr, m_info_ptr);
+
+    png_set_shift(m_png_ptr, &sig_bit);
+
+    png_set_swap(m_png_ptr);
+
+    png_set_packswap(m_png_ptr);
+
+    int number_passes;
+
+    number_passes = (opt.interlaced) ? png_set_interlace_handling(m_png_ptr) : 1;
+
+    png_bytep row_pointers[h];
+
+    for(int k = 0;k < h;k++)
+	row_pointers[k] = (png_bytep)(image + k * w);
+
+    for(int pass = 0; pass < number_passes; pass++)
+    {
+	for (int y = 0; y < h; y++)
+	{
+	    png_write_rows(m_png_ptr, &row_pointers[y], 1);
+	}
+    }
+
+    png_write_end(m_png_ptr, m_info_ptr);
+
+    png_destroy_write_struct(&m_png_ptr, &m_info_ptr);
+    
+    fclose(m_fptr);
 
     return SQERR_OK;
 }

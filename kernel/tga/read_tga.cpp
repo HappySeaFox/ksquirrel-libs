@@ -20,18 +20,20 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_tga.h"
+
+#define SQ_NEED_FLIP
 #include "utils.h"
 
 typedef unsigned char uchar;
 
 FILE *fptr;
 int currentImage, bytes, pal_entr;
-RGB *pal;
+RGB pal[256];
 
 typedef unsigned char uchar;
 
@@ -60,18 +62,14 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,0,128,128,4,4,4,181,151,89,64,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,80,73,68,65,84,120,218,61,142,193,13,192,48,8,3,89,129,7,11,88,108,208,76,224,50,64,251,200,254,171,52,1,210,123,157,44,97,35,34,115,35,139,87,85,45,5,128,205,150,21,93,141,140,72,110,25,112,122,248,18,134,7,89,226,71,72,164,176,146,115,245,247,84,51,172,71,115,53,223,120,62,131,188,24,11,124,78,54,7,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-	
     fptr = fopen(file, "rb");
 	        
     if(!fptr)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    pal = 0;
     pal_entr = 0;
 
     return SQERR_OK;
@@ -86,6 +84,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 	    
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
         return SQERR_NOMEMORY;
 
@@ -93,7 +94,7 @@ int fmt_next(fmt_info *finfo)
 
     finfo->image[currentImage].passes = 1;
 
-    fread(&tfh, sizeof(TGA_FILEHEADER), 1, fptr);
+    if(!sq_fread(&tfh, sizeof(TGA_FILEHEADER), 1, fptr)) return SQERR_BADFILE;
 
     finfo->image[currentImage].w = tfh.ImageSpecW;
     finfo->image[currentImage].h = tfh.ImageSpecH;
@@ -102,24 +103,25 @@ int fmt_next(fmt_info *finfo)
 
     if(tfh.IDlength)
     {
-	finfo->image[currentImage].meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
+	finfo->meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
 
-	if(finfo->image[currentImage].meta)
+	if(finfo->meta)
 	{
-		finfo->image[currentImage].meta->entries++;
-		finfo->image[currentImage].meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
-		fmt_meta_entry *entry = finfo->image[currentImage].meta->m;
+		finfo->meta->entries++;
+		finfo->meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
+		fmt_meta_entry *entry = finfo->meta->m;
 
 		if(entry)
 		{
-		    entry[currentImage].datalen = tfh.IDlength+1;
-		    strcpy(entry[currentImage].group, "TGA image identification field");
-		    entry[currentImage].data = (char *)malloc(entry[currentImage].datalen);
+		    entry[0].datalen = tfh.IDlength+1;
+		    strcpy(entry[0].group, "TGA image identification field");
+		    entry[0].data = (char *)malloc(entry[0].datalen);
 
-		    if(entry->data)
+		    if(entry[0].data)
 		    {
-			fread(entry[currentImage].data, tfh.IDlength, 1, fptr);
-			entry[currentImage].data[tfh.IDlength] = 0;
+			if(!sq_fread(entry[0].data, tfh.IDlength, 1, fptr)) return SQERR_BADFILE;
+
+			entry[0].data[tfh.IDlength] = 0;
 		    }
 		}
 	}
@@ -129,8 +131,8 @@ int fmt_next(fmt_info *finfo)
     {
 	pal_entr = tfh.ColorMapSpecLength;
 
-	if((pal = (RGB*)calloc(pal_entr, sizeof(RGB))) == 0)
-		return SQERR_NOMEMORY;
+//	if((pal = (RGB*)calloc(pal_entr, sizeof(RGB))) == 0)
+//		return SQERR_NOMEMORY;
 
 //	char sz = tfh.ColorMapSpecEntrySize;
 	int  i;
@@ -138,7 +140,7 @@ int fmt_next(fmt_info *finfo)
   
 	for(i = 0;i < pal_entr;i++)
 	{
-		/*if(sz==24)*/ fread(pal+i, sizeof(RGB), 1, fptr);
+		/*if(sz==24)*/ if(!sq_fread(pal+i, sizeof(RGB), 1, fptr)) return SQERR_BADFILE;
 /* alpha ingored  *//*else if(sz==32) { fread(finfo->pal+i, sizeof(RGB), 1, fptr); fgetc(fptr); }
 		else if(sz==16)
 		{
@@ -150,8 +152,8 @@ int fmt_next(fmt_info *finfo)
 		
 	}
     }
-    else
-	pal = 0;
+//    else
+//	pal = 0;
 
     if(tfh.ImageType == 0)
 	return SQERR_BADFILE;
@@ -197,7 +199,7 @@ int fmt_next(fmt_info *finfo)
 	break;
     }
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n%s\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n%s\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -240,7 +242,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	    {
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-		    fread(&rgb, sizeof(RGB), 1, fptr);
+		    if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQERR_BADFILE;
+
 		    (scan+counter)->r = rgb.b;
 		    (scan+counter)->g = rgb.g;
 		    (scan+counter)->b = rgb.r;
@@ -251,7 +254,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	    {
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-		    fread(&rgba, sizeof(RGBA), 1, fptr);
+		    if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
+
 		    (scan+counter)->r = rgba.b;
 		    (scan+counter)->g = rgba.g;
 		    (scan+counter)->b = rgba.r;
@@ -264,7 +268,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-		    fread(&word, 2, 1, fptr);
+		    if(!sq_fread(&word, 2, 1, fptr)) return SQERR_BADFILE;
+
 		    scan[counter].b = (word&0x1f) << 3;
 		    scan[counter].g = ((word&0x3e0) >> 5) << 3;
 		    scan[counter++].r = ((word&0x7c00)>>10) << 3;
@@ -274,14 +279,10 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	break;
 
 	case 3:
-	{
-	}
 	break;
 
 	// RLE + color mapped
 	case 9:
-	{
-	}
 	break;
 
 	// RLE + true color
@@ -293,7 +294,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	    
 	    for(;;)
 	    {
-		bt = fgetc(fptr);
+		if(!sq_fgetc(fptr, &bt)) return SQERR_BADFILE;
+
 		count = (bt&127) + 1;
 
     	        // RLE packet
@@ -302,7 +304,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		    switch(finfo->image[currentImage].bpp)
 		    {
 			case 16:
-    			    fread(&word, 2, 1, fptr);
+    			    if(!sq_fread(&word, 2, 1, fptr)) return SQERR_BADFILE;
 
 			    rgb.b = (word&0x1f) << 3;
 			    rgb.g = ((word&0x3e0) >> 5) << 3;
@@ -316,7 +318,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			break;
 
 			case 24:
-    			    fread(&rgb, sizeof(RGB), 1, fptr);
+    			    if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQERR_BADFILE;
 
 			    for(j = 0;j < count;j++)
 			    {
@@ -330,7 +332,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			break;
 
 			case 32:
-    			    fread(&rgba, sizeof(RGBA), 1, fptr);
+    			    if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
 
 			    for(j = 0;j < count;j++)
 			    {
@@ -352,7 +354,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 			    for(j = 0;j < count;j++)
 			    {
-    				fread(&word, 2, 1, fptr);
+    				if(!sq_fread(&word, 2, 1, fptr)) return SQERR_BADFILE;
 
 				rgb.b = (word&0x1f) << 3;
 				rgb.g = ((word&0x3e0) >> 5) << 3;
@@ -366,7 +368,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			case 24:
 			    for(j = 0;j < count;j++)
 			    {
-				fread(&rgb, sizeof(RGB), 1, fptr);
+				if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQERR_BADFILE;
+
 				(scan+counter)->r = rgb.b;
     				(scan+counter)->g = rgb.g;
 				(scan+counter)->b = rgb.r;
@@ -379,7 +382,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			case 32:
 			    for(j = 0;j < count;j++)
 			    {
-				fread(&rgba, sizeof(RGBA), 1, fptr);
+				if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
 
 				(scan+counter)->r = rgba.b;
     				(scan+counter)->g = rgba.g;
@@ -397,30 +400,36 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 	// RLE + B&W
 	case 11:
-	{
-	}
 	break;
     }
 
     return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
-    FILE *m_fptr;
-    int w, h, bpp;
-    TGA_FILEHEADER m_tfh;
-    RGB *m_pal;
-    int m_pal_entr;
-    RGB rgb;
-    RGBA rgba;
+    FILE 		*m_fptr;
+    int 		w, h, bpp;
+    TGA_FILEHEADER 	m_tfh;
+    RGB 		m_pal[256];
+    int 		m_pal_entr;
+    RGB 		rgb;
+    RGBA 		rgba;
+    int 		m_bytes;
+    jmp_buf		jmp;
 
     m_fptr = fopen(file, "rb");
 
     if(!m_fptr)
         return SQERR_NOFILE;
 
-    fread(&m_tfh, sizeof(TGA_FILEHEADER), 1, m_fptr);
+    if(setjmp(jmp))
+    {
+        fclose(m_fptr);
+        return SQERR_BADFILE;
+    }
+			    
+    if(!sq_fread(&m_tfh, sizeof(TGA_FILEHEADER), 1, m_fptr)) longjmp(jmp, 1);
 
     w = m_tfh.ImageSpecW;
     h = m_tfh.ImageSpecH;
@@ -431,8 +440,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     {
 	m_pal_entr = m_tfh.ColorMapSpecLength;
 
-	if((m_pal = (RGB*)calloc(m_pal_entr, sizeof(RGB))) == 0)
-		return SQERR_NOMEMORY;
+//	if((m_pal = (RGB*)calloc(m_pal_entr, sizeof(RGB))) == 0)
+//		return SQERR_NOMEMORY;
 
 //	char sz = m_tfh.ColorMapSpecEntrySize;
 	int  i;
@@ -440,7 +449,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
   
 	for(i = 0;i < m_pal_entr;i++)
 	{
-		/*if(sz==24)*/ fread(m_pal+i, sizeof(RGB), 1, m_fptr);
+		/*if(sz==24)*/ if(!sq_fread(m_pal+i, sizeof(RGB), 1, m_fptr)) longjmp(jmp, 1);
 /* alpha ingored  *//*else if(sz==32) { fread(finfo->m_pal+i, sizeof(RGB), 1, m_fptr); fgetc(m_fptr); }
 		else if(sz==16)
 		{
@@ -452,13 +461,13 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		
 	}
     }
-    else
-	m_pal = 0;
+//    else
+//	m_pal = 0;
 
     if(m_tfh.ImageType == 0)
 	return SQERR_BADFILE;
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
     char type[25], comp[25];
 
@@ -495,7 +504,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	break;
     }
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n%s\n%d\n%d",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n%s\n%d\n%d",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -518,15 +527,11 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     /*  reading ... */
 
-    int W = w * sizeof(RGBA);
-    
     for(int h2 = 0;h2 < h;h2++)
     {
         RGBA 	*scan = *image + h2 * w;
 
     int j, counter = 0;
-
-    memset(scan, 255, W);
 
     switch(m_tfh.ImageType)
     {
@@ -534,8 +539,6 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	break;
 
 	case 1:
-	{
-	}
 	break;
 
 	case 2:
@@ -544,7 +547,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	    {
 		for(j = 0;j < w;j++)
 		{
-		    fread(&rgb, sizeof(RGB), 1, m_fptr);
+		    if(!sq_fread(&rgb, sizeof(RGB), 1, m_fptr)) longjmp(jmp, 1);
+
 		    (scan+counter)->r = rgb.b;
 		    (scan+counter)->g = rgb.g;
 		    (scan+counter)->b = rgb.r;
@@ -555,7 +559,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	    {
 		for(j = 0;j < w;j++)
 		{
-		    fread(&rgba, sizeof(RGBA), 1, m_fptr);
+		    if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
+
 		    (scan+counter)->r = rgba.b;
 		    (scan+counter)->g = rgba.g;
 		    (scan+counter)->b = rgba.r;
@@ -568,7 +573,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
 		for(j = 0;j < w;j++)
 		{
-		    fread(&word, sizeof(unsigned short), 1, m_fptr);
+		    if(!sq_fread(&word, sizeof(unsigned short), 1, m_fptr)) longjmp(jmp, 1);
+
 		    scan[counter].b = (word&0x1f) << 3;
 		    scan[counter].g = ((word&0x3e0) >> 5) << 3;
 		    scan[counter++].r = ((word&0x7c00)>>10) << 3;
@@ -578,14 +584,10 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	break;
 
 	case 3:
-	{
-	}
 	break;
 
 	// RLE + color mapped
 	case 9:
-	{
-	}
 	break;
 
 	// RLE + true color
@@ -596,7 +598,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	    
 	    for(;;)
 	    {
-		bt = fgetc(m_fptr);
+		if(!sq_fgetc(m_fptr, &bt)) longjmp(jmp, 1);
 		count = (bt & 127) + 1;
 		
     	        // RLE packet
@@ -605,7 +607,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		    switch(bpp)
 		    {
 			case 16:
-    			    fread(&word, 2, 1, m_fptr);
+    			    if(!sq_fread(&word, 2, 1, m_fptr)) longjmp(jmp, 1);
 
 			    rgb.b = (word&0x1f) << 3;
 			    rgb.g = ((word&0x3e0) >> 5) << 3;
@@ -619,7 +621,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			break;
 
 			case 24:
-    			    fread(&rgb, sizeof(RGB), 1, m_fptr);
+    			    if(!sq_fread(&rgb, sizeof(RGB), 1, m_fptr)) longjmp(jmp, 1);
 
 			    for(j = 0;j < count;j++)
 			    {
@@ -633,7 +635,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			break;
 
 			case 32:
-    			    fread(&rgba, sizeof(RGBA), 1, m_fptr);
+    			    if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
 
 			    for(j = 0;j < count;j++)
 			    {
@@ -655,7 +657,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
 			    for(j = 0;j < count;j++)
 			    {
-    				fread(&word, 2, 1, m_fptr);
+    				if(!sq_fread(&word, 2, 1, m_fptr)) longjmp(jmp, 1);
 
 				rgb.b = (word&0x1f) << 3;
 				rgb.g = ((word&0x3e0) >> 5) << 3;
@@ -669,7 +671,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			case 24:
 			    for(j = 0;j < count;j++)
 			    {
-				fread(&rgb, sizeof(RGB), 1, m_fptr);
+				if(!sq_fread(&rgb, sizeof(RGB), 1, m_fptr)) longjmp(jmp, 1);
 
 				(scan+counter)->r = rgb.b;
 				(scan+counter)->g = rgb.g;
@@ -683,7 +685,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			case 32:
 			    for(j = 0;j < count;j++)
 			    {
-				fread(&rgba, sizeof(RGBA), 1, m_fptr);
+				if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
 
 				(scan+counter)->r = rgba.b;
 				(scan+counter)->g = rgba.g;
@@ -702,8 +704,6 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
 	// RLE + B&W
 	case 11:
-	{
-	}
 	break;
 
     }
@@ -717,12 +717,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
-    
-    if(pal)
-	free(pal);
-
-    return SQERR_OK;
 }

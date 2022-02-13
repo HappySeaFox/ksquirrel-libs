@@ -39,7 +39,9 @@ host_triplet = i686-pc-linux-gnu
 target_triplet = i686-pc-linux-gnu
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/configure COPYING INSTALL \
-	admin/* \
+	admin/ChangeLog admin/compile admin/config.guess \
+	admin/config.sub admin/depcomp admin/install-sh \
+	admin/ltmain.sh admin/missing admin/mkinstalldirs admin/ylwrap \
 	configure configure.ac
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -82,14 +84,14 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/missing --run aclocal-1.8
+ACLOCAL = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run aclocal-1.8
 AMDEP_FALSE = #
 AMDEP_TRUE = 
-AMTAR = ${SHELL} /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/missing --run tar
+AMTAR = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/missing --run automake-1.8
+AUTOCONF = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run automake-1.8
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -101,7 +103,7 @@ CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -Wnon-virtual-dtor -Wno-long-long -Wundef -Wall -W -Wpointer-arith -Wwrite-strings -ansi -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -Wcast-align -Wconversion -Wchar-subscripts -O2 -Wformat-security -Wmissing-format-attribute -fno-exceptions -fno-check-new -fno-common
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"ksquirrel-libs\" -DPACKAGE_TARNAME=\"ksquirrel-libs\" -DPACKAGE_VERSION=\"0.5.0\" -DPACKAGE_STRING=\"ksquirrel-libs\ 0.5.0\" -DPACKAGE_BUGREPORT=\"ksquirrel@tut.by\" -D_GNU_SOURCE=1 -DPACKAGE=\"ksquirrel-libs\" -DVERSION=\"0.5.0\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DSTDC_HEADERS=1 -DHAVE_LIMITS_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRINGS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDIO_H=1 -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1 -DHAVE_STDLIB_H=1 -DHAVE_REALLOC=1 -DLSTAT_FOLLOWS_SLASHED_SYMLINK=1 -DHAVE_MEMSET=1 -DHAVE_MEMCPY=1 -DHAVE_SETJMP=1 -D_SYS_WAIT_H=1 -DHAVE_LIBJPEG=1 -DHAVE_LIBPNG=1 -DHAVE_JPEGLIB_H=1 -DHAVE_JCONFIG_H=1 -DHAVE_JERROR_H=1 -DHAVE_JMORECFG_H=1 -DHAVE_PNG_H=1 -DHAVE_X11_XWDFILE_H=1 -DHAVE_TIFFIO_H=1 -DHAVE_TIFF_H=1 
+DEFS = -DPACKAGE_NAME=\"ksquirrel-libs\" -DPACKAGE_TARNAME=\"ksquirrel-libs\" -DPACKAGE_VERSION=\"0.6.0\" -DPACKAGE_STRING=\"ksquirrel-libs\ 0.6.0\" -DPACKAGE_BUGREPORT=\"ksquirrel@tut.by\" -DPACKAGE=\"ksquirrel-libs\" -DVERSION=\"0.6.0\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DSTDC_HEADERS=1 -DHAVE_LIMITS_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRINGS_H=1 -DHAVE_STDIO_H=1 -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1 -DHAVE_STDLIB_H=1 -DHAVE_REALLOC=1 -DLSTAT_FOLLOWS_SLASHED_SYMLINK=1 -DHAVE_MEMSET=1 -DHAVE_MEMCPY=1 -DHAVE_SETJMP=1 -D_SYS_WAIT_H=1 -DHAVE_LIBJPEG=1 -DHAVE_JPEGLIB_H=1 -DHAVE_JCONFIG_H=1 -DHAVE_JERROR_H=1 -DHAVE_JMORECFG_H=1 -DHAVE_PNG_H=1 -DHAVE_X11_XWDFILE_H=1 -DHAVE_TIFFIO_H=1 -DHAVE_TIFF_H=1 
 DEPDIR = .deps
 ECHO = echo
 ECHO_C = 
@@ -124,20 +126,20 @@ KDE_USE_NMCHECK_FALSE =
 KDE_USE_NMCHECK_TRUE = #
 LDFLAGS = 
 LIBOBJS = 
-LIBS = -lpng -ljpeg 
+LIBS = -ljpeg 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool --silent
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/ckult/MyProjects/ksquirrel-libs/admin/missing --run makeinfo
 NOOPT_CFLAGS = -O0
 NOOPT_CXXFLAGS = -O0
 OBJEXT = o
 PACKAGE = ksquirrel-libs
 PACKAGE_BUGREPORT = ksquirrel@tut.by
 PACKAGE_NAME = ksquirrel-libs
-PACKAGE_STRING = ksquirrel-libs 0.5.0
+PACKAGE_STRING = ksquirrel-libs 0.6.0
 PACKAGE_TARNAME = ksquirrel-libs
-PACKAGE_VERSION = 0.5.0
+PACKAGE_VERSION = 0.6.0
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SET_MAKE = 
@@ -145,7 +147,7 @@ SHELL = /bin/sh
 STRIP = strip
 USE_EXCEPTIONS = -fexceptions
 USE_RTTI = 
-VERSION = 0.5.0
+VERSION = 0.6.0
 WOVERLOADED_VIRTUAL = 
 ac_ct_AR = ar
 ac_ct_CC = gcc
@@ -175,7 +177,7 @@ host_os = linux-gnu
 host_vendor = pc
 includedir = ${prefix}/include
 infodir = ${prefix}/info
-install_sh = /home/ckult/MyProjects/releases/18.02.2005/ksquirrel-libs-0.5.0/admin/install-sh
+install_sh = /home/ckult/MyProjects/ksquirrel-libs/admin/install-sh
 libdir = /usr/lib/squirrel
 libexecdir = ${exec_prefix}/libexec
 localstatedir = ${prefix}/var
@@ -186,7 +188,6 @@ prefix = /usr/local
 program_transform_name = s,x,x,
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
-subdirs =  contrib/libungif
 sysconfdir = ${prefix}/etc
 target = i686-pc-linux-gnu
 target_alias = 
@@ -229,7 +230,7 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --foreign  Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit Makefile.in
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -643,9 +644,8 @@ dist-hook:
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
 
-
 #>+ 2
-KDE_DIST=stamp-h.in ksquirrel-libs.spec Makefile.in aclocal.m4 Makefile.dist configure2 acinclude.m4 Makefile.am VERSION 
+KDE_DIST=stamp-h.in Makefile.in ksquirrel-libs.spec aclocal.m4 Makefile.dist configure2 Makefile.am acinclude.m4 VERSION 
 
 #>+ 2
 docs-am:
@@ -664,7 +664,7 @@ force-reedit:
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  Makefile'; \
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --foreign  Makefile
-	cd $(top_srcdir) && perl admin/am_edit -padmin Makefile.in
+	cd $(top_srcdir) && perl admin/am_edit Makefile.in
 
 
 #>+ 21

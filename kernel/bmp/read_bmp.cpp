@@ -22,13 +22,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_bmp.h"
+
+#define SQ_NEED_FLIP
 #include "utils.h"
 
 const char* fmt_version()
 {
-    return (const char*)"0.9.1";
+    return (const char*)"1.0.2";
 }
 
 const char* fmt_quickinfo()
@@ -43,7 +46,7 @@ const char* fmt_filter()
 
 const char* fmt_mime()
 {
-    return (const char*)"BM";
+    return (const char*)0; // "BM" is too common to be a regexp :)
 }
 
 const char* fmt_pixmap()
@@ -51,7 +54,7 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,0,0,255,4,4,4,55,45,89,24,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,80,73,68,65,84,120,218,99,96,96,8,5,1,6,32,48,20,20,20,20,5,49,2,149,148,148,68,67,161,12,160,144,49,20,48,152,184,128,129,51,131,137,146,139,138,147,147,10,144,161,162,162,164,228,228,132,42,2,100,192,213,128,24,48,93,112,115,32,38,43,129,44,11,20,132,218,10,118,70,0,0,73,168,23,77,189,109,216,200,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-RGB		*pal;
+RGB		pal[256];
 int		pal_entr;
 unsigned short	FILLER;
 FILE 		*fptr;
@@ -61,23 +64,22 @@ BITMAPFILE_HEADER	bfh;
 BITMAPINFO_HEADER	bih;
 
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-
     fptr = fopen(file, "rb");
-    
+
     if(!fptr)
 	return SQERR_NOFILE;
 
     pal_entr = 0;    
-    pal = 0;
 
     currentImage = -1;
 
-    fread(&bfh, sizeof(BITMAPFILE_HEADER), 1, fptr);
-    fread(&bih, sizeof(BITMAPINFO_HEADER), 1, fptr);
+    if(!sq_fread(&bfh, sizeof(BITMAPFILE_HEADER), 1, fptr))  return SQERR_BADFILE;
+    if(!sq_fread(&bih, sizeof(BITMAPINFO_HEADER), 1, fptr))  return SQERR_BADFILE;
+
+    if(bfh.Type != 0x4D42)
+	return SQERR_BADFILE;
 
     if(bih.Size != 40)
     	return SQERR_BADFILE;
@@ -94,6 +96,9 @@ int fmt_next(fmt_info *finfo)
 
     if(currentImage)
 	return SQERR_NOTOK;
+
+    if(!finfo)
+	return SQERR_NOMEMORY;
 
     if(!finfo->image)
         return SQERR_NOMEMORY;
@@ -144,25 +149,18 @@ int fmt_next(fmt_info *finfo)
 
     if(finfo->image[currentImage].bpp < 16)
     {
-	if((pal = (RGB *)calloc(pal_entr, sizeof(RGB))) == 0)
-	{
-		fclose(fptr);
-		return SQERR_NOMEMORY;
-	}
-
 	/*  read palette  */
 	for(i = 0;i < pal_entr;i++)
 	{
-		fread(&rgba, sizeof(RGBA), 1, fptr);
+		if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
+
 		(pal)[i].r = rgba.b;
 		(pal)[i].g = rgba.g;
 		(pal)[i].b = rgba.r;
 		
 	}
     }
-    else
-	pal = 0;
-
+    
     /*  fseek to image bits  */
     fseek(fptr, bfh.OffBits, SEEK_SET);
     
@@ -171,7 +169,7 @@ int fmt_next(fmt_info *finfo)
     finfo->image[currentImage].needflip = true;
     finfo->images++;
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n-\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -190,7 +188,7 @@ int fmt_next_pass(fmt_info *)
 int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 {
     unsigned short remain, scanShouldBe, j, counter = 0;
-    unsigned char bt;
+    unsigned char bt, dummy;
 
     memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
 
@@ -209,18 +207,21 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		// @todo get rid of miltiple 'if'
 		for(j = 0;j < scanShouldBe;j++)
 		{
-			fread(&bt, 1, 1, fptr);
-			if(j==scanShouldBe-1 && (remain-0)<=0 && remain)break; index = (bt & 128) >> 7; memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-1)<=0 && remain)break; index = (bt & 64) >> 6;  memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-2)<=0 && remain)break; index = (bt & 32) >> 5;  memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-3)<=0 && remain)break; index = (bt & 16) >> 4;  memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-4)<=0 && remain)break; index = (bt & 8) >> 3;   memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-5)<=0 && remain)break; index = (bt & 4) >> 2;   memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-6)<=0 && remain)break; index = (bt & 2) >> 1;   memcpy(scan+(counter++), (pal)+index, 3);
-			if(j==scanShouldBe-1 && (remain-7)<=0 && remain)break; index = (bt & 1);        memcpy(scan+(counter++), (pal)+index, 3);
+			if(!sq_fread(&bt, 1, 1, fptr)) return SQERR_BADFILE;
+			
+			if(j==scanShouldBe-1 && (remain-0)<=0 && remain)break; index = (bt & 128) >> 7; memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-1)<=0 && remain)break; index = (bt & 64) >> 6;  memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-2)<=0 && remain)break; index = (bt & 32) >> 5;  memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-3)<=0 && remain)break; index = (bt & 16) >> 4;  memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-4)<=0 && remain)break; index = (bt & 8) >> 3;   memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-5)<=0 && remain)break; index = (bt & 4) >> 2;   memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-6)<=0 && remain)break; index = (bt & 2) >> 1;   memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
+			if(j==scanShouldBe-1 && (remain-7)<=0 && remain)break; index = (bt & 1);        memcpy(scan+(counter++), (pal)+index, sizeof(RGB));
 		}
 
-		for(j = 0;j < FILLER;j++) fgetc(fptr);
+		for(j = 0;j < FILLER;j++)
+		    if(!sq_fgetc(fptr, &dummy))
+			return SQERR_BADFILE;
 	}
 	break;
 
@@ -234,14 +235,16 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		for(j = 0;j < ck-1;j++)
 		{
-			fread(&bt, 1, 1, fptr);
+			if(!sq_fread(&bt, 1, 1, fptr)) return SQERR_BADFILE;
+
 			index = (bt & 0xf0) >> 4;
 			memcpy(scan+(counter++), (pal)+index, 3);
 			index = bt & 0xf;
 			memcpy(scan+(counter++), (pal)+index, 3);
 		}
 
-		fread(&bt, 1, 1, fptr);
+		if(!sq_fread(&bt, 1, 1, fptr)) return SQERR_BADFILE;
+
 		index = (bt & 0xf0) >> 4;
 		memcpy(scan+(counter++), (pal)+index, 3);
 
@@ -251,20 +254,24 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			memcpy(scan+(counter++), (pal)+index, 3);
 		}
 
-		for(j = 0;j < FILLER;j++) fgetc(fptr);
+		for(j = 0;j < FILLER;j++)
+		    if(!sq_fgetc(fptr, &dummy))
+			return SQERR_BADFILE;
 	}
 	break;
 
 	case 8:
 	{
-		
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-			fread(&bt, 1, 1, fptr);
+			if(!sq_fread(&bt, 1, 1, fptr)) return SQERR_BADFILE;
+
 			memcpy(scan+(counter++), (pal)+bt, 3);
 		}
 
-		for(j = 0;j < FILLER;j++) fgetc(fptr);
+		for(j = 0;j < FILLER;j++)
+		    if(!sq_fgetc(fptr, &dummy))
+			return SQERR_BADFILE;
 	}
 	break;
 
@@ -274,13 +281,15 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-			fread(&word, 2, 1, fptr);
+			if(!sq_fread(&word, 2, 1, fptr)) return SQERR_BADFILE;
 			scan[counter].b = (word&0x1f) << 3;
 			scan[counter].g = ((word&0x3e0) >> 5) << 3;
 			scan[counter++].r = ((word&0x7c00)>>10) << 3;
 		}
 
-		for(j = 0;j < FILLER;j++) fgetc(fptr);
+		for(j = 0;j < FILLER;j++)
+		    if(!sq_fgetc(fptr, &dummy))
+			return SQERR_BADFILE;
 	}
 	break;
 
@@ -290,14 +299,17 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-			fread(&rgb, sizeof(RGB), 1, fptr);
+			if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQERR_BADFILE;
+
 			scan[counter].r = rgb.b;
 			scan[counter].g = rgb.g;
 			scan[counter].b = rgb.r;
 			counter++;
 		}
 
-		for(j = 0;j < FILLER;j++) fgetc(fptr);
+		for(j = 0;j < FILLER;j++)
+		    if(!sq_fgetc(fptr, &dummy))
+			return SQERR_BADFILE;
 	}
 	break;
 
@@ -307,7 +319,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		for(j = 0;j < finfo->image[currentImage].w;j++)
 		{
-			fread(&rgba, sizeof(RGBA), 1, fptr);
+			if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
+
 			scan[j].r = rgba.b;
 			scan[j].g = rgba.g;
 			scan[j].b = rgba.r;
@@ -317,35 +330,42 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     int 		w, h, bpp;
-    RGB			*m_pal;
+    RGB			m_pal[256];
     int			m_pal_entr;
-    unsigned short	m_FILLER = 0;
+    unsigned short	m_FILLER;
     FILE 		*m_fptr;
     BITMAPFILE_HEADER	m_bfh;
     BITMAPINFO_HEADER	m_bih;
+    int 		m_bytes;
+    jmp_buf		jmp;
 
     m_fptr = fopen(file, "rb");
 				        
     if(!m_fptr)
         return SQERR_NOFILE;
 
-    m_pal_entr = 0;    
-    m_pal = 0;
+    if(setjmp(jmp))
+    {	
+	fclose(m_fptr);
+	return SQERR_BADFILE;
+    }
 
-    fread(&m_bfh, sizeof(BITMAPFILE_HEADER), 1, m_fptr);
-    fread(&m_bih, sizeof(BITMAPINFO_HEADER), 1, m_fptr);
+    m_pal_entr = 0;    
+
+    if(!sq_fread(&m_bfh, sizeof(BITMAPFILE_HEADER), 1, m_fptr)) longjmp(jmp, 1);
+    if(!sq_fread(&m_bih, sizeof(BITMAPINFO_HEADER), 1, m_fptr)) longjmp(jmp, 1);
 
     if(m_bih.Size != 40)
-    	return SQERR_BADFILE;
+    	longjmp(jmp, 1);
 
     if(m_bih.Compression != BI_RGB)
-	return SQERR_NOTSUPPORTED;
+	longjmp(jmp, 1);
 
     RGBA		rgba;
     long		i, j, scanShouldBe;
@@ -377,9 +397,10 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	case 32: break;
 
 	default:
-	    return SQERR_BADFILE;
+	    longjmp(jmp, 1);
     }
 
+    m_FILLER = 0;
     for(j = 0;j < 4;j++)
 	if((scanShouldBe+j)%4 == 0) 
 	{
@@ -389,31 +410,24 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     if(bpp < 16)
     {
-	if((m_pal = (RGB *)calloc(m_pal_entr, sizeof(RGB))) == 0)
-	{
-		fclose(m_fptr);
-		return SQERR_NOMEMORY;
-	}
-
 	/*  read palette  */
 	for(i = 0;i < m_pal_entr;i++)
 	{
-		fread(&rgba, sizeof(RGBA), 1, m_fptr);
+		if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
+
 		(m_pal)[i].r = rgba.b;
 		(m_pal)[i].g = rgba.g;
 		(m_pal)[i].b = rgba.r;
 		
 	}
     }
-    else
-	m_pal = 0;
 
     /*  fseek to image bits  */
     fseek(m_fptr, m_bfh.OffBits, SEEK_SET);
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -427,11 +441,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_bmp: Image is null!\n");
-        fclose(m_fptr);
-	
-	free(m_pal);
-
-        return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
 
     memset(*image, 255, m_bytes);
@@ -440,13 +450,13 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     {
 	RGBA 	*scan = *image + h2 * w;
 
-    unsigned short remain, scanShouldBe, j, counter = 0;
-    unsigned char bt;
+	unsigned short remain, scanShouldBe, j, counter = 0;
+	unsigned char bt, dummy;
 
-    switch(bpp)
-    {
-    	case 1:
+	switch(bpp)
 	{
+    	    case 1:
+	    {
 		unsigned char	index;
 		remain=((w)<=8)?(0):((w)%8);
 		scanShouldBe = w;;
@@ -458,7 +468,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		// @todo get rid of miltiple 'if'
 		for(j = 0;j < scanShouldBe;j++)
 		{
-			fread(&bt, 1, 1, m_fptr);
+			if(!sq_fread(&bt, 1, 1, m_fptr)) longjmp(jmp, 1);
+
 			if(j==scanShouldBe-1 && (remain-0)<=0 && remain)break; index = (bt & 128) >> 7; memcpy(scan+(counter++), (m_pal)+index, 3);
 			if(j==scanShouldBe-1 && (remain-1)<=0 && remain)break; index = (bt & 64) >> 6;  memcpy(scan+(counter++), (m_pal)+index, 3);
 			if(j==scanShouldBe-1 && (remain-2)<=0 && remain)break; index = (bt & 32) >> 5;  memcpy(scan+(counter++), (m_pal)+index, 3);
@@ -469,12 +480,14 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			if(j==scanShouldBe-1 && (remain-7)<=0 && remain)break; index = (bt & 1);        memcpy(scan+(counter++), (m_pal)+index, 3);
 		}
 
-		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-	}
-	break;
+		for(j = 0;j < m_FILLER;j++)
+		    if(!sq_fgetc(m_fptr, &dummy))
+			longjmp(jmp, 1);
+	    }
+	    break;
 
-	case 4:
-	{
+	    case 4:
+	    {
 		unsigned char	index;
 		remain = (w)%2;
 
@@ -483,14 +496,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
 		for(j = 0;j < ck-1;j++)
 		{
-			fread(&bt, 1, 1, m_fptr);
+			if(!sq_fread(&bt, 1, 1, m_fptr)) longjmp(jmp, 1);
+
 			index = (bt & 0xf0) >> 4;
 			memcpy(scan+(counter++), (m_pal)+index, 3);
 			index = bt & 0xf;
 			memcpy(scan+(counter++), (m_pal)+index, 3);
 		}
 
-		fread(&bt, 1, 1, m_fptr);
+		if(!sq_fread(&bt, 1, 1, m_fptr)) longjmp(jmp, 1);
+
 		index = (bt & 0xf0) >> 4;
 		memcpy(scan+(counter++), (m_pal)+index, 3);
 
@@ -500,90 +515,163 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			memcpy(scan+(counter++), (m_pal)+index, 3);
 		}
 
-		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-	}
-	break;
+		for(j = 0;j < m_FILLER;j++)
+		    if(!sq_fgetc(m_fptr, &dummy))
+			longjmp(jmp, 1);
+	    }
+	    break;
 
-	case 8:
-	{
-		
+	    case 8:
+	    {
 		for(j = 0;j < w;j++)
 		{
-			fread(&bt, 1, 1, m_fptr);
+			if(!sq_fread(&bt, 1, 1, m_fptr)) longjmp(jmp, 1);
+
 			memcpy(scan+(counter++), (m_pal)+bt, 3);
 		}
 
-		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-	}
-	break;
+		for(j = 0;j < m_FILLER;j++)
+		    if(!sq_fgetc(m_fptr, &dummy))
+			longjmp(jmp, 1);
+	    }
+	    break;
 
-	case 16:
-	{
+	    case 16:
+	    {
 		unsigned short word;
 
 		for(j = 0;j < w;j++)
 		{
-			fread(&word, 2, 1, m_fptr);
+			if(!sq_fread(&word, 2, 1, m_fptr)) longjmp(jmp, 1);
+
 			scan[counter].b = (word&0x1f) << 3;
 			scan[counter].g = ((word&0x3e0) >> 5) << 3;
 			scan[counter++].r = ((word&0x7c00)>>10) << 3;
 		}
 
-		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-	}
-	break;
+		for(j = 0;j < m_FILLER;j++)
+		    if(!sq_fgetc(m_fptr, &dummy))
+			longjmp(jmp, 1);
+	    }
+	    break;
 
-	case 24:
-	{
+	    case 24:
+	    {
 		RGB rgb;
 
 		for(j = 0;j < w;j++)
 		{
-			fread(&rgb, sizeof(RGB), 1, m_fptr);
+			if(!sq_fread(&rgb, sizeof(RGB), 1, m_fptr)) longjmp(jmp, 1);
+
 			scan[counter].r = rgb.b;
 			scan[counter].g = rgb.g;
 			scan[counter].b = rgb.r;
 			counter++;
 		}
 
-		for(j = 0;j < m_FILLER;j++) fgetc(m_fptr);
-	}
-	break;
+		for(j = 0;j < m_FILLER;j++)
+		    if(!sq_fgetc(m_fptr, &dummy))
+			longjmp(jmp, 1);
+	    }
+	    break;
 
-	case 32:
-	{
+	    case 32:
+	    {
 		RGBA rgba;
 
 		for(j = 0;j < w;j++)
 		{
-			fread(&rgba, sizeof(RGBA), 1, m_fptr);
+			if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
+
 			scan[j].r = rgba.b;
 			scan[j].g = rgba.g;
 			scan[j].b = rgba.r;
 		}
+	    }
+	    break;
 	}
-	break;
-
     }
 
-    }
-    
     fclose(m_fptr);
-    
-    if(m_pal)
-	free(m_pal);
 
     flip((char*)*image, w * sizeof(RGBA), h);
 
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
-    if(pal)
-	free(pal);
-
     fclose(fptr);
+}
 
+void fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+{
+    opt->interlaced = false;
+    opt->compression_scheme = CompressionNo;
+    opt->compression_min = 0;
+    opt->compression_max = 0;
+    opt->compression_def = 0;
+}
+
+/*                                                              politely ignore all options */
+int fmt_writeimage(const char *file, RGBA *image, int w, int h, const fmt_writeoptions &)
+{
+    FILE		*m_fptr;
+    int			m_FILLER;
+    RGBA		*scan;
+    BITMAPFILE_HEADER	bfh;
+    BITMAPINFO_HEADER	bih;
+    
+    if(!image || !file || !w || !h)
+	return SQERR_NOTOK;
+
+    m_fptr = fopen(file, "wb");
+
+    if(!m_fptr)
+	return SQERR_NOFILE;
+
+    flip((char*)image, w * sizeof(RGBA), h);
+
+    bfh.Type = 0x4D42;
+    bfh.Size = 0;
+    bfh.Reserved1 = 0;
+    bfh.OffBits = sizeof(BITMAPFILE_HEADER) + sizeof(BITMAPINFO_HEADER);
+
+    fwrite(&bfh, sizeof(BITMAPFILE_HEADER), 1, m_fptr);
+    
+    bih.Size = 40;
+    bih.Width = w;
+    bih.Height = h;
+    bih.Planes = 1;
+    bih.BitCount = 24;
+    bih.Compression = BI_RGB;
+    bih.SizeImage = 0;
+    bih.XPelsPerMeter = 0;
+    bih.YPelsPerMeter = 0;
+    bih.ClrUsed = 0;
+    bih.ClrImportant = 0;
+
+    fwrite(&bih, sizeof(BITMAPINFO_HEADER), 1, m_fptr);
+
+    m_FILLER = (w < 4) ? (4-w) : w%4;
+    char f[m_FILLER];
+    
+    for(int y = 0;y < h;y++)
+    {
+	scan = image + w * y;
+
+	for(int x = 0;x < w;x++)
+	{
+	    fwrite(&scan[x].b, 1, 1, m_fptr);
+	    fwrite(&scan[x].g, 1, 1, m_fptr);
+	    fwrite(&scan[x].r, 1, 1, m_fptr);
+	}
+	
+	if(m_FILLER)
+	    fwrite(f, sizeof(f), 1, m_fptr);
+    }
+
+    fclose(m_fptr);
+    
     return SQERR_OK;
 }

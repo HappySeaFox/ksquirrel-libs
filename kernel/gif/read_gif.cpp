@@ -20,7 +20,6 @@
 */
 							
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -68,11 +67,8 @@ const char* fmt_pixmap(void)
 }
     
 /* inits decoding of 'file': opens it, fills struct fmt_info  */
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-        return SQERR_NOMEMORY;
-
     fptr = fopen(file, "rb");
 
     if(!fptr)
@@ -114,13 +110,23 @@ int fmt_init(fmt_info *finfo, const char *file)
     if(!Lines)
 	return SQERR_NOMEMORY;
 
+    for(int i = 0;i < Lines_h;i++)
+    {
+	Lines[i] = (RGBA *)0;
+    }
+
     map = (gif->Image.ColorMap) ? gif->Image.ColorMap : gif->SColorMap;
 
     Last = (RGBA **)calloc(gif->SHeight, sizeof(RGBA*));
 
     if(!Last)
 	return SQERR_NOMEMORY;
-	
+
+    for(int i = 0;i < gif->SHeight;i++)
+    {
+	Last[i] = (RGBA *)0;
+    }
+
     for(int i = 0;i < gif->SHeight;i++)
     {
 	Last[i] = (RGBA *)calloc(gif->SWidth, sizeof(RGBA));
@@ -134,7 +140,6 @@ int fmt_init(fmt_info *finfo, const char *file)
 
     currentImage = -1;
     lastDisposal = DISPOSAL_NO;
-
     
     return SQERR_OK;
 }
@@ -151,16 +156,16 @@ int fmt_next_pass(fmt_info *)
 
 int fmt_next(fmt_info *finfo)
 {
+    bool foundExt = false;
+
+    currentImage++;
+	
     if(!finfo)
         return SQERR_NOMEMORY;
 
     if(!finfo->image)
         return SQERR_NOMEMORY;
 
-    bool foundExt = false;
-
-    currentImage++;
-	
     finfo->image[currentImage].interlaced = gif->Image.Interlace;
     finfo->image[currentImage].passes = (gif->Image.Interlace) ? 4 : 1;
 
@@ -243,8 +248,42 @@ int fmt_next(fmt_info *finfo)
 		}
 		else if(ExtCode == 254)
 		{
-		    //Extension[2];
+//		    printf("SIZE: %d\n", Extension[0]);
 //		    printf("Record EXT 254\n");
+//
+//		    for(int s = 0;s < Extension[0];s++)
+//		    printf("%c", Extension[1+s]);
+		    if(Extension[0])
+		    {
+    			finfo->meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
+
+    			if(finfo->meta)
+    			{
+            		    finfo->meta->entries = 1;
+            		    finfo->meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
+            		    fmt_meta_entry *entry = finfo->meta->m;
+
+            		    if(entry)
+            		    {
+                		entry[0].datalen = Extension[0]+1;
+                		strcpy(entry[0].group, "GIF Comment");
+                		entry[0].data = (char *)malloc(entry[0].datalen);
+
+                		if(entry[0].data)
+                		{
+				    memcpy(entry[0].data, &Extension[1], Extension[0]);
+				    
+				    for(int s = 0;s < Extension[0];s++)
+					if(entry[0].data[s] == '\n')
+					    entry[0].data[s] = ' ';
+
+                    		    entry[0].data[Extension[0]] = '\0';
+                		}
+
+//				printf("TEXT: %s\n", entry[0].data);
+            		    }
+    			}
+		    }
 		}
 
 		while(Extension)
@@ -277,7 +316,7 @@ int fmt_next(fmt_info *finfo)
     		memcpy(saved+k, &back, sizeof(RGBA));
 	    }
 
-	    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\nLZW\n%d\n",
+	    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\nLZW\n%d\n",
 		fmt_quickinfo(),
     		finfo->image[currentImage].w,
 		finfo->image[currentImage].h,
@@ -465,7 +504,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     GifFileType 	*m_gif;
     GifRecordType	m_record;
@@ -476,6 +515,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     FILE		*m_fptr;
     ColorMapObject	*m_map;
     int 		w = 0, h = 0, bpp = 0;
+    int m_bytes;
 
     m_fptr = fopen(file, "rb");
 
@@ -630,9 +670,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	}
     }
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nLZW\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\nLZW\n%d\n%d\n",
         fmt_quickinfo(),
         w,
         h,
@@ -716,7 +756,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     if(buf)
 	free(buf);
@@ -745,6 +785,4 @@ int fmt_close()
     }
 
     DGifCloseFile(gif);
-
-    return SQERR_OK;
 }

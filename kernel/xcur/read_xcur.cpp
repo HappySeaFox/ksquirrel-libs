@@ -19,11 +19,12 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_xcur.h"
+#include "utils.h"
 
 FILE *fptr;
 int bytes, currentImage;
@@ -60,11 +61,8 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,0,0,0,192,192,192,255,255,255,255,255,0,4,4,4,37,60,155,71,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,82,73,68,65,84,120,218,99,96,96,8,5,1,6,32,16,82,82,82,82,5,49,130,140,141,141,85,67,161,12,160,144,32,20,48,136,184,128,129,35,131,160,35,58,67,68,196,81,208,209,209,81,16,40,226,232,2,100,128,164,28,5,93,128,4,146,46,152,57,16,147,141,65,150,5,41,65,109,5,59,35,0,0,30,33,22,117,242,237,176,248,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-        return SQERR_NOMEMORY;
-
     fptr = fopen(file, "rb");
 
     if(!fptr)
@@ -73,11 +71,11 @@ int fmt_init(fmt_info *finfo, const char *file)
     currentImage = -1;
     currentToc = -1;
     
-    fread(&xcur_h, sizeof(XCUR_HEADER), 1, fptr);
-    
+    if(!sq_fread(&xcur_h, sizeof(XCUR_HEADER), 1, fptr)) return SQERR_BADFILE;
+
     tocs = (XCUR_CHUNK_DESC*)calloc(xcur_h.ntoc, sizeof(XCUR_CHUNK_DESC));
-    
-    fread(tocs, sizeof(XCUR_CHUNK_DESC), xcur_h.ntoc, fptr);
+
+    if(!sq_fread(tocs, sizeof(XCUR_CHUNK_DESC), xcur_h.ntoc, fptr)) return SQERR_BADFILE;
     
     lastToc = false;
 
@@ -87,7 +85,13 @@ int fmt_init(fmt_info *finfo, const char *file)
 int fmt_next(fmt_info *finfo)
 {
     currentImage++;
+
+    if(!finfo)
+	return SQERR_NOMEMORY;
     
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
 	return SQERR_NOMEMORY;
 
@@ -114,9 +118,8 @@ int fmt_next(fmt_info *finfo)
     
     fseek(fptr, tocs[currentToc].pos, SEEK_SET);
     
-    fread(&xcur_chunk, sizeof(XCUR_CHUNK_HEADER), 1, fptr);
-    
-    fread(&xcur_im, sizeof(XCUR_CHUNK_IMAGE), 1, fptr);
+    if(!sq_fread(&xcur_chunk, sizeof(XCUR_CHUNK_HEADER), 1, fptr)) return SQERR_BADFILE;
+    if(!sq_fread(&xcur_im, sizeof(XCUR_CHUNK_IMAGE), 1, fptr)) return SQERR_BADFILE;
     
     finfo->image[currentImage].w = xcur_im.width;
     finfo->image[currentImage].h = xcur_im.height;
@@ -134,7 +137,7 @@ int fmt_next(fmt_info *finfo)
     finfo->images++;
 
     /* Write dump */
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n-\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -164,7 +167,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
     for(int i = 0;i < finfo->image[currentImage].w;i++)
     {
-	fread(&rgba, sizeof(RGBA), 1, fptr);
+	if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
 
 	(scan+i)->r = rgba.b;
 	(scan+i)->g = rgba.g;
@@ -172,32 +175,39 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	(scan+i)->a = rgba.a;
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
-    FILE *m_fptr;
-    int w, h, bpp;
-    XCUR_HEADER m_xcur_h;
-    XCUR_CHUNK_DESC *m_tocs;
-    XCUR_CHUNK_HEADER m_xcur_chunk;
-    XCUR_CHUNK_IMAGE m_xcur_im;
-    int m_currentToc;
+    FILE 		*m_fptr;
+    int 		w, h, bpp;
+    XCUR_HEADER 	m_xcur_h;
+    XCUR_CHUNK_HEADER 	m_xcur_chunk;
+    XCUR_CHUNK_IMAGE 	m_xcur_im;
+    int 		m_currentToc;
+    int 		m_bytes;
+    jmp_buf		jmp;
 
     m_fptr = fopen(file, "rb");
 				        
     if(!m_fptr)
         return SQERR_NOFILE;
 
+    if(setjmp(jmp))
+    {
+        fclose(m_fptr);
+        return SQERR_BADFILE;
+    }
+
     m_currentToc = -1;
     
-    fread(&m_xcur_h, sizeof(XCUR_HEADER), 1, m_fptr);
-    
-    m_tocs = (XCUR_CHUNK_DESC*)calloc(m_xcur_h.ntoc, sizeof(XCUR_CHUNK_DESC));
+    if(!sq_fread(&m_xcur_h, sizeof(XCUR_HEADER), 1, m_fptr)) longjmp(jmp, 1);
 
-    fread(m_tocs, sizeof(XCUR_CHUNK_DESC), m_xcur_h.ntoc, m_fptr);
-    
+    XCUR_CHUNK_DESC m_tocs[m_xcur_h.ntoc];
+
+    if(!sq_fread(m_tocs, sizeof(XCUR_CHUNK_DESC), m_xcur_h.ntoc, m_fptr)) longjmp(jmp, 1);
+
     do
     {
 	 m_currentToc++;
@@ -206,17 +216,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     fseek(m_fptr, m_tocs[m_currentToc].pos, SEEK_SET);
     
-    fread(&m_xcur_chunk, sizeof(XCUR_CHUNK_HEADER), 1, m_fptr);
-    
-    fread(&m_xcur_im, sizeof(XCUR_CHUNK_IMAGE), 1, m_fptr);
+    if(!sq_fread(&m_xcur_chunk, sizeof(XCUR_CHUNK_HEADER), 1, m_fptr)) longjmp(jmp, 1);
+    if(!sq_fread(&m_xcur_im, sizeof(XCUR_CHUNK_IMAGE), 1, m_fptr)) longjmp(jmp, 1);
     
     w = m_xcur_im.width;
     h = m_xcur_im.height;
     bpp = 32;
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -230,8 +239,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_xcur: Image is null!\n");
-        fclose(m_fptr);
-        return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
 
     memset(*image, 255, m_bytes);
@@ -240,13 +248,11 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     {
 	RGBA 	*scan = *image + h2 * w;
 
-	memset(scan, 255, w * sizeof(RGBA));
-	
 	RGBA rgba;
 
 	for(int i = 0;i < w;i++)
 	{
-	    fread(&rgba, sizeof(RGBA), 1, m_fptr);
+	    if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
 
 	    (scan+i)->r = rgba.b;
 	    (scan+i)->g = rgba.g;
@@ -257,18 +263,13 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     
     fclose(m_fptr);
     
-    if(m_tocs)
-	free(m_tocs);
-
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
-    
+
     if(tocs)
 	free(tocs);
-
-    return SQERR_OK;
 }

@@ -32,15 +32,19 @@
 struct fmt_meta_entry
 {
     char group[80];
-    int datalen;
+    int datalen; // just in case
     char *data;
+
 }ATTR_;
 
 struct fmt_metainfo
 {
     int entries;
     fmt_meta_entry *m;
+
 }ATTR_;
+
+/* RGBA and RGB pixels */
 
 struct RGBA
 {
@@ -48,6 +52,7 @@ struct RGBA
     unsigned char g;
     unsigned char b;
     unsigned char a;
+
 }ATTR_;
 
 struct RGB
@@ -55,8 +60,10 @@ struct RGB
     unsigned char r;
     unsigned char g;
     unsigned char b;
+
 }ATTR_;
 
+/* Image decription */
 struct fmt_image
 {
     int			w;
@@ -64,18 +71,46 @@ struct fmt_image
     int			bpp;
     bool		hasalpha;
     bool		needflip;
-    char		*dump;
-    fmt_metainfo	*meta;
+    char		dump[256];
     int			delay;
     bool		interlaced;
     int			passes;
+
 }ATTR_;
 
+/* General description */
 struct fmt_info
 {
     fmt_image		*image;
     unsigned short	images;
     bool		animated;
+    fmt_metainfo	*meta;
+
+}ATTR_;
+
+/*                                                                Internal cmpression.
+								  E.g. compression_factor is
+								  passed to internal routines,
+                       No compression       RLE compression       for ex. in libjpeg, libpng.
+*/
+enum fmt_compression { CompressionNo = 0,   CompressionRLE,       CompressionInternal };
+
+struct fmt_writeoptionsabs
+{
+    bool interlaced;
+    int  compression_scheme;
+    int  compression_min, compression_max, compression_def;
+
+}ATTR_;
+
+struct fmt_writeoptions
+{
+    bool interlaced;
+
+    fmt_compression compression_scheme;
+    int compression_factor;
+    bool alpha;
+
 }ATTR_;
 
 #define trace(a) fprintf(stderr, "%s\n", a)

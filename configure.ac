@@ -1,5 +1,5 @@
-AC_INIT([ksquirrel-libs], [0.5.0], [ksquirrel@tut.by])
-AC_GNU_SOURCE
+AC_INIT([ksquirrel-libs], [0.6.0-pre1], [ksquirrel@tut.by])
+#AC_GNU_SOURCE
 #AC_CONFIG_SRCDIR([config.h.in])
 #AM_INIT_AUTOMAKE([foreign])
 #AC_CONFIG_HEADER([config.h])
@@ -9,7 +9,7 @@ AC_CONFIG_AUX_DIR([admin])
 AC_CANONICAL_SYSTEM
 AC_ARG_PROGRAM
 
-AM_INIT_AUTOMAKE(ksquirrel-libs, 0.5.0)
+AM_INIT_AUTOMAKE(ksquirrel-libs, 0.6.0-pre1)
 
 AC_CHECK_COMPILERS
 AC_ENABLE_SHARED(yes)
@@ -27,7 +27,7 @@ AC_PROG_RANLIB
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([limits.h stdlib.h strings.h unistd.h stdio.h])
+AC_CHECK_HEADERS([limits.h stdlib.h strings.h stdio.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -50,14 +50,12 @@ sq_have_xwd="yes"
 sq_have_tiff="yes"
 
 AC_CHECK_LIB([jpeg], [main], [], [sq_have_jpeg="no"])
-AC_CHECK_LIB([png], [png_create_read_struct], [], [sq_have_png="no"])
+#AC_CHECK_LIB([png], [png_create_read_struct], [], [sq_have_png="no"])
 
 AC_CHECK_HEADERS([jpeglib.h jconfig.h jerror.h jmorecfg.h], [], [sq_have_jpeg="no"])
 AC_CHECK_HEADERS([png.h], [], [sq_have_png="no"])
 AC_CHECK_HEADERS([X11/XWDFile.h], [], [sq_have_xwd="no"])
 AC_CHECK_HEADERS([tiffio.h tiff.h], [], [sq_have_tiff="no"])
-
-AC_CONFIG_SUBDIRS(contrib/libungif)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([contrib/Makefile])
@@ -98,13 +96,13 @@ AC_OUTPUT
 echo "
 KSquirrel-libs configuration:
 -----------------------------
-  Source code location: ${srcdir}
-  KSquirrel version:    ${VERSION}
-  C Compiler:           ${CC}
-  C Compiler flags:     ${CFLAGS}
-  C++ Compiler:         ${CXX}
-  C++ Compiler flags:   ${CXXFLAGS}
-  
+  Source code location:     ${srcdir}
+  ksquirrel-libs version:   ${VERSION}
+  C Compiler:               ${CC}
+  C Compiler flags:         ${CFLAGS}
+  C++ Compiler:             ${CXX}
+  C++ Compiler flags:       ${CXXFLAGS}
+
 Installation options:
 ---------------------
   libdir:               ${libdir} WARNING: libdir should always be "/usr/lib/squirrel"

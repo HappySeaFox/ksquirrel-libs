@@ -19,7 +19,6 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,7 +46,7 @@ METHODDEF(void) my_error_exit(j_common_ptr cinfo)
 
 const char* fmt_version()
 {
-    return (const char*)"1.1.3";
+    return (const char*)"1.2.3";
 }
 
 const char* fmt_quickinfo()
@@ -71,11 +70,8 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,21,80,76,84,69,4,132,132,4,4,4,192,192,192,255,255,255,0,0,0,128,128,0,134,134,134,79,212,14,132,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,1,98,75,71,68,0,136,5,29,72,0,0,0,9,112,72,89,115,0,0,11,17,0,0,11,17,1,127,100,95,145,0,0,0,7,116,73,77,69,7,212,10,17,19,35,2,169,169,215,166,0,0,0,82,73,68,65,84,120,156,61,142,193,13,192,48,8,3,89,33,125,244,15,43,88,108,144,76,64,217,127,149,18,135,214,175,147,101,108,68,100,108,73,233,50,51,37,0,208,209,80,214,108,201,74,234,145,5,71,134,23,68,186,123,18,80,120,156,244,216,153,2,102,190,171,191,231,52,67,123,148,171,124,227,126,1,202,77,25,76,179,115,138,216,0,0,0,0,73,69,78,68,174,66,96,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-        return SQERR_NOMEMORY;
-
     fptr = fopen(file, "rb");
 
     if(!fptr)
@@ -94,6 +90,9 @@ int fmt_next(fmt_info *finfo)
 
     if(currentImage)
 	return SQERR_NOTOK;
+
+    if(!finfo)
+        return SQERR_NOMEMORY;
 
     if(!finfo->image)
         return SQERR_NOMEMORY;
@@ -138,19 +137,19 @@ int fmt_next(fmt_info *finfo)
 
     switch(cinfo.jpeg_color_space)
     {
-	case JCS_GRAYSCALE: sprintf(type, "%s", "Grayscale (black&white)");break;
-	case JCS_RGB: sprintf(type, "%s", "RGB");break;
-	case JCS_YCbCr: sprintf(type, "%s", "YUV");break;
-	case JCS_CMYK: sprintf(type, "%s", "CMYK");break;
-	case JCS_YCCK: sprintf(type, "%s", "YCCK");break;
+	case JCS_GRAYSCALE:   snprintf(type, sizeof(type), "%s", "Grayscale (black&white)");break;
+	case JCS_RGB:         snprintf(type, sizeof(type), "%s", "RGB");break;
+	case JCS_YCbCr:       snprintf(type, sizeof(type), "%s", "YUV");break;
+	case JCS_CMYK:        snprintf(type, sizeof(type), "%s", "CMYK");break;
+	case JCS_YCCK:        snprintf(type, sizeof(type), "%s", "YCCK");break;
 
 	default:
-	    sprintf(type, "%s", "Unknown");
+	    snprintf(type, sizeof(type), "%s", "Unknown");
     }
 
     bytes = finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA);
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\nJPEG\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\nJPEG\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -162,31 +161,31 @@ int fmt_next(fmt_info *finfo)
 
     jpeg_saved_marker_ptr it = cinfo.marker_list;
 
-    finfo->image[currentImage].meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
+    finfo->meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
 
     bool rr = false;
 
-    if(finfo->image[currentImage].meta)
+    if(finfo->meta)
     {
-	while(1)
+	while(true)
         {
     	    if(!it)
 		break;
 
 	    if(it->marker == JPEG_COM)
 	    {
-		finfo->image[currentImage].meta->entries++;
-		finfo->image[currentImage].meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
-		fmt_meta_entry *entry = finfo->image[currentImage].meta->m;
+		finfo->meta->entries++;
+		finfo->meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
+		fmt_meta_entry *entry = finfo->meta->m;
 
 		if(entry)
 		{
-		    entry[currentImage].datalen = it->data_length;
-		    strcpy(entry[currentImage].group, "JPEG \"COM\" marker");
-		    entry[currentImage].data = (char *)malloc(it->data_length);
+		    entry[0].datalen = it->data_length;
+		    strcpy(entry[0].group, "JPEG \"COM\" marker");
+		    entry[0].data = (char *)malloc(it->data_length);
 
 		    if(entry->data)
-			memcpy(entry[currentImage].data, it->data, it->data_length);
+			memcpy(entry[0].data, it->data, it->data_length);
 		}
 
 		rr = true;
@@ -197,11 +196,11 @@ int fmt_next(fmt_info *finfo)
 	    it = it->next;
 	}
     }
-    
-    if(!rr && finfo->image[currentImage].meta)
+
+    if(!rr && finfo->meta)
     {
-	free(finfo->image[currentImage].meta);
-	finfo->image[currentImage].meta = 0;
+	free(finfo->meta);
+	finfo->meta = (fmt_metainfo *)0;
     }
 
     finfo->images++;
@@ -229,7 +228,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     struct jpeg_decompress_struct	m_cinfo;
     struct my_error_mgr 		m_jerr;
@@ -239,6 +238,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     char 				m_type[25];
     FILE				*m_fptr;
     int					w, h, bpp;
+    int 				m_bytes;
 
     m_fptr = fopen(file, "rb");
 
@@ -280,19 +280,19 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     switch(m_cinfo.jpeg_color_space)
     {
-	case JCS_GRAYSCALE: sprintf(m_type, "%s", "Grayscale (black&white)");break;
-	case JCS_RGB: sprintf(m_type, "%s", "RGB");break;
-	case JCS_YCbCr: sprintf(m_type, "%s", "YUV");break;
-	case JCS_CMYK: sprintf(m_type, "%s", "CMYK");break;
-	case JCS_YCCK: sprintf(m_type, "%s", "YCCK");break;
+	case JCS_GRAYSCALE:  snprintf(m_type, sizeof(m_type), "%s", "Grayscale (black&white)");break;
+	case JCS_RGB:        snprintf(m_type, sizeof(m_type), "%s", "RGB");break;
+	case JCS_YCbCr:      snprintf(m_type, sizeof(m_type), "%s", "YUV");break;
+	case JCS_CMYK:       snprintf(m_type, sizeof(m_type), "%s", "CMYK");break;
+	case JCS_YCCK:       snprintf(m_type, sizeof(m_type), "%s", "YCCK");break;
 
 	default:
-	    sprintf(m_type, "%s", "Unknown");
+	    snprintf(m_type, sizeof(m_type), "%s", "Unknown");
     }
 
-    const int m_bytes = w * h * sizeof(RGBA);    
+    m_bytes = w * h * sizeof(RGBA);    
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nJPEG\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\nJPEG\n%d\n%d\n",
     fmt_quickinfo(),
     w,
     h,
@@ -333,12 +333,81 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     (void)jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
 
     fclose(fptr);
+}
+
+void fmt_getwriteoptions(fmt_writeoptionsabs *opt)
+{
+    opt->interlaced = false;
+    opt->compression_scheme = CompressionInternal;
+    opt->compression_min = 0;
+    opt->compression_max = 100;
+    opt->compression_def = 25;
+}
+
+int fmt_writeimage(const char *file, RGBA *image, int w, int h, const fmt_writeoptions &opt)
+{
+    FILE 	*m_fptr;
+		    
+    if(!image || !file || !w || !h)
+	return SQERR_NOMEMORY;
+			
+    m_fptr = fopen(file, "wb");
+
+    if(!m_fptr)
+        return SQERR_NOFILE;
+
+    struct jpeg_compress_struct m_cinfo;
+    struct jpeg_error_mgr m_jerr;
+
+    JSAMPROW row_pointer[1];
+
+    m_cinfo.err = jpeg_std_error(&m_jerr);
+
+    jpeg_create_compress(&m_cinfo);
+
+    jpeg_stdio_dest(&m_cinfo, m_fptr);
+
+    m_cinfo.image_width = w;
+    m_cinfo.image_height = h;
+    m_cinfo.input_components = 3;
+    m_cinfo.in_color_space = JCS_RGB;
+
+    jpeg_set_defaults(&m_cinfo);
+
+    jpeg_set_quality(&m_cinfo, 100-opt.compression_factor, true);
+
+    jpeg_start_compress(&m_cinfo, true);
+
+    RGB scan[w];
+    RGBA *srgba;
+    int line = 0;
+
+    while(m_cinfo.next_scanline < m_cinfo.image_height)
+    {
+	srgba = image + line * w;
+
+	for(int s = 0;s < w;s++)
+	{
+	    memcpy(scan+s, srgba + s, sizeof(RGB));
+	}
+
+	row_pointer[0] = (JSAMPLE*)scan;
+	(void)jpeg_write_scanlines(&m_cinfo, row_pointer, 1);
+
+	line++;
+    }
+
+    jpeg_finish_compress(&m_cinfo);
+
+    fclose(m_fptr);
+
+    jpeg_destroy_compress(&m_cinfo);
 
     return SQERR_OK;
 }

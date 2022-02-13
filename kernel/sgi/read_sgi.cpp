@@ -20,12 +20,14 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_sgi.h"
 #include "endian.h"
+
+#define SQ_NEED_FLIP
 #include "utils.h"
 
 typedef unsigned char uchar;
@@ -60,14 +62,11 @@ const char* fmt_mime()
 
 const char* fmt_pixmap()
 {
-    return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,255,0,255,4,4,4,211,233,242,212,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,83,73,68,65,84,120,218,69,142,193,13,192,48,8,3,89,129,7,11,88,108,208,76,64,60,64,251,200,254,171,148,16,170,222,235,100,33,27,17,89,27,73,30,85,181,18,0,182,90,50,186,26,25,129,200,104,202,112,6,233,41,65,63,66,120,120,73,56,75,240,29,179,152,127,207,105,134,245,104,173,214,27,247,11,47,26,22,201,164,73,55,107,0,0,0,0,73,69,78,68,174,66,96,130,130";
+    return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,255,0,224,4,4,4,219,147,181,29,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,82,73,68,65,84,120,218,61,142,193,17,128,64,8,3,105,129,7,13,100,232,192,171,0,83,128,62,174,255,86,4,68,247,181,147,129,128,136,236,66,146,91,85,173,5,128,237,145,140,142,65,22,155,83,86,128,112,164,56,131,244,74,60,194,75,24,193,22,248,204,124,91,127,207,219,12,155,163,125,181,223,184,30,91,52,23,81,90,195,36,47,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-	
     fptr = fopen(file, "rb");
 	        
     if(!fptr)
@@ -87,6 +86,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 	    
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
         return SQERR_NOMEMORY;
 
@@ -95,8 +97,8 @@ int fmt_next(fmt_info *finfo)
     finfo->image[currentImage].passes = 1;
 
     sfh.Magik = BE_getshort(fptr);
-    sfh.StorageFormat = fgetc(fptr);
-    sfh.bpc = fgetc(fptr);
+    if(!sq_fgetc(fptr, &sfh.StorageFormat)) return SQERR_BADFILE;
+    if(!sq_fgetc(fptr, &sfh.bpc)) return SQERR_BADFILE;
     sfh.Dimensions = BE_getshort(fptr);
     sfh.x = BE_getshort(fptr);
     sfh.y = BE_getshort(fptr);
@@ -104,9 +106,16 @@ int fmt_next(fmt_info *finfo)
     sfh.pixmin = BE_getlong(fptr);
     sfh.pixmax = BE_getlong(fptr);
     sfh.dummy = BE_getlong(fptr);
-    fread(sfh.name, sizeof(sfh.name), 1, fptr);
+
+    if(sq_ferror(fptr)) return SQERR_BADFILE;
+
+    if(!sq_fread(sfh.name, sizeof(sfh.name), 1, fptr)) return SQERR_BADFILE;
+
     sfh.ColormapID = BE_getlong(fptr);
-    fread(sfh.dummy2, sizeof(sfh.dummy2), 1, fptr);
+
+    if(sq_ferror(fptr)) return SQERR_BADFILE;
+
+    if(!sq_fread(sfh.dummy2, sizeof(sfh.dummy2), 1, fptr)) return SQERR_BADFILE;
 
     finfo->image[currentImage].w = sfh.x;
     finfo->image[currentImage].h = sfh.y;
@@ -126,10 +135,10 @@ int fmt_next(fmt_info *finfo)
         lengthtab = (ulong*)calloc(sz, sizeof(ulong));
 	starttab = (ulong*)calloc(sz, sizeof(ulong));
     
-        if(lengthtab == NULL)
+        if(!lengthtab)
     	    return SQERR_NOMEMORY;
 
-        if(starttab == NULL)
+        if(!starttab)
 	{
 	    free(lengthtab);
 	    return SQERR_NOMEMORY;
@@ -148,22 +157,22 @@ int fmt_next(fmt_info *finfo)
 
     if(strlen(sfh.name))
     {
-	finfo->image[currentImage].meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
+	finfo->meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
 
-	if(finfo->image[currentImage].meta)
+	if(finfo->meta)
 	{
-	    finfo->image[currentImage].meta->entries++;
-	    finfo->image[currentImage].meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
-	    fmt_meta_entry *entry = finfo->image[currentImage].meta->m;
+	    finfo->meta->entries++;
+	    finfo->meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
+	    fmt_meta_entry *entry = finfo->meta->m;
 
 	    if(entry)
 	    {
-		entry[currentImage].datalen = strlen(sfh.name) + 1;
-		strcpy(entry[currentImage].group, "SGI Image Name");
-		entry[currentImage].data = (char *)malloc(entry[currentImage].datalen);
+		entry[0].datalen = strlen(sfh.name) + 1;
+		strcpy(entry[0].group, "SGI Image Name");
+		entry[0].data = (char *)malloc(entry[0].datalen);
 
 		if(entry->data)
-		    strcpy(entry[currentImage].data, sfh.name);
+		    strcpy(entry[0].data, sfh.name);
 	    }
 	}
     }
@@ -173,7 +182,7 @@ int fmt_next(fmt_info *finfo)
     finfo->image[currentImage].needflip = true;
     finfo->images++;
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\nRLE\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\nRLE\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -201,7 +210,6 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     uchar	channel[4][sz];
     uchar	bt;
 
-    // I think we don't need to memset r,g,b channels - only ALPHA channel
     memset(channel[3], 255, sz);
 
     switch(sfh.z)
@@ -219,7 +227,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		    {
 			char count;
 		    
-    			bt = fgetc(fptr);
+    			if(!sq_fgetc(fptr, &bt)) return SQERR_BADFILE;
 			count = bt&0x7f;
 
 			if(!count) break;
@@ -227,12 +235,16 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			if(bt & 0x80)
 			    while(count--)
 				{
-				    channel[0][j++] = fgetc(fptr); 
+				    if(!sq_fgetc(fptr, &channel[0][j])) return SQERR_BADFILE; 
+
+				    j++;
+
 				    if(!len--) goto ex1;
 				}
 			else
 			{
-			    bt = fgetc(fptr);
+			    if(!sq_fgetc(fptr, &bt)) return SQERR_BADFILE;
+
 			    if(!len--) goto ex1;
 
 			    while(count--)
@@ -245,7 +257,9 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		rle_row++;
 	    }
 	    else
-		fread(channel[0], sz, 1, fptr);
+	    {
+		if(!sq_fread(channel[0], sz, 1, fptr)) return SQERR_BADFILE;
+	    }
 
 	    memcpy(channel[1], channel[0], sz);
 	    memcpy(channel[2], channel[0], sz);
@@ -269,7 +283,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		    {
 			char count;
 		    
-    			bt = fgetc(fptr);
+    			if(!sq_fgetc(fptr, &bt)) return SQERR_BADFILE;
+
 			count = bt&0x7f;
 
 			if(!count) break;
@@ -277,12 +292,14 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 			if(bt & 0x80)
 			    while(count--)
 				{
-				    channel[i][j++] = fgetc(fptr); 
+				    if(!sq_fgetc(fptr, &channel[i][j])) return SQERR_BADFILE; 
+				    j++;
 				    if(!len--) goto ex;
 				}
 			else
 			{
-			    bt = fgetc(fptr);
+			    if(!sq_fgetc(fptr, &bt)) return SQERR_BADFILE;
+
 			    if(!len--) goto ex;
 
 			    while(count--)
@@ -296,14 +313,18 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	    }
 	    else
 	    {
-		fread(channel[0], sz, 1, fptr);
+		if(!sq_fread(channel[0], sz, 1, fptr)) return SQERR_BADFILE;
+
 		pos = ftell(fptr);
 		fseek(fptr, finfo->image[currentImage].w * (finfo->image[currentImage].h - 1), SEEK_CUR);
-		fread(channel[1], sz, 1, fptr);
+		if(!sq_fread(channel[1], sz, 1, fptr)) return SQERR_BADFILE;
+
 		fseek(fptr, finfo->image[currentImage].w * (finfo->image[currentImage].h - 1), SEEK_CUR);
-		fread(channel[2], sz, 1, fptr);
+		if(!sq_fread(channel[2], sz, 1, fptr)) return SQERR_BADFILE;
+
 		fseek(fptr, finfo->image[currentImage].w * (finfo->image[currentImage].h - 1), SEEK_CUR);
-		fread(channel[3], sz, 1, fptr);
+		if(!sq_fread(channel[3], sz, 1, fptr)) return SQERR_BADFILE;
+
 		fsetpos(fptr, (fpos_t*)&pos);
 	    }
 
@@ -319,25 +340,33 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
         scan[i].a = channel[3][i];
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
-    FILE *m_fptr;
-    int w, h, bpp;
-    ulong	*m_starttab = 0, *m_lengthtab = 0;
+    FILE 	*m_fptr;
+    int 	w, h, bpp;
     SGI_HEADER	m_sfh;
     int 	m_rle_row;
+    int 	m_bytes;
+    jmp_buf	jmp;
 
     m_fptr = fopen(file, "rb");
 
     if(!m_fptr)
         return SQERR_NOFILE;
 
+    if(setjmp(jmp))
+    {
+        fclose(m_fptr);
+
+        return SQERR_BADFILE;
+    }
+
     m_sfh.Magik = BE_getshort(m_fptr);
-    m_sfh.StorageFormat = fgetc(m_fptr);
-    m_sfh.bpc = fgetc(m_fptr);
+    if(!sq_fgetc(m_fptr, &m_sfh.StorageFormat)) longjmp(jmp, 1);
+    if(!sq_fgetc(m_fptr, &m_sfh.bpc)) longjmp(jmp, 1);
     m_sfh.Dimensions = BE_getshort(m_fptr);
     m_sfh.x = BE_getshort(m_fptr);
     m_sfh.y = BE_getshort(m_fptr);
@@ -345,9 +374,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     m_sfh.pixmin = BE_getlong(m_fptr);
     m_sfh.pixmax = BE_getlong(m_fptr);
     m_sfh.dummy = BE_getlong(m_fptr);
-    fread(m_sfh.name, sizeof(m_sfh.name), 1, m_fptr);
+
+    if(sq_ferror(m_fptr)) longjmp(jmp, 1);
+    
+    if(!sq_fread(m_sfh.name, sizeof(m_sfh.name), 1, m_fptr)) longjmp(jmp, 1);
+
     m_sfh.ColormapID = BE_getlong(m_fptr);
-    fread(m_sfh.dummy2, sizeof(m_sfh.dummy2), 1, m_fptr);
+
+    if(sq_ferror(m_fptr)) longjmp(jmp, 1);
+    
+    if(!sq_fread(m_sfh.dummy2, sizeof(m_sfh.dummy2), 1, m_fptr)) longjmp(jmp, 1);
 
     w = m_sfh.x;
     h = m_sfh.y;
@@ -359,21 +395,13 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(m_sfh.bpc == 2 || m_sfh.ColormapID > 0)
 	return SQERR_NOTSUPPORTED;
 
+    long sz = m_sfh.y * m_sfh.z, i;
+
+    ulong m_lengthtab[sz];
+    ulong m_starttab[sz];
+
     if(m_sfh.StorageFormat == 1)
     {
-	long sz = m_sfh.y * m_sfh.z, i;
-        m_lengthtab = (ulong*)calloc(sz, sizeof(ulong));
-	m_starttab = (ulong*)calloc(sz, sizeof(ulong));
-    
-        if(m_lengthtab == NULL)
-    	    return SQERR_NOMEMORY;
-
-        if(m_starttab == NULL)
-	{
-	    free(m_lengthtab);
-	    return SQERR_NOMEMORY;
-	}
-
 	fseek(m_fptr, 512, SEEK_SET);
 
 	for(i = 0;i < sz;i++)
@@ -385,9 +413,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     m_rle_row = 0;
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\nRLE\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\nRLE\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -401,15 +429,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_sgi: Image is null!\n");
-        fclose(m_fptr);
-
-	if(m_starttab)
-	    free(m_starttab);
-	
-        if(m_lengthtab)
-	    free(m_lengthtab);
-
-        return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
 
     memset(*image, 255, m_bytes);
@@ -446,7 +466,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		    {
 			char count;
 		    
-    			bt = fgetc(m_fptr);
+    			if(!sq_fgetc(m_fptr, &bt)) longjmp(jmp, 1);
+
 			count = bt&0x7f;
 
 			if(!count) break;
@@ -454,12 +475,15 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			if(bt & 0x80)
 			    while(count--)
 				{
-				    channel[0][j++] = fgetc(m_fptr); 
+				    if(!sq_fgetc(m_fptr, &channel[0][j])) longjmp(jmp, 1); 
+				    j++;
+
 				    if(!len--) goto ex1;
 				}
 			else
 			{
-			    bt = fgetc(m_fptr);
+			    if(!sq_fgetc(m_fptr, &bt)) longjmp(jmp, 1);
+
 			    if(!len--) goto ex1;
 
 			    while(count--)
@@ -472,7 +496,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		m_rle_row++;
 	    }
 	    else
-		fread(channel[0], sz, 1, m_fptr);
+	    {
+		if(!sq_fread(channel[0], sz, 1, m_fptr)) longjmp(jmp, 1);
+	    }
 
 	    memcpy(channel[1], channel[0], sz);
 	    memcpy(channel[2], channel[0], sz);
@@ -496,7 +522,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		    {
 			char count;
 		    
-    			bt = fgetc(m_fptr);
+    			if(!sq_fgetc(m_fptr, &bt)) longjmp(jmp, 1);
+
 			count = bt&0x7f;
 
 			if(!count) break;
@@ -504,12 +531,14 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 			if(bt & 0x80)
 			    while(count--)
 				{
-				    channel[i][j++] = fgetc(m_fptr); 
+				    if(!sq_fgetc(m_fptr, &channel[i][j])) longjmp(jmp, 1); 
+				    j++;
+
 				    if(!len--) goto ex;
 				}
 			else
 			{
-			    bt = fgetc(m_fptr);
+			    if(!sq_fgetc(m_fptr, &bt)) longjmp(jmp, 1);
 			    if(!len--) goto ex;
 
 			    while(count--)
@@ -523,14 +552,18 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	    }
 	    else
 	    {
-		fread(channel[0], sz, 1, m_fptr);
+		if(!sq_fread(channel[0], sz, 1, m_fptr)) longjmp(jmp, 1);
+
 		pos = ftell(m_fptr);
 		fseek(m_fptr, w * (h - 1), SEEK_CUR);
-		fread(channel[1], sz, 1, m_fptr);
+		if(!sq_fread(channel[1], sz, 1, m_fptr)) longjmp(jmp, 1);
+
 		fseek(m_fptr, w * (h - 1), SEEK_CUR);
-		fread(channel[2], sz, 1, m_fptr);
+		if(!sq_fread(channel[2], sz, 1, m_fptr)) longjmp(jmp, 1);
+
 		fseek(m_fptr, w * (h - 1), SEEK_CUR);
-		fread(channel[3], sz, 1, m_fptr);
+		if(!sq_fread(channel[3], sz, 1, m_fptr)) longjmp(jmp, 1);
+
 		fsetpos(m_fptr, (fpos_t*)&pos);
 	    }
 
@@ -545,23 +578,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
         scan[i].b = channel[2][i];
         scan[i].a = channel[3][i];
     }
-
     }
 
     fclose(m_fptr);
-
-    if(m_starttab)
-	free(m_starttab);
-	
-    if(m_lengthtab)
-	free(m_lengthtab);
 
     flip((char*)*image, w * sizeof(RGBA), h);
 
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
     
@@ -570,6 +596,4 @@ int fmt_close()
 	
     if(lengthtab)
 	free(lengthtab);
-
-    return SQERR_OK;
 }

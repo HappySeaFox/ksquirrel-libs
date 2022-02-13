@@ -19,11 +19,11 @@
     Boston, MA 02111-1307, USA.
 */
 
-#ifndef _SQUIRREL_READ_IMAGE_png
-#define _SQUIRREL_READ_IMAGE_png
+#ifndef KSQUIRREL_READ_IMAGE_png
+#define KSQUIRREL_READ_IMAGE_png
 
-#include "../defs.h"
-#include "../err.h"
+#include "defs.h"
+#include "err.h"
 
 extern "C" {
 
@@ -35,11 +35,14 @@ const char*     fmt_pixmap();
 
 int     fmt_init(fmt_info *finfo, const char *file);
 int     fmt_read_scanline(fmt_info *finfo, RGBA *scan);
-int     fmt_readimage(const char*, RGBA **scan, char **);
-int     fmt_close();
+int     fmt_readimage(const char*, RGBA **scan, char *);
+void    fmt_close();
 
 int     fmt_next(fmt_info *);
 int     fmt_next_pass(fmt_info *);
+
+void	fmt_getwriteoptions(fmt_writeoptionsabs *);
+int	fmt_writeimage(const char *, RGBA *, int, int, const fmt_writeoptions&);
 
 }
 

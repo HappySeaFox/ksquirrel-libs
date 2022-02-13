@@ -5,6 +5,6 @@ libSQ_read_ras_la_SOURCES = read_ras.cpp read_ras.h
 
 EXTRA_DIST = read_ras.cpp read_ras.h
 
-libSQ_read_ras_la_LDFLAGS = -release 0.5.2
+libSQ_read_ras_la_LDFLAGS = -release 0.5.3
 
 LIBS = 

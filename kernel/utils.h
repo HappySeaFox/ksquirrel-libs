@@ -22,6 +22,7 @@
 #ifndef SQ_UTILS_H
 #define SQ_UTILS_H
 
+#if defined SQ_NEED_FLIP
 void flip(char *image, int w, int h)
 {
     int i;
@@ -39,5 +40,6 @@ void flip(char *image, int w, int h)
 							
     free(hptr);
 }
+#endif
 
 #endif

@@ -38,6 +38,36 @@ PrintGifError(void) {
     char *Err;
 
     switch (_GifError) {
+      case E_GIF_ERR_OPEN_FAILED:
+        Err = "Failed to open given file";
+        break;
+      case E_GIF_ERR_WRITE_FAILED:
+        Err = "Failed to Write to given file";
+        break;
+      case E_GIF_ERR_HAS_SCRN_DSCR:
+        Err = "Screen Descriptor already been set";
+        break;
+      case E_GIF_ERR_HAS_IMAG_DSCR:
+        Err = "Image Descriptor is still active";
+        break;
+      case E_GIF_ERR_NO_COLOR_MAP:
+        Err = "Neither Global Nor Local color map";
+        break;
+      case E_GIF_ERR_DATA_TOO_BIG:
+        Err = "#Pixels bigger than Width * Height";
+        break;
+      case E_GIF_ERR_NOT_ENOUGH_MEM:
+        Err = "Fail to allocate required memory";
+        break;
+      case E_GIF_ERR_DISK_IS_FULL:
+        Err = "Write failed (disk full?)";
+        break;
+      case E_GIF_ERR_CLOSE_FAILED:
+        Err = "Failed to close given file";
+        break;
+      case E_GIF_ERR_NOT_WRITEABLE:
+        Err = "Given file was not opened for write";
+        break;
       case D_GIF_ERR_OPEN_FAILED:
         Err = "Failed to open given file";
         break;

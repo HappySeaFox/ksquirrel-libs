@@ -14,11 +14,12 @@ read_bmp.lo .libs/read_bmp.o: read_bmp.cpp /usr/include/stdio.h \
   /usr/include/bits/sigset.h /usr/include/bits/time.h \
   /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
   /usr/include/bits/sched.h /usr/include/alloca.h /usr/include/string.h \
-  read_bmp.h ../defs.h /usr/include/linux/types.h \
-  /usr/include/linux/posix_types.h /usr/include/linux/stddef.h \
-  /usr/include/asm/posix_types.h /usr/include/asm/types.h \
-  /usr/include/linux/compiler.h /usr/include/linux/compiler-gcc3.h \
-  /usr/include/linux/compiler-gcc.h ../err.h ../utils.h
+  /usr/include/setjmp.h /usr/include/bits/setjmp.h read_bmp.h ../defs.h \
+  /usr/include/linux/types.h /usr/include/linux/posix_types.h \
+  /usr/include/linux/stddef.h /usr/include/asm/posix_types.h \
+  /usr/include/asm/types.h /usr/include/linux/compiler.h \
+  /usr/include/linux/compiler-gcc3.h /usr/include/linux/compiler-gcc.h \
+  ../err.h ../fio.h ../utils.h
 
 /usr/include/stdio.h:
 
@@ -82,6 +83,10 @@ read_bmp.lo .libs/read_bmp.o: read_bmp.cpp /usr/include/stdio.h \
 
 /usr/include/string.h:
 
+/usr/include/setjmp.h:
+
+/usr/include/bits/setjmp.h:
+
 read_bmp.h:
 
 ../defs.h:
@@ -103,5 +108,7 @@ read_bmp.h:
 /usr/include/linux/compiler-gcc.h:
 
 ../err.h:
+
+../fio.h:
 
 ../utils.h:

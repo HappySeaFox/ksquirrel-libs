@@ -64,7 +64,7 @@ cat << EOF > read_$name.h
 
 #include "defs.h"
 #include "err.h"
-
+#include "fio.h"
 
 extern "C" {
 
@@ -76,8 +76,8 @@ const char*	fmt_pixmap();
 
 int 	fmt_init(fmt_info *finfo, const char *file);
 int	fmt_read_scanline(fmt_info *finfo, RGBA *scan);
-int	fmt_readimage(const char*, RGBA **scan, char **dump);
-int	fmt_close();
+int	fmt_readimage(const char*, RGBA **scan, char *dump);
+void	fmt_close();
 
 int    fmt_next(fmt_info *finfo);
 int    fmt_next_pass(fmt_info *finfo);
@@ -109,9 +109,10 @@ cat << EOF > read_$name.cpp
     Boston, MA 02111-1307, USA.
 */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <setjmp.h>
 
 #include "read_$name.h"
 
@@ -163,6 +164,9 @@ int fmt_next(fmt_info *finfo)
 {
     currentImage++;
 
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
 	return SQERR_NOMEMORY;
 
@@ -184,7 +188,10 @@ int fmt_next(fmt_info *finfo)
     finfo->images++;
 
     /* Write dump */
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n?COMPRESSION?\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump)-1,
+
+	"%s\n%dx%d\n%d\n%s\n?COMPRESSION?\n%d\n",
+
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -207,16 +214,22 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
-    FILE *m_fptr;
-    int w, h, bpp;
+    FILE 	*m_fptr;
+    int 	w, h, bpp;
+    jmp_buf	jmp;
 
     m_fptr = fopen(file, "rb");
 				        
     if(!m_fptr)
         return SQERR_NOFILE;
 
+    if(setjmp(jmp))
+    {
+	fclose(m_fptr);
+	return SQERR_BADFILE;
+    }
 
     /* Do something like fmt_next() here */
     /* ... */
@@ -231,7 +244,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	Dump has the following format: "%QUICK_INFO\n%WIDTH\n%HEIGHT\n
         %BPP\n%COLOR_TYPE\n%COMPRESSION\n%NUMBER_OF_IMAGES\n%TOTAL_BYTES_NEEDED"
     */
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -245,8 +258,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_$name: Image is null!\n");
-        fclose(m_fptr);
-        return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
 
     memset(*image, 255, m_bytes);
@@ -266,11 +278,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
-
-    return SQERR_OK;
 }
 EOF
 

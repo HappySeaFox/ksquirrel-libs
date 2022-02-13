@@ -20,11 +20,11 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "read_tiff.h"
+#include "utils.h"
 
 #include <tiffio.h>
 
@@ -46,12 +46,12 @@ const char* fmt_quickinfo()
 	
 const char* fmt_filter()
 {
-    return (const char*)"*.tiff *tif ";
+    return (const char*)"*.tiff *.tif ";
 }
 	    
 const char* fmt_mime()
 {
-    return (const char*)"II|MM";
+    return (const char*)0; // "II|MM" is too common to be a regexp :-)
 }
 
 const char* fmt_pixmap()
@@ -59,11 +59,8 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,0,0,153,4,4,4,41,96,241,199,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,79,73,68,65,84,120,218,99,96,96,8,5,1,6,32,8,20,20,20,20,5,51,148,148,148,68,67,161,12,160,144,49,20,48,152,184,128,129,51,131,137,146,10,16,42,1,25,78,46,78,46,42,46,80,134,146,10,170,136,146,10,152,1,211,5,55,7,98,178,146,40,212,82,176,173,96,103,4,0,0,107,22,23,177,172,1,179,111,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-	
     currentImage = -1;
 
     if((ftiff = TIFFOpen(file, "r")) == NULL)
@@ -82,6 +79,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 	    
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
         return SQERR_NOMEMORY;
 
@@ -89,20 +89,21 @@ int fmt_next(fmt_info *finfo)
 
     finfo->image[currentImage].passes = 1;
 
-//    int bps, spp;
+    int bps, spp;
 
     TIFFGetField(ftiff, TIFFTAG_IMAGEWIDTH, &finfo->image[currentImage].w);
     TIFFGetField(ftiff, TIFFTAG_IMAGELENGTH, &finfo->image[currentImage].h);
-//    TIFFGetField(ftiff, TIFFTAG_BITSPERSAMPLE, &bps);
-//    TIFFGetField(ftiff, TIFFTAG_SAMPLESPERPIXEL, &spp);
-    
-//    printf("bps: %d, spp: %d\n", bps, spp);
-
-    finfo->image[currentImage].bpp = 32;//bps * spp;
 
     memset(&img, 0, sizeof(TIFFRGBAImage));
 
     TIFFRGBAImageBegin(&img, ftiff, 1, 0);
+
+    bps = img.bitspersample;
+    spp = img.samplesperpixel;
+
+    printf("bps: %d, spp: %d\n", bps, spp);
+
+    finfo->image[currentImage].bpp = bps * spp;
 
     bytes = finfo->image[currentImage].w * finfo->image[currentImage].h * sizeof(RGBA);
     
@@ -110,7 +111,7 @@ int fmt_next(fmt_info *finfo)
 
     finfo->images++;
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n-\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -143,11 +144,11 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     TIFF	*m_ftiff;
     TIFFRGBAImage m_img;
-
+    int m_bytes;
     int w, h, bpp;
 
     if((m_ftiff = TIFFOpen(file, "r")) == NULL)
@@ -156,22 +157,23 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     TIFFSetWarningHandler(NULL);
     TIFFSetErrorHandler(NULL);
 
-//    int bps, spp;
+    int bps, spp;
 
     TIFFGetField(m_ftiff, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(m_ftiff, TIFFTAG_IMAGELENGTH, &h);
-//    TIFFGetField(m_ftiff, TIFFTAG_BITSPERSAMPLE, &bps);
-//    TIFFGetField(m_ftiff, TIFFTAG_SAMPLESPERPIXEL, &spp);
-
-    bpp = 32;//bps * spp;
 
     memset(&m_img, 0, sizeof(TIFFRGBAImage));
 
     TIFFRGBAImageBegin(&m_img, m_ftiff, 1, 0);
+    
+    bps = m_img.bitspersample;
+    spp = m_img.samplesperpixel;
 
-    int m_bytes = w * h * sizeof(RGBA);
+    bpp = bps * spp;
 
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
+    m_bytes = w * h * sizeof(RGBA);
+
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -214,10 +216,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     TIFFRGBAImageEnd(&img);
     TIFFClose(ftiff);
-
-    return SQERR_OK;
 }

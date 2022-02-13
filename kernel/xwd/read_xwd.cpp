@@ -20,12 +20,13 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_xwd.h"
 #include "endian.h"
+#include "utils.h"
 
 FILE *fptr;
 int currentImage, bytes, pal_entr, filler;
@@ -58,11 +59,8 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,18,80,76,84,69,99,109,97,192,192,192,255,255,255,0,0,0,137,12,83,4,4,4,204,223,87,180,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,1,98,75,71,68,0,136,5,29,72,0,0,0,9,112,72,89,115,0,0,11,17,0,0,11,17,1,127,100,95,145,0,0,0,7,116,73,77,69,7,213,1,30,19,36,17,134,185,242,93,0,0,0,81,73,68,65,84,120,156,69,142,65,17,192,48,8,4,207,2,15,12,80,20,164,81,64,17,208,62,226,223,74,40,97,146,125,237,48,112,7,128,241,131,224,35,34,78,17,17,30,37,49,186,11,116,79,30,52,51,55,147,148,192,47,116,45,105,230,170,71,98,103,95,237,156,149,44,92,165,217,154,111,188,19,140,238,23,253,181,135,193,82,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-
     fptr = fopen(file, "rb");
 	        
     if(!fptr)
@@ -83,6 +81,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
         return SQERR_NOMEMORY;
 
@@ -94,9 +95,14 @@ int fmt_next(fmt_info *finfo)
 
     finfo->image[currentImage].passes = 1;
 
-    fread(&xfh, sizeof(XWDFileHeader), 1, fptr);
+    if(!sq_fread(&xfh, sizeof(XWDFileHeader), 1, fptr)) return SQERR_BADFILE;
+    
+    xfh.file_version = lLE2BE(xfh.file_version);
 
-    fgets(str, 255, fptr);
+    if(xfh.file_version != XWD_FILE_VERSION)
+	return SQERR_BADFILE;
+
+    if(!sq_fgets(str, 255, fptr)) return SQERR_BADFILE;
 
     fseek(fptr, lLE2BE(xfh.header_size), SEEK_SET);
 
@@ -110,7 +116,7 @@ int fmt_next(fmt_info *finfo)
 
     for(i = 0;i < ncolors;i++)
     {
-	fread(&color, sizeof(XWDColor), 1, fptr);
+	if(!sq_fread(&color, sizeof(XWDColor), 1, fptr)) return SQERR_BADFILE;
 
 	pal[i].r = (uchar)sLE2BE(color.red);
 	pal[i].g = (uchar)sLE2BE(color.green);
@@ -125,26 +131,26 @@ int fmt_next(fmt_info *finfo)
             
     finfo->images++;
 
-    finfo->image[currentImage].meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
+    finfo->meta = (fmt_metainfo *)calloc(1, sizeof(fmt_metainfo));
 
-    if(finfo->image[currentImage].meta)
+    if(finfo->meta)
     {
-	finfo->image[currentImage].meta->entries++;
-	finfo->image[currentImage].meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
-	fmt_meta_entry *entry = finfo->image[currentImage].meta->m;
+	finfo->meta->entries++;
+	finfo->meta->m = (fmt_meta_entry *)calloc(1, sizeof(fmt_meta_entry));
+	fmt_meta_entry *entry = finfo->meta->m;
 
 	if(entry)
 	{
-	    entry[currentImage].datalen = strlen(str) + 1;
-	    strcpy(entry[currentImage].group, "XWD Window Name");
-	    entry[currentImage].data = (char *)malloc(entry[currentImage].datalen);
+	    entry[0].datalen = strlen(str) + 1;
+	    strcpy(entry[0].group, "XWD Window Name");
+	    entry[0].data = (char *)malloc(entry[0].datalen);
 
 	    if(entry->data)
-		strcpy(entry[currentImage].data, str);
+		strcpy(entry[0].data, str);
 	}
     }
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n-\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -153,7 +159,7 @@ int fmt_next(fmt_info *finfo)
 	bytes);
 
     filler = lLE2BE(xfh.bytes_per_line) - finfo->image[currentImage].w * finfo->image[currentImage].bpp / 8;
-    
+
     return SQERR_OK;
 }
 
@@ -167,6 +173,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     int 	i;
     RGBA	rgba;
     RGB		rgb;
+    unsigned char d;
 
     memset(scan, 255, finfo->image[currentImage].w * sizeof(RGBA));
 
@@ -175,64 +182,88 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
         case 24:
 	    for(i = 0;i < finfo->image[currentImage].w;i++)
     	    {
-    		fread(&rgb, sizeof(RGB), 1, fptr);
+    		if(!sq_fread(&rgb, sizeof(RGB), 1, fptr)) return SQERR_BADFILE;
+
 		memcpy(scan+i, &rgb, sizeof(RGB));
 	    }
 	    
-	    for(int s = 0;s < filler;s++) fgetc(fptr);
+	    for(int s = 0;s < filler;s++)
+		if(!sq_fgetc(fptr, &d))
+		    return SQERR_BADFILE;
 	break;
 
         case 32:
 	    for(i = 0;i < finfo->image[currentImage].w;i++)
     	    {
-    		fread(&rgba, sizeof(RGBA), 1, fptr);
+    		if(!sq_fread(&rgba, sizeof(RGBA), 1, fptr)) return SQERR_BADFILE;
 
 		scan[i].r = rgba.b;
 		scan[i].g = rgba.g;
 		scan[i].b = rgba.r;
 	    }
 	    
-	    for(int s = 0;s < filler;s++) fgetc(fptr);
+	    for(int s = 0;s < filler;s++)
+		if(!sq_fgetc(fptr, &d))
+		    return SQERR_BADFILE;
 	break;
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     XWDFileHeader m_xfh;
 
-    FILE *m_fptr;
-    int w, h, bpp, m_pal_entr, m_ncolors;
-    RGB *m_pal = 0;
-	    
+    FILE	 *m_fptr;
+    int 	w, h, bpp, m_pal_entr, m_ncolors;
+    int 	m_bytes;
+    jmp_buf	jmp;
+    RGB		*m_pal;
+
     m_fptr = fopen(file, "rb");
-		
+    
     if(!m_fptr)
         return SQERR_NOFILE;
+
+    m_pal = 0;
+
+    if(setjmp(jmp))
+    {
+        fclose(m_fptr);
+	
+	if(m_pal)
+	    free(m_pal);
+	
+        return SQERR_BADFILE;
+    }
 
     XWDColor	color;
     char 	str[256];
     int		i;
+    int 	m_filler;
 
-    fread(&m_xfh, sizeof(XWDFileHeader), 1, m_fptr);
+    if(!sq_fread(&m_xfh, sizeof(XWDFileHeader), 1, m_fptr)) longjmp(jmp, 1);
 
-    fgets(str, 255, m_fptr);
+    m_xfh.file_version = lLE2BE(m_xfh.file_version);
+
+    if(m_xfh.file_version != XWD_FILE_VERSION)
+	return SQERR_BADFILE;
+
+    if(!sq_fgets(str, 255, m_fptr)) longjmp(jmp, 1);
 
     fseek(m_fptr, lLE2BE(m_xfh.header_size), SEEK_SET);
 
     m_pal_entr = m_ncolors = lLE2BE(m_xfh.ncolors);
-
+    
     if((m_pal = (RGB*)calloc(m_ncolors, sizeof(RGB))) == NULL)
     {
-	fclose(m_fptr);	
-	return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
-    
+
     for(i = 0;i < m_ncolors;i++)
     {
-	fread(&color, sizeof(XWDColor), 1, m_fptr);
+	if(!sq_fread(&color, sizeof(XWDColor), 1, m_fptr)) longjmp(jmp, 1);
 
 	m_pal[i].r = (uchar)sLE2BE(color.red);
 	m_pal[i].g = (uchar)sLE2BE(color.green);
@@ -243,9 +274,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     h = lLE2BE(m_xfh.pixmap_height);
     bpp = lLE2BE(m_xfh.bits_per_pixel);
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
     
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -254,26 +285,27 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	1,
 	m_bytes);
 
-    int m_filler = lLE2BE(m_xfh.bytes_per_line) - w * bpp / 8;
+    m_filler = lLE2BE(m_xfh.bytes_per_line) - w * bpp / 8;
 				    
     *image = (RGBA*)realloc(*image, m_bytes);
 					
     if(!*image)
     {
-        fprintf(stderr, "libSQ_read_pix: Image is null!\n");
+        fprintf(stderr, "libSQ_read_xwd: Image is null!\n");
         fclose(m_fptr);
         return SQERR_NOMEMORY;
     }
 
     memset(*image, 255, m_bytes);
-
+    
+    unsigned char d;
+    
     for(int h2 = 0;h2 < h;h2++)
     {
 	RGBA	rgba;
 	RGB	rgb;
         RGBA 	*scan = *image + h2 * w;
 
-        memset(scan, 255, w * sizeof(RGBA));
 /*
 	for(int s = 0;s < w;s++)
 	{
@@ -288,24 +320,29 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     	    case 24:
 		for(int s = 0;s < w;s++)
     		{
-    		    fread(&rgb, sizeof(RGB), 1, m_fptr);
+    		    if(!sq_fread(&rgb, sizeof(RGB), 1, m_fptr)) longjmp(jmp, 1);
+
 		    memcpy(scan+s, &rgb, sizeof(RGB));
 		}
 
-		for(int s = 0;s < m_filler;s++) fgetc(m_fptr);
+		for(int s = 0;s < m_filler;s++)
+		    if(!sq_fgetc(m_fptr, &d))
+			longjmp(jmp, 1);
 	    break;
 
     	    case 32:
 		for(int s = 0;s < w;s++)
     		{
-    		    fread(&rgba, sizeof(RGBA), 1, m_fptr);
+    		    if(!sq_fread(&rgba, sizeof(RGBA), 1, m_fptr)) longjmp(jmp, 1);
 
 		    scan[s].r = rgba.b;
 		    scan[s].g = rgba.g;
 		    scan[s].b = rgba.r;
 		}
 
-		for(int s = 0;s < m_filler;s++) fgetc(m_fptr);
+		for(int s = 0;s < m_filler;s++)
+		    if(!sq_fgetc(m_fptr, &d))
+			longjmp(jmp, 1);
 	    break;
 	}
 
@@ -319,12 +356,10 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     return SQERR_OK;
 }
 			    
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
-    
+
     if(pal)
 	free(pal);
-
-    return SQERR_OK;
 }

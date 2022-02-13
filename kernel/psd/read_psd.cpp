@@ -19,22 +19,23 @@
     Boston, MA 02111-1307, USA.
 */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_psd.h"
+#include "utils.h"
 
 FILE *fptr;
 int bytes, currentImage;
 int layer, compression, width, height, channels, depth, mode, line;
 RGBA **last;
 unsigned char *L;
-RGB *pal;
+RGB pal[256];
 
 const char* fmt_version()
 {
-    return (const char*)"0.7.0";
+    return (const char*)"0.7.1";
 }
 
 const char* fmt_quickinfo()
@@ -58,11 +59,8 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,21,80,76,84,69,112,0,25,192,192,192,255,255,255,0,0,0,255,255,0,128,128,0,4,4,4,204,13,117,30,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,83,73,68,65,84,120,218,61,142,65,17,192,48,8,4,177,192,7,1,88,200,85,1,56,104,5,180,159,248,151,80,114,161,221,215,206,13,28,136,200,92,72,241,168,170,81,220,221,102,75,69,163,17,36,9,193,184,78,4,74,138,40,86,18,160,32,59,65,198,193,153,111,235,239,217,205,110,125,148,87,249,198,253,2,11,129,25,221,25,73,23,33,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-        return SQERR_NOMEMORY;
-	
     fptr = fopen(file, "rb");
 
     if(!fptr)
@@ -76,15 +74,17 @@ int fmt_init(fmt_info *finfo, const char *file)
 
     if(BE_getshort(fptr) != 1)
 	return SQERR_NOTSUPPORTED;
-	
+
+    if(sq_ferror(fptr)) return SQERR_BADFILE;
+
     last = 0;
     L = 0;
-    pal = 0;
 
     char dummy[6];
-    fread(dummy, 6, 1, fptr);
+    if(!sq_fread(dummy, 6, 1, fptr)) return SQERR_BADFILE;
 
     channels = BE_getshort(fptr);
+    if(sq_ferror(fptr)) return SQERR_BADFILE;
 
 //    printf("channels: %d\n", channels);
 
@@ -95,16 +95,15 @@ int fmt_init(fmt_info *finfo, const char *file)
     width = BE_getlong(fptr);
     depth = BE_getshort(fptr);
     mode = BE_getshort(fptr);
+    if(sq_ferror(fptr)) return SQERR_BADFILE;
     
-//    printf("mode: %d, depth: %d\n", mode, depth);
-
     if(depth != 8)
 	return SQERR_NOTSUPPORTED;
 
     if(mode != PSD_RGB && mode != PSD_CMYK && mode != PSD_INDEXED && mode != PSD_GRAYSCALE)
 	return SQERR_NOTSUPPORTED;
 
-    if(mode == PSD_RGB && channels != 4)
+    if(mode == PSD_RGB && (channels != 3 && channels != 4))
 	return SQERR_NOTSUPPORTED;
 
     if(mode == PSD_CMYK && channels != 4 && channels != 5)
@@ -119,13 +118,7 @@ int fmt_init(fmt_info *finfo, const char *file)
 
     if(data_count)
     {
-	pal = (RGB*)calloc(256, sizeof(RGB));
-	
-	if(!pal)
-	    return SQERR_NOMEMORY;
-
-//	fseek(fptr, data_count, SEEK_CUR);
-	fread(pal, 256, sizeof(RGB), fptr);
+	if(!sq_fread(pal, 256, sizeof(RGB), fptr)) return SQERR_BADFILE;
     }
 
     // skip the image resources.  (resolution, pen tool paths, alpha channel names, etc)
@@ -163,6 +156,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
 	return SQERR_NOMEMORY;
 
@@ -185,7 +181,7 @@ int fmt_next(fmt_info *finfo)
 //	for(unsigned i = 0;i < height * channel_count;i++)
 //	{
 	    //fseek(fptr,  * 2, SEEK_CUR);
-	    fread(b, 2, height * channels, fptr);
+	    if(!sq_fread(b, 2, height * channels, fptr)) return SQERR_BADFILE;
 //	    b = BE_getshort(fptr);
 //	    printf("%u,", b);
 //	}
@@ -233,6 +229,11 @@ int fmt_next(fmt_info *finfo)
 
     for(int i = 0;i < height;i++)
     {
+	last[i] = (RGBA*)0;
+    }
+
+    for(int i = 0;i < height;i++)
+    {
 	last[i] = (RGBA*)malloc(S);
 
 	if(!last[i])
@@ -251,7 +252,7 @@ int fmt_next(fmt_info *finfo)
 
     finfo->images++;
 
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n%s\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n%s\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -266,7 +267,6 @@ int fmt_next(fmt_info *finfo)
 int fmt_next_pass(fmt_info *)
 {
     layer++;
-
     line = -1;
 
     return SQERR_OK;
@@ -288,7 +288,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     {
 	while(count < finfo->image[currentImage].w)
 	{
-	    fread(&c, 1, 1, fptr);
+	    if(!sq_fread(&c, 1, 1, fptr)) return SQERR_BADFILE;
 
 	    if(c == 128)
 	    {} // do nothing
@@ -297,7 +297,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 		c ^= 0xff;
 		c += 2;
 
-		fread(&value, 1, 1, fptr);
+		if(!sq_fread(&value, 1, 1, fptr)) return SQERR_BADFILE;
 
 		for(int i = count; i < count+c;i++)
 		{
@@ -313,7 +313,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 
 		for(int i = count; i < count+c;i++)
 		{
-		    fread(&value, 1, 1, fptr);
+		    if(!sq_fread(&value, 1, 1, fptr)) return SQERR_BADFILE;
+
 		    p = (unsigned char*)(scan+i);
 		    *(p+layer) = value;
 		}
@@ -324,7 +325,7 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     }
     else
     {
-	fread(L, 1, width, fptr);
+	if(!sq_fread(L, 1, width, fptr)) return SQERR_BADFILE;
 
 	for(int i = 0;i < width;i++)
 	{
@@ -382,22 +383,28 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	}
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
-    FILE *m_fptr;
-    int w, h, bpp;
-    int m_layer, m_compression, m_channels, m_depth, m_mode, m_line, passes;
-    RGBA **m_last;
-    unsigned char *m_L;
-    RGB *m_pal;
+    FILE 	*m_fptr;
+    int 	w, h, bpp;
+    int 	m_layer, m_compression, m_channels, m_depth, m_mode, m_line, passes;
+    RGB 	m_pal[256];
+    int 	m_bytes;
+    jmp_buf	jmp;
 
     m_fptr = fopen(file, "rb");
 				        
     if(!m_fptr)
         return SQERR_NOFILE;
+	
+    if(setjmp(jmp))
+    {
+	fclose(m_fptr);
+	return SQERR_BADFILE;
+    }
 
     m_layer = -1;
 
@@ -412,15 +419,15 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	fclose(m_fptr);
 	return SQERR_NOTSUPPORTED;
     }
-	
-    m_last = 0;
-    m_L = 0;
-    m_pal = 0;
+
+    if(sq_ferror(m_fptr)) return SQERR_BADFILE;
 
     char dummy[6];
-    fread(dummy, 6, 1, m_fptr);
+    if(!sq_fread(dummy, 6, 1, m_fptr)) longjmp(jmp, 1);
 
     m_channels = BE_getshort(m_fptr);
+    
+    if(sq_ferror(m_fptr)) longjmp(jmp, 1);
 
     if(m_channels != 3 && m_channels != 4 && m_channels != 1)
     {
@@ -432,7 +439,9 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     w = BE_getlong(m_fptr);
     m_depth = BE_getshort(m_fptr);
     m_mode = BE_getshort(m_fptr);
-    
+
+    if(sq_ferror(m_fptr)) longjmp(jmp, 1);
+
     passes = (m_channels == 5) ? 4 : m_channels;
     
     if(m_depth != 8)
@@ -456,13 +465,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     if(data_count)
     {
-	m_pal = (RGB*)calloc(256, sizeof(RGB));
-	
-	if(!m_pal)
-	    return SQERR_NOMEMORY;
-
 //	fseek(m_fptr, data_count, SEEK_CUR);
-	fread(m_pal, 256, sizeof(RGB), m_fptr);
+	if(!sq_fread(m_pal, 256, sizeof(RGB), m_fptr)) longjmp(jmp, 1);
     }
 
     // skip the image resources.  (resolution, pen tool paths, alpha channel names, etc)
@@ -505,7 +509,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 //	for(unsigned i = 0;i < h * channel_count;i++)
 //	{
 	    //fseek(m_fptr,  * 2, SEEK_CUR);
-	    fread(b, 2, h * m_channels, m_fptr);
+	    if(!sq_fread(b, 2, h * m_channels, m_fptr)) longjmp(jmp, 1);
 //	    b = BE_getshort(m_fptr);
 //	    printf("%u,", b);
 //	}
@@ -544,38 +548,25 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	
 	default: bpp = 0;
     }
-    
-    m_last = (RGBA**)calloc(h, sizeof(RGBA*));
 
-    if(!m_last)
-        return SQERR_NOMEMORY;
-
-    const int S = w * sizeof(RGBA);
+    RGBA m_last[h][w];
 
     for(int i = 0;i < h;i++)
     {
-	m_last[i] = (RGBA*)malloc(S);
-
-	if(!m_last[i])
-	    return SQERR_NOMEMORY;
-	    
-	memset(m_last[i], 255, S);
+	memset(m_last[i], 255, w * sizeof(RGBA));
     }
-    
+
     m_line = -1;
 
-    m_L = (unsigned char*)calloc(w, 1);
+    unsigned char m_L[w];
     
-    if(!m_L)
-	return SQERR_NOMEMORY;
-
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
 
     /*
 	Dump has the following format: "%QUICK_INFO\n%WIDTH\n%HEIGHT\n
         %BPP\n%COLOR_TYPE\n%COMPRESSION\n%NUMBER_OF_IMAGES\n%TOTAL_BYTES_NEEDED"
     */
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n%s\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n%s\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -590,37 +581,20 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_psd: Image is null!\n");
-        fclose(m_fptr);
-
-    if(m_last)
-    {
-	for(int i = 0;i < h;i++)
-	{
-	    if(m_last[i])
-		free(m_last[i]);
-	}
-
-	free(m_last);
-    }
-    
-    if(m_L)
-	free(m_L);
-
-    if(m_pal)
-	free(m_pal);
-
-        return SQERR_NOMEMORY;
+	longjmp(jmp, 1);
     }
 
     memset(*image, 0, m_bytes);
 
     for(m_layer = 0;m_layer < passes;m_layer++)    
-    {m_line = -1;
-    for(int h2 = 0;h2 < h;h2++)
     {
-	RGBA 	*scan = *image + h2 * w;
+	m_line = -1;
 
-//	memset(scan, 255, w * sizeof(RGBA));
+	for(int h2 = 0;h2 < h;h2++)
+	{
+	    RGBA 	*scan = *image + h2 * w;
+
+//		memset(scan, 255, w * sizeof(RGBA));
 
     unsigned char c, value, *p;
     int count = 0;
@@ -636,7 +610,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     {
 	while(count < w)
 	{
-	    fread(&c, 1, 1, m_fptr);
+	    if(!sq_fread(&c, 1, 1, m_fptr)) longjmp(jmp, 1);
 
 	    if(c == 128)
 	    {} // do nothing
@@ -645,7 +619,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 		c ^= 0xff;
 		c += 2;
 
-		fread(&value, 1, 1, m_fptr);
+		if(!sq_fread(&value, 1, 1, m_fptr)) longjmp(jmp, 1);
 
 		for(int i = count; i < count+c;i++)
 		{
@@ -661,7 +635,8 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
 		for(int i = count; i < count+c;i++)
 		{
-		    fread(&value, 1, 1, m_fptr);
+		    if(!sq_fread(&value, 1, 1, m_fptr)) longjmp(jmp, 1);
+
 		    p = (unsigned char*)(scan+i);
 		    *(p+m_layer) = value;
 		}
@@ -672,7 +647,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     }
     else
     {
-	fread(m_L, 1, w, m_fptr);
+	if(!sq_fread(m_L, 1, w, m_fptr)) longjmp(jmp, 1);
 
 	for(int i = 0;i < w;i++)
 	{
@@ -729,35 +704,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	    }	    
 	}
     }
-
     }
     }
 
     /* Do something like fmt_close() here */
     fclose(m_fptr);
 
-    if(m_last)
-    {
-	for(int i = 0;i < h;i++)
-	{
-	    if(m_last[i])
-		free(m_last[i]);
-	}
-
-	free(m_last);
-    }
-    
-    if(m_L)
-	free(m_L);
-	
-    if(m_pal)
-	free(m_pal);
-
-    /* Everything OK */
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
 
@@ -774,9 +730,4 @@ int fmt_close()
     
     if(L)
 	free(L);
-	
-    if(pal)
-	free(pal);
-
-    return SQERR_OK;
 }

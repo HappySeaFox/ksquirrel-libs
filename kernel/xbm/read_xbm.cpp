@@ -20,17 +20,18 @@
 */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "read_xbm.h"
+#include "utils.h"
 
 typedef unsigned char uchar;
 
 FILE *fptr;
 int currentImage, bytes;
-RGB *pal;
+RGB pal[256];
 
 const char* fmt_version()
 {
@@ -57,18 +58,14 @@ const char* fmt_pixmap()
     return (const char*)"137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,16,0,0,0,16,4,3,0,0,0,237,221,226,82,0,0,0,21,80,76,84,69,112,0,25,192,192,192,255,255,255,0,0,0,0,0,255,255,255,0,4,4,4,176,201,253,137,0,0,0,1,116,82,78,83,0,64,230,216,102,0,0,0,79,73,68,65,84,120,218,99,96,96,72,3,1,6,32,72,20,20,20,20,3,51,148,148,148,196,210,160,12,160,144,49,20,48,152,184,128,129,51,131,169,139,171,107,136,171,171,51,131,73,8,144,114,13,5,50,92,93,144,69,92,145,213,192,116,193,205,129,152,172,36,6,181,20,108,43,216,25,9,0,96,116,27,33,72,26,231,24,0,0,0,0,73,69,78,68,174,66,96,130,130";
 }
 
-int fmt_init(fmt_info *finfo, const char *file)
+int fmt_init(fmt_info *, const char *file)
 {
-    if(!finfo)
-	return SQERR_NOMEMORY;
-	
     fptr = fopen(file, "rb");
 	        
     if(!fptr)
 	return SQERR_NOFILE;
 		    
     currentImage = -1;
-    pal = 0;
 
     return SQERR_OK;
 }
@@ -86,6 +83,9 @@ int fmt_next(fmt_info *finfo)
     if(currentImage)
 	return SQERR_NOTOK;
 		    
+    if(!finfo)
+        return SQERR_NOMEMORY;
+
     if(!finfo->image)
         return SQERR_NOMEMORY;
 			
@@ -93,10 +93,14 @@ int fmt_next(fmt_info *finfo)
 
     finfo->image[currentImage].passes = 1;
     
-    skip_comments(fptr);
+    if(!skip_comments(fptr))
+	return SQERR_BADFILE;
 
     // thanks zgv for error handling :) (http://svgalib.org)
-    if(fgets(str, sizeof(str)-1, fptr) == NULL || strncmp(str, "#define ", 8) != 0)
+    if(!sq_fgets(str, sizeof(str)-1, fptr))
+	return SQERR_BADFILE;
+
+    if(strncmp(str, "#define ", 8) != 0)
 	return SQERR_BADFILE;
 
     if((ptr = strstr(str, "_width ")) == NULL)
@@ -104,7 +108,10 @@ int fmt_next(fmt_info *finfo)
 
     finfo->image[currentImage].w = (long)atoi(ptr+6);
 
-    if(fgets(str, sizeof(str)-1, fptr) == NULL || strncmp(str, "#define ", 8) != 0)
+    if(!sq_fgets(str, sizeof(str)-1, fptr))
+	return SQERR_BADFILE;
+
+    if(strncmp(str, "#define ", 8) != 0)
 	return SQERR_BADFILE;
 
     if((ptr = strstr(str, "_height ")) == NULL)
@@ -112,10 +119,15 @@ int fmt_next(fmt_info *finfo)
 
     finfo->image[currentImage].h = (long)atoi(ptr+7);
 
-    while(fgets(str, sizeof(str)-1, fptr) != NULL)
-	if(strncmp(str, "#define ", 8) != 0) break;
+    while(sq_fgets(str, sizeof(str)-1, fptr))
+    {
+        if(sq_ferror(fptr)) return SQERR_BADFILE;
 
-    if(str[0] == '\n') fgets(str, sizeof(str)-1, fptr);
+	if(strncmp(str, "#define ", 8) != 0)
+	    break;
+    }
+
+    if(str[0] == '\n') if(!sq_fgets(str, sizeof(str)-1, fptr)) return SQERR_BADFILE;
 
     if(strstr(str, "_bits[") == NULL || (ptr = strrchr(str, '{')) == NULL)
 	return SQERR_BADFILE;
@@ -134,12 +146,6 @@ int fmt_next(fmt_info *finfo)
     lscan /= 8;
     lscan = lscan + ((tmp%8)?1:0);
 
-    if((pal = (RGB*)calloc(2, sizeof(RGB))) == 0)
-    {
-	fclose(fptr);
-	return SQERR_NOMEMORY;
-    }
-
     memset(pal, 255, sizeof(RGB));
     memset(pal+1, 0, sizeof(RGB));
 
@@ -147,7 +153,7 @@ int fmt_next(fmt_info *finfo)
             
     finfo->images++;
 	    
-    asprintf(&finfo->image[currentImage].dump, "%s\n%dx%d\n%d\n%s\n-\n%d\n",
+    snprintf(finfo->image[currentImage].dump, sizeof(finfo->image[currentImage].dump), "%s\n%dx%d\n%d\n%s\n-\n%d\n",
 	fmt_quickinfo(),
 	finfo->image[currentImage].w,
 	finfo->image[currentImage].h,
@@ -176,6 +182,8 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
     for(j = 0;j < lscan;j++)
     {
 	fscanf(fptr, "%x%c", &bt, &c);
+	if(sq_ferror(fptr)) return SQERR_BADFILE;
+
 	// @todo make faster
 	if(j==lscan-1 && (remain-0)<=0 && remain)break; index = (bt & 1);           memcpy(scan+counter, pal+(int)index, 3); counter++;
 	if(j==lscan-1 && (remain-1)<=0 && remain)break; index = (bt & 2) ? 1 : 0;   memcpy(scan+counter, pal+(int)index, 3); counter++;
@@ -187,16 +195,18 @@ int fmt_read_scanline(fmt_info *finfo, RGBA *scan)
 	if(j==lscan-1 && (remain-7)<=0 && remain)break; index = (bt & 128) ? 1 : 0; memcpy(scan+counter, pal+(int)index, 3); counter++;
     }
 
-    return (ferror(fptr)) ? SQERR_BADFILE:SQERR_OK;
+    return SQERR_OK;
 }
 
-int fmt_readimage(const char *file, RGBA **image, char **dump)
+int fmt_readimage(const char *file, RGBA **image, char *dump)
 {
     FILE 	*m_fptr;
     int 	w, h, bpp;
     long	m_lscan;
     int		m_version;
-    RGB		*m_pal;
+    RGB		m_pal[256];
+    int 	m_bytes;
+    jmp_buf	jmp;
 
     m_fptr = fopen(file, "rb");
     
@@ -206,32 +216,48 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     long	tmp;
     char	str[256], *ptr;
 
-    skip_comments(m_fptr);
+    if(setjmp(jmp))
+    {
+        fclose(m_fptr);
+        return SQERR_BADFILE;
+    }
+
+    if(!skip_comments(m_fptr))
+	longjmp(jmp, 1);
 
     // thanks zgv for error handling :) (http://svgalib.org)
-    if(fgets(str, sizeof(str)-1, m_fptr) == NULL || strncmp(str, "#define ", 8) != 0)
-	return SQERR_BADFILE;
+    if(!sq_fgets(str, sizeof(str)-1, m_fptr))
+	longjmp(jmp, 1);
+
+    if(strncmp(str, "#define ", 8) != 0)
+	longjmp(jmp, 1);
 
     if((ptr = strstr(str, "_width ")) == NULL)
-	return SQERR_BADFILE;
+	longjmp(jmp, 1);
 
     w = atoi(ptr+6);
 
-    if(fgets(str, sizeof(str)-1, m_fptr) == NULL || strncmp(str, "#define ", 8) != 0)
-	return SQERR_BADFILE;
+    if(!sq_fgets(str, sizeof(str)-1, m_fptr))
+	longjmp(jmp, 1);
+
+    if(strncmp(str, "#define ", 8) != 0)
+	longjmp(jmp, 1);
 
     if((ptr = strstr(str, "_height ")) == NULL)
-	return SQERR_BADFILE;
+	longjmp(jmp, 1);
 
     h = (long)atoi(ptr+7);
 
-    while(fgets(str, sizeof(str)-1, m_fptr) != NULL)
-	if(strncmp(str, "#define ", 8) != 0) break;
+    while(sq_fgets(str, sizeof(str)-1, m_fptr))
+	if(strncmp(str, "#define ", 8) != 0)
+	    break;
 
-    if(str[0] == '\n') fgets(str, sizeof(str)-1, m_fptr);
+    if(sq_ferror(m_fptr)) longjmp(jmp, 1);
+
+    if(str[0] == '\n') if(!sq_fgets(str, sizeof(str)-1, m_fptr)) longjmp(jmp, 1);
 
     if(strstr(str, "_bits[") == NULL || (ptr = strrchr(str, '{')) == NULL)
-	return SQERR_BADFILE;
+	longjmp(jmp, 1);
 	
     if((strstr(str, "unsigned") && (strstr(str, "char"))) || strstr(str, "char"))
 	m_version = 11;
@@ -246,18 +272,12 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
     m_lscan /= 8;
     m_lscan = m_lscan + ((tmp%8)?1:0);
 
-    if((m_pal = (RGB*)calloc(2, sizeof(RGB))) == 0)
-    {
-	fclose(m_fptr);
-	return SQERR_NOMEMORY;
-    }
-
     memset(m_pal, 255, sizeof(RGB));
     memset(m_pal+1, 0, sizeof(RGB));
 
-    int m_bytes = w * h * sizeof(RGBA);
+    m_bytes = w * h * sizeof(RGBA);
     
-    asprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
+    sprintf(dump, "%s\n%d\n%d\n%d\n%s\n-\n%d\n%d\n",
 	fmt_quickinfo(),
 	w,
 	h,
@@ -267,7 +287,7 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	m_bytes);
 				    
     *image = (RGBA*)realloc(*image, m_bytes);
-					
+
     if(!*image)
     {
         fprintf(stderr, "libSQ_read_xbm: Image is null!\n");
@@ -284,11 +304,11 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 	unsigned int bt;
         RGBA 	*scan = *image + h2 * w;
 
-	memset(scan, 255, w * sizeof(RGBA));
-
 	for(j = 0;j < m_lscan;j++)
 	{
 	    fscanf(m_fptr, "%x%c", &bt, &c);
+	    if(sq_ferror(m_fptr)) longjmp(jmp, 1);
+
 	    // @todo make faster
 	    if(j==m_lscan-1 && (remain-0)<=0 && remain)break; index = (bt & 1);        memcpy(scan+counter, m_pal+(int)index, 3); counter++;
     	    if(j==m_lscan-1 && (remain-1)<=0 && remain)break; index = (bt & 2) >> 1;   memcpy(scan+counter, m_pal+(int)index, 3); counter++;
@@ -303,23 +323,16 @@ int fmt_readimage(const char *file, RGBA **image, char **dump)
 
     fclose(m_fptr);
 
-    free(m_pal);
-    
     return SQERR_OK;
 }
 
-int fmt_close()
+void fmt_close()
 {
     fclose(fptr);
-
-    if(pal)
-	free(pal);
-
-    return SQERR_OK;
 }
 
 /*  skip a single line C-like comment  */
-void skip_comments(FILE *fp)
+bool skip_comments(FILE *fp)
 {
     char str[513];
     long pos;
@@ -327,11 +340,13 @@ void skip_comments(FILE *fp)
     do
     {
         pos = ftell(fp);
-        fgets(str, 512, fp);
+        if(!sq_fgets(str, 512, fp)) return false;
 
         if(!strstr(str, "/*"))
             break;
     }while(true);
 
     fsetpos(fp, (fpos_t*)&pos);
+    
+    return true;
 }

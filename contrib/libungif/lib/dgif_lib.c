@@ -42,11 +42,15 @@
 #define COMMENT_EXT_FUNC_CODE 0xfe  /* Extension function code for
                                        comment. */
 
-/* avoid extra function call in case we use fread (TVT) */
+/*
 #define READ(_gif,_buf,_len)                                     \
   (((GifFilePrivateType*)_gif->Private)->Read ?                   \
     ((GifFilePrivateType*)_gif->Private)->Read(_gif,_buf,_len) : \
     fread(_buf,1,_len,((GifFilePrivateType*)_gif->Private)->File))
+*/
+
+#define READ(_gif,_buf,_len)  \
+    fread(_buf,1,_len,((GifFilePrivateType*)_gif->Private)->File)
 
 static int DGifGetWord(GifFileType *GifFile, int *Word);
 static int DGifSetupDecompress(GifFileType *GifFile);
