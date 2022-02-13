@@ -1,4 +1,4 @@
-SUBDIRS = contrib kernel
+SUBDIRS = contrib kernel doc
 
 AUTOMAKE_OPTIONS = foreign 
 

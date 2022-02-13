@@ -62,7 +62,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("0.9.0");
+    return std::string("0.9.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -77,7 +77,7 @@ std::string fmt_codec::fmt_filter()
 
 std::string fmt_codec::fmt_mime()
 {
-    return std::string("/. Format_");
+    return std::string("/\\* Format_");
 }
 
 std::string fmt_codec::fmt_pixmap()

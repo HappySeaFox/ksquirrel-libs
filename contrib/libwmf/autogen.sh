@@ -134,4 +134,4 @@ do_cmd $AUTOMAKE $AUTOMAKE_FLAGS
 
 do_cmd $AUTOCONF
 
-do_cmd ./configure --enable-shared=no && echo "Now type \`make' to compile $PACKAGE" || exit 1
+do_cmd ./configure --enable-shared=no --with-x=no --with-jpeg=no --with-fontdir=/usr/lib/ksquirrel-libs/libwmf-fonts && echo "Now type \`make' to compile $PACKAGE" || exit 1

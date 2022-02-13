@@ -135,6 +135,8 @@ s32 fmt_codec::fmt_read_next()
     image.compression = "-";
     image.colorspace = fmt_utils::colorSpaceByBpp(8);
 
+    finfo.image.push_back(image);
+
     return SQE_OK;
 }
 

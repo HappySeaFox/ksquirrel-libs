@@ -1,6 +1,6 @@
 #!/bin/sh
 
-font_map=@WMF_XTRA_FONTMAP@
+font_map="@libdir@/libwmf-fonts/fontmap"
 font_dir=
 
 echo_help=no
@@ -33,9 +33,9 @@ if test "x$font_map" = "x"; then
 fi
 
 if test "x$font_dir" = "x"; then
-	font_dir="@WMF_FONTDIR@"
+	font_dir="@libdir@/libwmf-fonts"
 else
-	font_dir="$font_dir @WMF_FONTDIR@"
+	font_dir="$font_dir @libdir@/libwmf-fonts"
 fi
 
 if test $echo_help = yes; then

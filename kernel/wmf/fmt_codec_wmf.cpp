@@ -95,6 +95,8 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 	file.c_str()
     };
 
+    buf = NULL;
+
     call(2, (char **)argv, &buf, &w, &h);
 
     if(!buf)
@@ -148,7 +150,8 @@ void fmt_codec::fmt_read_close()
     finfo.meta.clear();
     finfo.image.clear();
 
-    delete [] buf;
+    if(buf)
+        delete [] buf;
 }
 
 void fmt_codec::fmt_getwriteoptions(fmt_writeoptionsabs *opt)

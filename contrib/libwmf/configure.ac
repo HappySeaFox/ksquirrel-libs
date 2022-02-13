@@ -141,7 +141,7 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-#AC_PROG_RANLIB
+AC_PROG_RANLIB
 
 # Configure libtool
 AC_LIBTOOL_WIN32_DLL
@@ -251,7 +251,8 @@ AM_CONDITIONAL(LIBWMF_OPT_MODULES,[ test $libwmf_layers = modules ])
 AM_CONDITIONAL(LIBWMF_OPT_LAYERS,[ test $libwmf_layers != no ])
 
 libwmf_x=no
-#libwmf_xml=no
+libwmf_xml=no
+libwmf_gd_jpeg=no
 libwmf_plot=no
 
 if [ test $libwmf_layers != no ]; then
@@ -269,7 +270,6 @@ WMF_X_CFLAGS=""
 WMF_X_LDFLAGS=""
 
 WMF_X_CFLAGS="$X_CFLAGS"
-
 if [ test "x$no_x" != "xyes" ]; then
 	WMF_X_CONFIG_CFLAGS="$X_CFLAGS"
 	WMF_X_LDFLAGS="$X_LIBS $X_PRE_LIBS -lX11 $X_EXTRA_LIBS"
@@ -280,11 +280,11 @@ AM_CONDITIONAL(LIBWMF_OPT_X,[ test "x$no_x" != "xyes" ])
 
 dnl (2) expat/libxml2 {-lexpat/-lxml2}
 
-#WMF_XML_DIR=""
-#WMF_XML_CFLAGS=""
-#WMF_XML_LDFLAGS=""
+WMF_XML_DIR=""
+WMF_XML_CFLAGS=""
+WMF_XML_LDFLAGS=""
 
-#libwmf_xml=unknown
+libwmf_xml=libxml2
 
 #AC_ARG_WITH(expat,[  --with-expat=DIR        use expat in DIR],[
 #	if test "x$withval" = "xno"; then
@@ -296,7 +296,7 @@ dnl (2) expat/libxml2 {-lexpat/-lxml2}
 #		WMF_XML_DIR="$withval"
 #	fi
 #])
-
+#
 #AC_ARG_WITH(libxml2,[  --with-libxml2=DIR      use libxml2 in DIR],[
 #	if test "x$withval" = "xno"; then
 #		if test $libwmf_xml = libxml2; then
@@ -320,9 +320,9 @@ dnl (2) expat/libxml2 {-lexpat/-lxml2}
 #	fi
 #])
 
-#if test $LIBWMF_BUILDSTYLE = lite; then
-#	libwmf_xml=none
-#fi # $LIBWMF_BUILDSTYLE = lite
+if test $LIBWMF_BUILDSTYLE = lite; then
+	libwmf_xml=none
+fi # $LIBWMF_BUILDSTYLE = lite
 
 #if test $libwmf_xml = expat -o $libwmf_xml = unknown; then
 #	if test "x$WMF_XML_DIR" != "x"; then
@@ -353,31 +353,31 @@ dnl (2) expat/libxml2 {-lexpat/-lxml2}
 #	fi
 #fi
 
-#if test $libwmf_xml = libxml2 -o $libwmf_xml = unknown; then
-#	if [ test -n "$WMF_XML_DIR" ]; then
-#		AC_PATH_PROG(XML2_CONFIG,xml2-config,,$WMF_XML_DIR/bin $PATH)
-#	else
-#		AC_PATH_PROG(XML2_CONFIG,xml2-config)
-#	fi
-#
-#	if test "x$XML2_CONFIG" != "x"; then
-#		WMF_XML_CFLAGS=`$XML2_CONFIG --cflags`
-#		WMF_XML_LDFLAGS=`$XML2_CONFIG --libs`
-#		libwmf_xml=libxml2
-#	elif test $libwmf_xml = libxml2; then
-#		AC_MSG_ERROR([* * * unable to find xml2-config; see ftp://xmlsoft.org/ * * *])
-#	fi
-#fi
+if test $libwmf_xml = libxml2 -o $libwmf_xml = unknown; then
+	if [ test -n "$WMF_XML_DIR" ]; then
+		AC_PATH_PROG(XML2_CONFIG,xml2-config,,$WMF_XML_DIR/bin $PATH)
+	else
+		AC_PATH_PROG(XML2_CONFIG,xml2-config)
+	fi
 
-#if test $libwmf_xml = expat; then
-#	AC_DEFINE(HAVE_EXPAT,1,[define if you have expat])
-#elif test $libwmf_xml = libxml2; then
-#	AC_DEFINE(HAVE_LIBXML2,1,[define if you have libxml2])
-#else
-#	libwmf_xml=none
-#	WMF_XML_CFLAGS=""
-#	WMF_XML_LDFLAGS=""
-#fi
+	if test "x$XML2_CONFIG" != "x"; then
+		WMF_XML_CFLAGS=`$XML2_CONFIG --cflags`
+		WMF_XML_LDFLAGS=`$XML2_CONFIG --libs`
+		libwmf_xml=libxml2
+	elif test $libwmf_xml = libxml2; then
+		AC_MSG_ERROR([* * * unable to find xml2-config; see ftp://xmlsoft.org/ * * *])
+	fi
+fi
+
+if test $libwmf_xml = expat; then
+	AC_DEFINE(HAVE_EXPAT,1,[define if you have expat])
+elif test $libwmf_xml = libxml2; then
+	AC_DEFINE(HAVE_LIBXML2,1,[define if you have libxml2])
+else
+	libwmf_xml=none
+	WMF_XML_CFLAGS=""
+	WMF_XML_LDFLAGS=""
+fi
 
 dnl (3) freetype {-lfreetype} [-DHAVE_LIBFREETYPE]
 
@@ -463,128 +463,128 @@ AC_ARG_WITH(zlib,[  --with-zlib=DIR         use libz in DIR],[
 	fi
 ])
 
-#if test $LIBWMF_BUILDSTYLE = heavy; then
+if test $LIBWMF_BUILDSTYLE = heavy; then
 
 dnl WMF_Z_CFLAGS are required later on when testing for png, etc.
 
-#AC_CHECK_HEADER(zlib.h,[
-#	AC_CHECK_LIB(z,gzputs,[
-#		if [ test "x$ZLIB_DIR" != "x" ]; then
-#			WMF_Z_CONFIG_CFLAGS="-I$ZLIB_DIR/include"
-#			WMF_Z_CFLAGS="-I$ZLIB_DIR/include"
-#			WMF_Z_LDFLAGS="-L$ZLIB_DIR/lib -lz"
-#		else
-#			WMF_Z_LDFLAGS="-lz"
-#		fi
-#	],[	AC_CHECK_LIB(gz,gzputs,[
-#			if [ test "x$ZLIB_DIR" != "x" ]; then
-#				WMF_Z_CONFIG_CFLAGS="-I$ZLIB_DIR/include"
-#				WMF_Z_CFLAGS="-I$ZLIB_DIR/include"
-#				WMF_Z_LDFLAGS="-L$ZLIB_DIR/lib -lgz"
-#			else
-#				WMF_Z_LDFLAGS="-lgz"
-#			fi
-#		],[	AC_MSG_ERROR(* * * unable to find libz which is required by libwmf * * *)
-#		])
-#	])
-#],[	AC_MSG_ERROR(* * * unable to find "zlib.h" which is required by libwmf * * *)
-#])
+AC_CHECK_HEADER(zlib.h,[
+	AC_CHECK_LIB(z,gzputs,[
+		if [ test "x$ZLIB_DIR" != "x" ]; then
+			WMF_Z_CONFIG_CFLAGS="-I$ZLIB_DIR/include"
+			WMF_Z_CFLAGS="-I$ZLIB_DIR/include"
+			WMF_Z_LDFLAGS="-L$ZLIB_DIR/lib -lz"
+		else
+			WMF_Z_LDFLAGS="-lz"
+		fi
+	],[	AC_CHECK_LIB(gz,gzputs,[
+			if [ test "x$ZLIB_DIR" != "x" ]; then
+				WMF_Z_CONFIG_CFLAGS="-I$ZLIB_DIR/include"
+				WMF_Z_CFLAGS="-I$ZLIB_DIR/include"
+				WMF_Z_LDFLAGS="-L$ZLIB_DIR/lib -lgz"
+			else
+				WMF_Z_LDFLAGS="-lgz"
+			fi
+		],[	AC_MSG_ERROR(* * * unable to find libz which is required by libwmf * * *)
+		])
+	])
+],[	AC_MSG_ERROR(* * * unable to find "zlib.h" which is required by libwmf * * *)
+])
 
-#fi # $LIBWMF_BUILDSTYLE = heavy
+fi # $LIBWMF_BUILDSTYLE = heavy
 
 CPPFLAGS=$_cppflags
 LDFLAGS=$_ldflags
 
 dnl (5) png      {-lpng}      [-DHAVE_LIBPNG]
 
-#WMF_PNG_CFLAGS=""
-#WMF_PNG_LDFLAGS=""
+WMF_PNG_CFLAGS=""
+WMF_PNG_LDFLAGS=""
 
-#_cppflags=$CPPFLAGS
-#_ldflags=$LDFLAGS
+_cppflags=$CPPFLAGS
+_ldflags=$LDFLAGS
 
-#AC_ARG_WITH(png,[  --with-png=DIR          use libpng in DIR],[
-#	if [ test "x$withval" != "xno" ]; then
-#		if [ test "x$withval" != "xyes" ]; then
-#			PNG_DIR=$withval
-#			CPPFLAGS="$CPPFLAGS -I$withval/include"
-#			LDFLAGS="$LDFLAGS -L$withval/lib"
-#		fi
-#	else
-#		AC_MSG_ERROR(* * * libwmf requires libpng * * *)
-#	fi
-#])
+AC_ARG_WITH(png,[  --with-png=DIR          use libpng in DIR],[
+	if [ test "x$withval" != "xno" ]; then
+		if [ test "x$withval" != "xyes" ]; then
+			PNG_DIR=$withval
+			CPPFLAGS="$CPPFLAGS -I$withval/include"
+			LDFLAGS="$LDFLAGS -L$withval/lib"
+		fi
+	else
+		AC_MSG_ERROR(* * * libwmf requires libpng * * *)
+	fi
+])
 
-#if test $LIBWMF_BUILDSTYLE = heavy; then
+if test $LIBWMF_BUILDSTYLE = heavy; then
 
 dnl "png.h" includes "zlib.h"
-#CPPFLAGS="$CPPFLAGS $WMF_Z_CFLAGS"
+CPPFLAGS="$CPPFLAGS $WMF_Z_CFLAGS"
 
-#AC_CHECK_HEADER(png.h,[
-#	AC_CHECK_LIB(png,png_write_image,[
-#		if [ test "x$PNG_DIR" != "x" ]; then
-#			WMF_PNG_CFLAGS="-I$PNG_DIR/include"
-#			WMF_PNG_LDFLAGS="-L$PNG_DIR/lib -lpng"
-#		else
-#			WMF_PNG_LDFLAGS="-lpng"
-#		fi
-#	],[	AC_MSG_ERROR(* * * unable to find libpng which is required by libwmf * * *)
-#	],-lz -lm)
-#],[	AC_MSG_ERROR(* * * unable to find "png.h" which is required by libwmf * * *)
-#])
+AC_CHECK_HEADER(png.h,[
+	AC_CHECK_LIB(png,png_write_image,[
+		if [ test "x$PNG_DIR" != "x" ]; then
+			WMF_PNG_CFLAGS="-I$PNG_DIR/include"
+			WMF_PNG_LDFLAGS="-L$PNG_DIR/lib -lpng"
+		else
+			WMF_PNG_LDFLAGS="-lpng"
+		fi
+	],[	AC_MSG_ERROR(* * * unable to find libpng which is required by libwmf * * *)
+	],-lz -lm)
+],[	AC_MSG_ERROR(* * * unable to find "png.h" which is required by libwmf * * *)
+])
 
-#AC_DEFINE(HAVE_LIBPNG,1,[define if you have libpng])
-#GD_DEFS="$GD_DEFS -DHAVE_LIBPNG"
+AC_DEFINE(HAVE_LIBPNG,1,[define if you have libpng])
+GD_DEFS="$GD_DEFS -DHAVE_LIBPNG"
 
-#fi # $LIBWMF_BUILDSTYLE = heavy
+fi # $LIBWMF_BUILDSTYLE = heavy
 
-#CPPFLAGS=$_cppflags
-#LDFLAGS=$_ldflags
+CPPFLAGS=$_cppflags
+LDFLAGS=$_ldflags
 
 dnl (6) jpeg     {-ljpeg}     [-DHAVE_LIBJPEG] (optional)
 
-#WMF_JPEG_CFLAGS=""
-#WMF_JPEG_LDFLAGS=""
+WMF_JPEG_CFLAGS=""
+WMF_JPEG_LDFLAGS=""
 
-#_cppflags=$CPPFLAGS
-#_ldflags=$LDFLAGS
+_cppflags=$CPPFLAGS
+_ldflags=$LDFLAGS
 
-#AC_ARG_WITH(jpeg,[  --with-jpeg=DIR         use libjpeg in DIR],[
-#	if [ test "x$withval" != "xno" ]; then
-#		if [ test "x$withval" != "xyes" ]; then
-#			JPEG_DIR=$withval
-#			CPPFLAGS="$CPPFLAGS -I$withval/include"
-#			LDFLAGS="$LDFLAGS -L$withval/lib"
-#		fi
-#		search_for_jpeg=yes
-#	else
-#		search_for_jpeg=no
-#	fi
-#],[	search_for_jpeg=yes
-#])
+AC_ARG_WITH(jpeg,[  --with-jpeg=DIR         use libjpeg in DIR],[
+	if [ test "x$withval" != "xno" ]; then
+		if [ test "x$withval" != "xyes" ]; then
+			JPEG_DIR=$withval
+			CPPFLAGS="$CPPFLAGS -I$withval/include"
+			LDFLAGS="$LDFLAGS -L$withval/lib"
+		fi
+		search_for_jpeg=yes
+	else
+		search_for_jpeg=no
+	fi
+],[	search_for_jpeg=yes
+])
 
-#if test $LIBWMF_BUILDSTYLE = lite; then
-#	search_for_jpeg=no
-#fi # $LIBWMF_BUILDSTYLE = lite
+if test $LIBWMF_BUILDSTYLE = lite; then
+	search_for_jpeg=no
+fi # $LIBWMF_BUILDSTYLE = lite
 
-#if [ test "$search_for_jpeg" != "no" ]; then
-#	AC_CHECK_HEADER(jpeglib.h,[
-#		AC_CHECK_LIB(jpeg,jpeg_CreateCompress,[
-#			if [ test "x$JPEG_DIR" != "x" ]; then
-#				WMF_JPEG_CFLAGS="-I$JPEG_DIR/include"
-#				WMF_JPEG_LDFLAGS="-L$JPEG_DIR/lib -ljpeg"
-#			else
-#				WMF_JPEG_LDFLAGS="-ljpeg"
-#			fi
-#			AC_DEFINE(HAVE_LIBJPEG,1,[define if you have libjpeg])
-#			GD_DEFS="$GD_DEFS -DHAVE_LIBJPEG"
-#			libwmf_gd_jpeg=yes
-#		])
-#	])
-#fi
+if [ test "$search_for_jpeg" != "no" ]; then
+	AC_CHECK_HEADER(jpeglib.h,[
+		AC_CHECK_LIB(jpeg,jpeg_CreateCompress,[
+			if [ test "x$JPEG_DIR" != "x" ]; then
+				WMF_JPEG_CFLAGS="-I$JPEG_DIR/include"
+				WMF_JPEG_LDFLAGS="-L$JPEG_DIR/lib -ljpeg"
+			else
+				WMF_JPEG_LDFLAGS="-ljpeg"
+			fi
+			AC_DEFINE(HAVE_LIBJPEG,1,[define if you have libjpeg])
+			GD_DEFS="$GD_DEFS -DHAVE_LIBJPEG"
+			libwmf_gd_jpeg=yes
+		])
+	])
+fi
 
-#CPPFLAGS=$_cppflags
-#LDFLAGS=$_ldflags
+CPPFLAGS=$_cppflags
+LDFLAGS=$_ldflags
 
 dnl (7) gd       {-lgd}
 
@@ -638,9 +638,15 @@ if [ test "$search_for_gd" != "no" ]; then
 		])
 	fi
 
-	CPPFLAGS="$CPPFLAGS $WMF_FT_CFLAGS"
-	LDFLAGS="$LDFLAGS $WMF_FT_LDFLAGS"
-	other_libs="$other_libs -lfreetype"
+	if [ test "x$libwmf_gd_jpeg" = "xyes" ]; then
+		CPPFLAGS="$CPPFLAGS $WMF_JPEG_CFLAGS"
+		LDFLAGS="$LDFLAGS $WMF_JPEG_LDFLAGS"
+		other_libs="$other_libs -ljpeg"
+	fi
+
+	CPPFLAGS="$CPPFLAGS $WMF_FT_CFLAGS $WMF_PNG_CFLAGS $WMF_Z_CFLAGS"
+	LDFLAGS="$LDFLAGS $WMF_FT_LDFLAGS $WMF_PNG_LDFLAGS $WMF_Z_LDFLAGS"
+	other_libs="$other_libs -lfreetype -lpng -lz -lm"
 
 	AC_CHECK_HEADER(gd.h,[
 		AC_CHECK_LIB(gd,gdClipSetAdd,[
@@ -683,8 +689,8 @@ dnl (8) plot     {-lplot}
 WMF_PLOT_CFLAGS=""
 WMF_PLOT_LDFLAGS=""
 
-#_cppflags=$CPPFLAGS
-#_ldflags=$LDFLAGS
+_cppflags=$CPPFLAGS
+_ldflags=$LDFLAGS
 
 # AC_ARG_WITH(plot,[  --with-plot=DIR         use GNU plotutils (>= 2.4.0) in DIR (default no)],[
 #	if [ test "x$withval" != "xno" ]; then
@@ -703,39 +709,39 @@ WMF_PLOT_LDFLAGS=""
 
 search_for_plot=no
 
-#if [ test "$search_for_plot" != "no" ]; then
-#	AC_CHECK_HEADER(plot.h,[
-#		AC_CHECK_LIB(plot,pl_libplot_ver,[
-#			AC_LIBPLOT_LIBS
-#			if [ test $ac_can_link_libplot != no ]; then
-#				if [ test "x$PLOT_DIR" != "x" ]; then
-#					WMF_PLOT_CFLAGS="-I$PLOT_DIR/include"
-#					WMF_PLOT_LDFLAGS="-L$PLOT_DIR/lib $LIBPLOT_LIBS"
-#				else
-#					WMF_PLOT_LDFLAGS="$LIBPLOT_LIBS"
-#				fi
-#				AC_DEFINE(HAVE_LIBPLOT,1,[define if you have libplot])
-#				libwmf_plot=maybe
-#			else
-#				AC_MSG_ERROR(* * * sorry - unable to link against libplot * * *)
-#			fi
-#		],[	AC_MSG_ERROR(GNU plotutils >= 2.4.0 required)
-#		])
-#	])
-#fi
+if [ test "$search_for_plot" != "no" ]; then
+	AC_CHECK_HEADER(plot.h,[
+		AC_CHECK_LIB(plot,pl_libplot_ver,[
+			AC_LIBPLOT_LIBS
+			if [ test $ac_can_link_libplot != no ]; then
+				if [ test "x$PLOT_DIR" != "x" ]; then
+					WMF_PLOT_CFLAGS="-I$PLOT_DIR/include"
+					WMF_PLOT_LDFLAGS="-L$PLOT_DIR/lib $LIBPLOT_LIBS"
+				else
+					WMF_PLOT_LDFLAGS="$LIBPLOT_LIBS"
+				fi
+				AC_DEFINE(HAVE_LIBPLOT,1,[define if you have libplot])
+				libwmf_plot=maybe
+			else
+				AC_MSG_ERROR(* * * sorry - unable to link against libplot * * *)
+			fi
+		],[	AC_MSG_ERROR(GNU plotutils >= 2.4.0 required)
+		])
+	])
+fi
 
 AM_CONDITIONAL(LIBWMF_OPT_PLOT,[ test "x$libwmf_plot" != "xno" ])
 
-#CPPFLAGS=$_cppflags
-#LDFLAGS=$_ldflags
+CPPFLAGS=$_cppflags
+LDFLAGS=$_ldflags
 
 dnl Dom's gdk-pixbuf plugin
 
-#wmf_gdk_pixbuf=no
+wmf_gdk_pixbuf=no
 
-#GDK_PIXBUF_CFLAGS=""
-#GDK_PIXBUF_LIBS=""
-#GDK_PIXBUF_DIR=""
+GDK_PIXBUF_CFLAGS=""
+GDK_PIXBUF_LIBS=""
+GDK_PIXBUF_DIR=""
 
 #if test $LIBWMF_BUILDSTYLE != lite; then
 #	PKG_CHECK_MODULES(GDK_PIXBUF,gdk-pixbuf-2.0 >= 2.1.2,[
@@ -745,12 +751,11 @@ dnl Dom's gdk-pixbuf plugin
 #	],[	wmf_gdk_pixbuf=no
 #	])
 #fi
+AM_CONDITIONAL(LIBWMF_GDK_PIXBUF,[test $wmf_gdk_pixbuf = yes])
 
-#AM_CONDITIONAL(LIBWMF_GDK_PIXBUF,[test $wmf_gdk_pixbuf = yes])
-
-#AC_SUBST(GDK_PIXBUF_CFLAGS)
-#AC_SUBST(GDK_PIXBUF_LIBS)
-#AC_SUBST(GDK_PIXBUF_DIR)
+AC_SUBST(GDK_PIXBUF_CFLAGS)
+AC_SUBST(GDK_PIXBUF_LIBS)
+AC_SUBST(GDK_PIXBUF_DIR)
 
 dnl Other options...
 
@@ -842,7 +847,7 @@ AC_ARG_WITH(gsfontdir,[  --with-gsfontdir=DIR    directory for ghostscript fonts
 dnl Output...
 
 WMF_CFLAGS="$WMF_FT_CFLAGS $WMF_X_CFLAGS $WMF_PLOT_CFLAGS $WMF_XML_CFLAGS"
-WMF_CFLAGS="$WMF_CFLAGS $WMF_GD_CFLAGS"
+WMF_CFLAGS="$WMF_CFLAGS $WMF_GD_CFLAGS $WMF_JPEG_CFLAGS $WMF_PNG_CFLAGS $WMF_Z_CFLAGS"
 
 AC_SUBST(WMF_CFLAGS)
 
@@ -850,7 +855,8 @@ WMF_CONFIG_CFLAGS="$WMF_FT_CONFIG_CFLAGS $WMF_Z_CONFIG_CFLAGS $WMF_X_CONFIG_CFLA
 
 AC_SUBST(WMF_CONFIG_CFLAGS)
 
-WMF_LIBFLAGS="$WMF_GD_LDFLAGS $WMF_FT_LDFLAGS $WMF_X_LDFLAGS $SYS_LIBM"
+WMF_LIBFLAGS="$WMF_PLOT_LDFLAGS $WMF_GD_LDFLAGS $WMF_FT_LDFLAGS $WMF_X_LDFLAGS $WMF_XML_LDFLAGS"
+WMF_LIBFLAGS="$WMF_LIBFLAGS $WMF_JPEG_LDFLAGS $WMF_PNG_LDFLAGS $WMF_Z_LDFLAGS $SYS_LIBM"
 
 AC_SUBST(WMF_LIBFLAGS)
 
@@ -871,9 +877,6 @@ AH_BOTTOM([
 
 AC_CONFIG_FILES([
 Makefile
-fonts/Makefile
-fonts/libwmf-fontmap
-fonts/fontmap
 include/Makefile
 include/libwmf/Makefile
 src/Makefile
@@ -888,6 +891,8 @@ AC_OUTPUT
 echo ""
 echo "	Support for X:			$libwmf_x"
 echo "	Support for GD:			$libwmf_gd"
+echo "	Support for JPEG though GD:	$libwmf_gd_jpeg"
+echo "	Support for XML:		$libwmf_xml"
 echo ""
 echo "	Documentation directory:	$WMF_DOCDIR"
 echo "	Font directory:			$WMF_FONTDIR"
@@ -896,4 +901,5 @@ echo "	Non-system XML fontmap file:	$WMF_XTRA_FONTMAP"
 echo "	ghostscript fontmap file:	$WMF_GS_FONTMAP"
 echo "	ghostscript font directory:	$WMF_GS_FONTDIR"
 echo ""
+echo "	building gdk-pixbuf plug-in?	$wmf_gdk_pixbuf"
 echo ""

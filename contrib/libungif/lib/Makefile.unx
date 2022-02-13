@@ -7,9 +7,13 @@
 #
 V = 3.0
 
+SHLIB = libgif.so.$(V)
+
 #
 # Where all the include files are:
-INCS = -I. -I..
+INCS = -I.
+
+LIBDIR = /usr/lib
 
 #
 # What devices we should be able to grab into gif images. Note that if
@@ -59,29 +63,44 @@ DEVS = -D__X11__
 CC = gcc
 #
 #CFLAGS = -fno-builtin -O -c -W -Wreturn-type -Wcomment
-CFLAGS = -fno-builtin -g -c -W -Wreturn-type -Wcomment -DHAVE_CONFIG_H -O2
+CFLAGS = -fno-builtin -g -c -W -Wreturn-type -Wcomment
 
 
-OBJS = egif_lib.o dgif_lib.o gifalloc.o gif_font.o gif_err.o quantize.o
+OBJS = dev2gif.o egif_lib.o dgif_lib.o gifalloc.o gif_font.o gif_hash.o \
+	gif_err.o quantize.o qprintf.o getarg.o
 
 .c.o:
 	$(CC) $(INCS) $(DEVS) $(CFLAGS) $<
 
-all: static
+all: static shared
 
-static: libungif.a
+static: libgif.a
+shared: $(SHLIB)
 
-libungif.a: $(OBJS)
-	rm -f libungif.a
-	ar rcv libungif.a $(OBJS)
-	-ranlib libungif.a
+libgif.a: $(OBJS)
+	rm -f libgif.a
+	ar rcv libgif.a $(OBJS)
+	-ranlib libgif.a
 
-egif_lib.o: gif_lib.h
-dgif_lib.o: gif_lib.h
+$(SHLIB): $(OBJS)
+	rm -f libgif.so.$(V)
+	gcc -shared -o $(SHLIB) $(OBJS)
+
+dev2gif.o: gif_lib.h
+egif_lib.o: gif_lib.h gif_hash.h
+dgif_lib.o: gif_lib.h gif_hash.h
+gif_hash.o: gif_lib.h gif_hash.h
 gif_err.o: gif_lib.h
 gifalloc.o: gif_lib.h
 gif_font.o: gif_lib.h
 quantize.o: gif_lib.h
+qprintf.o: gif_lib.h
+getarg.o: getarg.h
 
+install-lib: libgif.a
+	cp libgif.a libgif.so.$(V) $(LIBDIR)
+
+uninstall-lib: shared static
+	rm -f $(LIBDIR)/libgif.a $(LIBDIR)/$(SHLIB)
 clean:
-	rm -f *.[oa] *~
+	rm -f *.[oa] *~ libgif.so.$(V)

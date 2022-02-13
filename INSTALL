@@ -3,7 +3,7 @@ How to install 'ksquirrel-libs' package:
    a) from sources
    # tar zxfv ksquirrel-libs-0.6.0.tar.gz
    # cd ksquirrel-libs-0.6.0/
-   # ./configure.gnu
+   # ./configure.gnu (or ./configure --libdir=/usr/lib/ksquirrel-libs)
    # make
    # su -c 'make install'
 
@@ -19,3 +19,5 @@ Note: You can pass all regular 'configure' parameters to configure.gnu.
 Note: You needn't specify --libdir, it's already done in configure.gnu.
 
 Note: Your automake version should be 1.8 or higher.
+
+Note: If "make install" fails in doc/ directory, ignore it.

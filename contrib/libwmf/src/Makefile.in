@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(libwmf_la_SOURCES) $(libwmflite_la_SOURCES)
+SOURCES = $(io_wmf_la_SOURCES) $(libwmf_la_SOURCES) $(libwmflite_la_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -41,7 +41,8 @@ host_triplet = @host@
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -53,9 +54,14 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(loaderdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
-LTLIBRARIES = $(lib_LTLIBRARIES)
+loaderLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(lib_LTLIBRARIES) $(loader_LTLIBRARIES)
+io_wmf_la_DEPENDENCIES = libwmf.la libwmflite.la
+am_io_wmf_la_OBJECTS = io-wmf.lo
+io_wmf_la_OBJECTS = $(am_io_wmf_la_OBJECTS)
+@LIBWMF_GDK_PIXBUF_TRUE@am_io_wmf_la_rpath = -rpath $(loaderdir)
 @LIBWMF_OPT_SYS_GD_FALSE@am__DEPENDENCIES_1 = extra/gd/libgd.la
 @LIBWMF_OPT_TRIO_TRUE@am__DEPENDENCIES_2 = extra/trio/libtrio.la
 libwmf_la_DEPENDENCIES = ipa/libipa.la libwmflite.la \
@@ -78,8 +84,10 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libwmf_la_SOURCES) $(libwmflite_la_SOURCES)
-DIST_SOURCES = $(libwmf_la_SOURCES) $(libwmflite_la_SOURCES)
+SOURCES = $(io_wmf_la_SOURCES) $(libwmf_la_SOURCES) \
+	$(libwmflite_la_SOURCES)
+DIST_SOURCES = $(io_wmf_la_SOURCES) $(libwmf_la_SOURCES) \
+	$(libwmflite_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -101,7 +109,7 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@ @WMF_CFLAGS@
+CFLAGS = @CFLAGS@ @WMF_CFLAGS@ @GDK_PIXBUF_CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -109,7 +117,7 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
-DEFS = @DEFS@ @WMF_DEFS@ $(DEFHEAVY) \
+DEFS = @DEFS@ @WMF_DEFS@ $(DEFHEAVY) $(GDK_PIXBUF_DEFS) \
 	-DPACKAGE=\"@PACKAGE@\" \
 	-DVERSION=\"@VERSION@\" \
 	-DWMF_FONTDIR=\"@WMF_FONTDIR@\" \
@@ -129,6 +137,9 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FREETYPE_CONFIG = @FREETYPE_CONFIG@
+GDK_PIXBUF_CFLAGS = @GDK_PIXBUF_CFLAGS@
+GDK_PIXBUF_DIR = @GDK_PIXBUF_DIR@
+GDK_PIXBUF_LIBS = @GDK_PIXBUF_LIBS@
 GD_DEFS = @GD_DEFS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -141,6 +152,8 @@ LIBTOOL = @LIBTOOL@
 LIBWMF_BUILDSTYLE = @LIBWMF_BUILDSTYLE@
 LIBWMF_BUILD_ALL_FALSE = @LIBWMF_BUILD_ALL_FALSE@
 LIBWMF_BUILD_ALL_TRUE = @LIBWMF_BUILD_ALL_TRUE@
+LIBWMF_GDK_PIXBUF_FALSE = @LIBWMF_GDK_PIXBUF_FALSE@
+LIBWMF_GDK_PIXBUF_TRUE = @LIBWMF_GDK_PIXBUF_TRUE@
 LIBWMF_OPT_GD_FALSE = @LIBWMF_OPT_GD_FALSE@
 LIBWMF_OPT_GD_TRUE = @LIBWMF_OPT_GD_TRUE@
 LIBWMF_OPT_LAYERS_FALSE = @LIBWMF_OPT_LAYERS_FALSE@
@@ -193,6 +206,7 @@ WMF_GS_FONTMAP = @WMF_GS_FONTMAP@
 WMF_LIBFLAGS = @WMF_LIBFLAGS@
 WMF_SYS_FONTMAP = @WMF_SYS_FONTMAP@
 WMF_XTRA_FONTMAP = @WMF_XTRA_FONTMAP@
+XML2_CONFIG = @XML2_CONFIG@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -249,6 +263,10 @@ target_alias = @target_alias@
 @LIBWMF_BUILD_ALL_TRUE@DIRHEAVY = extra ipa .
 @LIBWMF_BUILD_ALL_FALSE@DEFHEAVY = 
 @LIBWMF_BUILD_ALL_TRUE@DEFHEAVY = -DLIBWMF_INCLUDE_TRIO_H=1
+@LIBWMF_GDK_PIXBUF_FALSE@GDK_PIXBUF_PLUGIN = 
+@LIBWMF_GDK_PIXBUF_TRUE@GDK_PIXBUF_PLUGIN = io-wmf.la
+@LIBWMF_GDK_PIXBUF_FALSE@GDK_PIXBUF_DEFS = 
+@LIBWMF_GDK_PIXBUF_TRUE@GDK_PIXBUF_DEFS = -DGDK_PIXBUF_ENABLE_BACKEND=1
 DIST_SUBDIRS = extra ipa .
 SUBDIRS = $(DIRHEAVY)
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/src -I$(top_builddir)
@@ -259,7 +277,7 @@ libwmflite_la_LDFLAGS = $(SYS_LIBM) \
 	-version-info $(LT_LITE_CURRENT):$(LT_LITE_REVISION):$(LT_LITE_AGE) \
 	-release $(LT_RELEASE) -export-dynamic
 
-libwmf_la_SOURCES = font.c stream.c wmf.c xml.c 
+libwmf_la_SOURCES = font.c stream.c wmf.c xml.c
 @LIBWMF_OPT_TRIO_FALSE@LIBTRIO = 
 @LIBWMF_OPT_TRIO_TRUE@LIBTRIO = extra/trio/libtrio.la
 @LIBWMF_OPT_SYS_GD_FALSE@LIBGD = extra/gd/libgd.la
@@ -270,8 +288,10 @@ libwmf_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 	-release $(LT_RELEASE) -export-dynamic
 
+loaderdir = $(libdir)/$(GDK_PIXBUF_DIR)
+loader_LTLIBRARIES = $(GDK_PIXBUF_PLUGIN)
 io_wmf_la_SOURCES = io-wmf.c
-io_wmf_la_LIBADD = libwmf.la libwmflite.la
+io_wmf_la_LIBADD = libwmf.la libwmflite.la @GDK_PIXBUF_LIBS@
 io_wmf_la_LDFLAGS = -no-undefined -module -avoid-version
 PLAYERHEADERS = \
 	player/clip.h \
@@ -346,6 +366,35 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+install-loaderLTLIBRARIES: $(loader_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(loaderdir)" || $(mkdir_p) "$(DESTDIR)$(loaderdir)"
+	@list='$(loader_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) --mode=install $(loaderLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(loaderdir)/$$f'"; \
+	    $(LIBTOOL) --mode=install $(loaderLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(loaderdir)/$$f"; \
+	  else :; fi; \
+	done
+
+uninstall-loaderLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@set -x; list='$(loader_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(loaderdir)/$$p'"; \
+	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(loaderdir)/$$p"; \
+	done
+
+clean-loaderLTLIBRARIES:
+	-test -z "$(loader_LTLIBRARIES)" || rm -f $(loader_LTLIBRARIES)
+	@list='$(loader_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+io-wmf.la: $(io_wmf_la_OBJECTS) $(io_wmf_la_DEPENDENCIES) 
+	$(LINK) $(am_io_wmf_la_rpath) $(io_wmf_la_LDFLAGS) $(io_wmf_la_OBJECTS) $(io_wmf_la_LIBADD) $(LIBS)
 libwmf.la: $(libwmf_la_OBJECTS) $(libwmf_la_DEPENDENCIES) 
 	$(LINK) $(am_libwmf_la_rpath) $(libwmf_la_LDFLAGS) $(libwmf_la_OBJECTS) $(libwmf_la_LIBADD) $(LIBS)
 libwmflite.la: $(libwmflite_la_OBJECTS) $(libwmflite_la_DEPENDENCIES) 
@@ -360,6 +409,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/api.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bbuf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/font.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/io-wmf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/meta.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/player.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recorder.Plo@am__quote@
@@ -578,7 +628,7 @@ check: check-recursive
 all-am: Makefile $(LTLIBRARIES)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(libdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(loaderdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-recursive
@@ -608,7 +658,7 @@ maintainer-clean-generic:
 clean: clean-recursive
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+	clean-loaderLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -rf ./$(DEPDIR)
@@ -626,7 +676,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am:
+install-data-am: install-loaderLTLIBRARIES
 
 install-exec-am: install-libLTLIBRARIES
 
@@ -654,24 +704,27 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
+	uninstall-loaderLTLIBRARIES
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
 	clean clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-recursive ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-recursive distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-libLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
+	clean-loaderLTLIBRARIES clean-recursive ctags ctags-recursive \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-recursive distclean-tags distdir \
+	dvi dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-libLTLIBRARIES \
+	install-loaderLTLIBRARIES install-man install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic \
 	maintainer-clean-recursive mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
 	pdf pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-info-am uninstall-libLTLIBRARIES
+	uninstall-info-am uninstall-libLTLIBRARIES \
+	uninstall-loaderLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

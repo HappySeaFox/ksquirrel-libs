@@ -44,6 +44,7 @@ target_triplet = @target@
 @SQ_HAVE_XWD_TRUE@am__append_5 = xwd
 @SQ_HAVE_WMF_TRUE@am__append_6 = wmf
 @SQ_HAVE_SVG_TRUE@am__append_7 = svg
+@SQ_HAVE_GIF_TRUE@am__append_8 = gif
 subdir = kernel
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -70,10 +71,10 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	uninstall-recursive nmcheck-recursive bcheck-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = aaa avs bmp cut fli gif hdr ico iff jpeg2000 koala lif \
-	mac mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi \
-	sun tga utah wal wbmp xbm xcur xpm xwd camera jpeg png tiff \
-	wmf svg
+DIST_SUBDIRS = aaa avs bmp cut fli hdr ico iff jpeg2000 koala lif mac \
+	mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun \
+	tga utah wal wbmp xbm xcur xpm xwd camera jpeg png tiff wmf \
+	svg gif
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -146,8 +147,14 @@ SQ_HAVE_CAMERA_FALSE = @SQ_HAVE_CAMERA_FALSE@
 SQ_HAVE_CAMERA_TRUE = @SQ_HAVE_CAMERA_TRUE@
 SQ_HAVE_FREETYPE_FALSE = @SQ_HAVE_FREETYPE_FALSE@
 SQ_HAVE_FREETYPE_TRUE = @SQ_HAVE_FREETYPE_TRUE@
+SQ_HAVE_GIF_FALSE = @SQ_HAVE_GIF_FALSE@
+SQ_HAVE_GIF_TRUE = @SQ_HAVE_GIF_TRUE@
+SQ_HAVE_JPEG2000_FALSE = @SQ_HAVE_JPEG2000_FALSE@
+SQ_HAVE_JPEG2000_TRUE = @SQ_HAVE_JPEG2000_TRUE@
 SQ_HAVE_JPEG_FALSE = @SQ_HAVE_JPEG_FALSE@
 SQ_HAVE_JPEG_TRUE = @SQ_HAVE_JPEG_TRUE@
+SQ_HAVE_OPENEXR_FALSE = @SQ_HAVE_OPENEXR_FALSE@
+SQ_HAVE_OPENEXR_TRUE = @SQ_HAVE_OPENEXR_TRUE@
 SQ_HAVE_PNG_FALSE = @SQ_HAVE_PNG_FALSE@
 SQ_HAVE_PNG_TRUE = @SQ_HAVE_PNG_TRUE@
 SQ_HAVE_SVG_FALSE = @SQ_HAVE_SVG_FALSE@
@@ -158,11 +165,14 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_XML_CFLAGS = @SQ_XML_CFLAGS@
+SQ_XML_LDFLAGS = @SQ_XML_LDFLAGS@
 STRIP = @STRIP@
 USE_EXCEPTIONS = @USE_EXCEPTIONS@
 USE_RTTI = @USE_RTTI@
 VERSION = @VERSION@
 WOVERLOADED_VIRTUAL = @WOVERLOADED_VIRTUAL@
+XML_CONFIG = @XML_CONFIG@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
@@ -211,11 +221,11 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-SUBDIRS = aaa avs bmp cut fli gif hdr ico iff jpeg2000 koala lif mac \
-	mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun \
-	tga utah wal wbmp xbm xcur xpm xwd $(am__append_1) \
-	$(am__append_2) $(am__append_3) $(am__append_4) \
-	$(am__append_5) $(am__append_6) $(am__append_7)
+SUBDIRS = aaa avs bmp cut fli hdr ico iff jpeg2000 koala lif mac mdl \
+	msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun tga \
+	utah wal wbmp xbm xcur xpm xwd $(am__append_1) $(am__append_2) \
+	$(am__append_3) $(am__append_4) $(am__append_5) \
+	$(am__append_6) $(am__append_7) $(am__append_8)
 EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_filters.h fmt_filters.cpp fmt_types.h generate link fmt_filters_ChangeLog fmt_filters_VERSION fmt_filters_README genfdist
 #>- all: all-recursive
 #>+ 1

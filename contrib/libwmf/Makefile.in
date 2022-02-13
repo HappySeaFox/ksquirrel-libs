@@ -39,11 +39,12 @@ host_triplet = @host@
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/libwmf-config.in \
 	$(srcdir)/wmfconfig.h.in $(top_srcdir)/configure AUTHORS \
-	COPYING ChangeLog INSTALL NEWS TODO config.guess config.sub \
-	depcomp install-sh ltmain.sh missing
+	COPYING ChangeLog INSTALL NEWS config.guess config.sub depcomp \
+	install-sh ltmain.sh missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -107,6 +108,9 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FREETYPE_CONFIG = @FREETYPE_CONFIG@
+GDK_PIXBUF_CFLAGS = @GDK_PIXBUF_CFLAGS@
+GDK_PIXBUF_DIR = @GDK_PIXBUF_DIR@
+GDK_PIXBUF_LIBS = @GDK_PIXBUF_LIBS@
 GD_DEFS = @GD_DEFS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -119,6 +123,8 @@ LIBTOOL = @LIBTOOL@
 LIBWMF_BUILDSTYLE = @LIBWMF_BUILDSTYLE@
 LIBWMF_BUILD_ALL_FALSE = @LIBWMF_BUILD_ALL_FALSE@
 LIBWMF_BUILD_ALL_TRUE = @LIBWMF_BUILD_ALL_TRUE@
+LIBWMF_GDK_PIXBUF_FALSE = @LIBWMF_GDK_PIXBUF_FALSE@
+LIBWMF_GDK_PIXBUF_TRUE = @LIBWMF_GDK_PIXBUF_TRUE@
 LIBWMF_OPT_GD_FALSE = @LIBWMF_OPT_GD_FALSE@
 LIBWMF_OPT_GD_TRUE = @LIBWMF_OPT_GD_TRUE@
 LIBWMF_OPT_LAYERS_FALSE = @LIBWMF_OPT_LAYERS_FALSE@
@@ -171,6 +177,7 @@ WMF_GS_FONTMAP = @WMF_GS_FONTMAP@
 WMF_LIBFLAGS = @WMF_LIBFLAGS@
 WMF_SYS_FONTMAP = @WMF_SYS_FONTMAP@
 WMF_XTRA_FONTMAP = @WMF_XTRA_FONTMAP@
+XML2_CONFIG = @XML2_CONFIG@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -222,34 +229,11 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 @LIBWMF_BUILD_ALL_FALSE@DIRHEAVY = . src include
-@LIBWMF_BUILD_ALL_TRUE@DIRHEAVY = . src include fonts
-DIST_SUBDIRS = . src include fonts
+@LIBWMF_BUILD_ALL_TRUE@DIRHEAVY = . src include
+DIST_SUBDIRS = . src include
 SUBDIRS = $(DIRHEAVY)
 bin_SCRIPTS = libwmf-config
-WMFEXAMPLES = \
-	examples/2doorvan.wmf \
-	examples/Eg.wmf \
-	examples/anim0002.wmf \
-	examples/ant.wmf \
-	examples/arrow01.wmf \
-	examples/cell.wmf \
-	examples/fjftest.wmf \
-	examples/formula1.wmf \
-	examples/formula2.wmf \
-	examples/formula3.wmf \
-	examples/formula4.wmf \
-	examples/fulltest.wmf \
-	examples/p0000001.wmf \
-	examples/p0000016.wmf \
-	examples/sample.wmf \
-	examples/sample2.wmf \
-	examples/text.wmf
-
-EXTRA_DIST = AUTHORS BUILDING CREDITS NEWS README $(WMFEXAMPLES) \
-	libwmf.spec \
-	patches/acconfig.h \
-	ac-helpers/pkg-config/pkg.m4
-
+EXTRA_DIST = AUTHORS CREDITS NEWS README
 all: wmfconfig.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -471,7 +455,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/ac-helpers/pkg-config $(distdir)/examples $(distdir)/fonts $(distdir)/patches
+	$(mkdir_p) $(distdir)/.
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

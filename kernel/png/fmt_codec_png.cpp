@@ -269,9 +269,9 @@ void fmt_codec::fmt_read_close()
 {
     if(!zerror)
     {
-	png_read_end(png_ptr, info_ptr);
+//	png_read_end(png_ptr, info_ptr);
     }
-    
+
     png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 
     fclose(fptr);

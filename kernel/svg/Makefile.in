@@ -171,8 +171,14 @@ SQ_HAVE_CAMERA_FALSE = @SQ_HAVE_CAMERA_FALSE@
 SQ_HAVE_CAMERA_TRUE = @SQ_HAVE_CAMERA_TRUE@
 SQ_HAVE_FREETYPE_FALSE = @SQ_HAVE_FREETYPE_FALSE@
 SQ_HAVE_FREETYPE_TRUE = @SQ_HAVE_FREETYPE_TRUE@
+SQ_HAVE_GIF_FALSE = @SQ_HAVE_GIF_FALSE@
+SQ_HAVE_GIF_TRUE = @SQ_HAVE_GIF_TRUE@
+SQ_HAVE_JPEG2000_FALSE = @SQ_HAVE_JPEG2000_FALSE@
+SQ_HAVE_JPEG2000_TRUE = @SQ_HAVE_JPEG2000_TRUE@
 SQ_HAVE_JPEG_FALSE = @SQ_HAVE_JPEG_FALSE@
 SQ_HAVE_JPEG_TRUE = @SQ_HAVE_JPEG_TRUE@
+SQ_HAVE_OPENEXR_FALSE = @SQ_HAVE_OPENEXR_FALSE@
+SQ_HAVE_OPENEXR_TRUE = @SQ_HAVE_OPENEXR_TRUE@
 SQ_HAVE_PNG_FALSE = @SQ_HAVE_PNG_FALSE@
 SQ_HAVE_PNG_TRUE = @SQ_HAVE_PNG_TRUE@
 SQ_HAVE_SVG_FALSE = @SQ_HAVE_SVG_FALSE@
@@ -183,11 +189,14 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_XML_CFLAGS = @SQ_XML_CFLAGS@
+SQ_XML_LDFLAGS = @SQ_XML_LDFLAGS@
 STRIP = @STRIP@
 USE_EXCEPTIONS = @USE_EXCEPTIONS@
 USE_RTTI = @USE_RTTI@
 VERSION = @VERSION@
 WOVERLOADED_VIRTUAL = @WOVERLOADED_VIRTUAL@
+XML_CONFIG = @XML_CONFIG@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
@@ -236,11 +245,11 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-INCLUDES = -I.. -I../include -I../../contrib/cairo/src -I../../contrib/libsvg/src -I../../contrib/libsvg-cairo/src
+INCLUDES = -I.. -I../include -I../../contrib/cairo/src -I../../contrib/libsvg/src -I../../contrib/libsvg-cairo/src @SQ_XML_CFLAGS@ @SQ_FT_CFLAGS@
 lib_LTLIBRARIES = libSQ_codec_svg.la
 libSQ_codec_svg_la_SOURCES = fmt_codec_svg.cpp fmt_codec_svg_defs.h svg2mem.cpp svg2mem.h
 libSQ_codec_svg_la_LDFLAGS = -release 0.1.1
-libSQ_codec_svg_la_LIBADD = @SQ_FT_LDFLAGS@ -lxml2 -L. -lsvg-cairo -lsvg -lcairo -lpixman ../fileio.lo
+libSQ_codec_svg_la_LIBADD = @SQ_XML_LDFLAGS@ @SQ_FT_LDFLAGS@ -L../../contrib/libsvg-cairo/src -L../../contrib/libsvg/src -L../../contrib/libpixman/src -L../../contrib/cairo/src -lsvg-cairo -lsvg -lcairo -lpixman ../fileio.lo
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -539,7 +548,7 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 .NOEXPORT:
 
 #>+ 2
-KDE_DIST=libsvg.a libpixman.a libsvg-cairo.a libcairo.a Makefile.in Makefile.am 
+KDE_DIST=Makefile.in Makefile.am 
 
 #>+ 2
 docs-am:

@@ -1,4 +1,4 @@
-SUBDIRS = aaa avs bmp cut fli gif hdr ico iff jpeg2000 koala lif mac mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah wal wbmp xbm xcur xpm xwd
+SUBDIRS = aaa avs bmp cut fli hdr ico iff jpeg2000 koala lif mac mdl msp mtv openexr pcx pix pnm psd pxr ras rawrgb sct sgi sun tga utah wal wbmp xbm xcur xpm xwd
 
 EXTRA_DIST = fmt_defs.h error.h fileio.h fileio.cpp fmt_codec_base.h fmt_utils.h fmt_utils.cpp fmt_filters.h fmt_filters.cpp fmt_types.h generate link fmt_filters_ChangeLog fmt_filters_VERSION fmt_filters_README genfdist
 
@@ -28,4 +28,8 @@ endif
 
 if SQ_HAVE_SVG
 SUBDIRS += svg
+endif
+
+if SQ_HAVE_GIF
+SUBDIRS += gif
 endif

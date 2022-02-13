@@ -37,6 +37,11 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@SQ_HAVE_SVG_TRUE@am__append_1 = libpixman cairo libsvg libsvg-cairo
+@SQ_HAVE_GIF_TRUE@am__append_2 = libungif
+@SQ_HAVE_JPEG2000_TRUE@am__append_3 = libjasper
+@SQ_HAVE_WMF_TRUE@am__append_4 = libwmf
+@SQ_HAVE_OPENEXR_TRUE@am__append_5 = libopenexr
 subdir = contrib
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -63,8 +68,8 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	uninstall-recursive nmcheck-recursive bcheck-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = libungif libjasper libopenexr libpixman cairo libsvg \
-	libsvg-cairo libwmf
+DIST_SUBDIRS = libpixman cairo libsvg libsvg-cairo libungif libjasper \
+	libwmf libopenexr
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 #>+ 1
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST) $(KDE_DIST)
@@ -137,8 +142,14 @@ SQ_HAVE_CAMERA_FALSE = @SQ_HAVE_CAMERA_FALSE@
 SQ_HAVE_CAMERA_TRUE = @SQ_HAVE_CAMERA_TRUE@
 SQ_HAVE_FREETYPE_FALSE = @SQ_HAVE_FREETYPE_FALSE@
 SQ_HAVE_FREETYPE_TRUE = @SQ_HAVE_FREETYPE_TRUE@
+SQ_HAVE_GIF_FALSE = @SQ_HAVE_GIF_FALSE@
+SQ_HAVE_GIF_TRUE = @SQ_HAVE_GIF_TRUE@
+SQ_HAVE_JPEG2000_FALSE = @SQ_HAVE_JPEG2000_FALSE@
+SQ_HAVE_JPEG2000_TRUE = @SQ_HAVE_JPEG2000_TRUE@
 SQ_HAVE_JPEG_FALSE = @SQ_HAVE_JPEG_FALSE@
 SQ_HAVE_JPEG_TRUE = @SQ_HAVE_JPEG_TRUE@
+SQ_HAVE_OPENEXR_FALSE = @SQ_HAVE_OPENEXR_FALSE@
+SQ_HAVE_OPENEXR_TRUE = @SQ_HAVE_OPENEXR_TRUE@
 SQ_HAVE_PNG_FALSE = @SQ_HAVE_PNG_FALSE@
 SQ_HAVE_PNG_TRUE = @SQ_HAVE_PNG_TRUE@
 SQ_HAVE_SVG_FALSE = @SQ_HAVE_SVG_FALSE@
@@ -149,11 +160,14 @@ SQ_HAVE_WMF_FALSE = @SQ_HAVE_WMF_FALSE@
 SQ_HAVE_WMF_TRUE = @SQ_HAVE_WMF_TRUE@
 SQ_HAVE_XWD_FALSE = @SQ_HAVE_XWD_FALSE@
 SQ_HAVE_XWD_TRUE = @SQ_HAVE_XWD_TRUE@
+SQ_XML_CFLAGS = @SQ_XML_CFLAGS@
+SQ_XML_LDFLAGS = @SQ_XML_LDFLAGS@
 STRIP = @STRIP@
 USE_EXCEPTIONS = @USE_EXCEPTIONS@
 USE_RTTI = @USE_RTTI@
 VERSION = @VERSION@
 WOVERLOADED_VIRTUAL = @WOVERLOADED_VIRTUAL@
+XML_CONFIG = @XML_CONFIG@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
@@ -202,8 +216,8 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-@SQ_HAVE_FREETYPE_FALSE@SUBDIRS = libungif libjasper libopenexr
-@SQ_HAVE_FREETYPE_TRUE@SUBDIRS = libpixman cairo libsvg libsvg-cairo libungif libwmf libjasper libopenexr
+SUBDIRS = $(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5)
 #>- all: all-recursive
 #>+ 1
 all: docs-am  all-recursive

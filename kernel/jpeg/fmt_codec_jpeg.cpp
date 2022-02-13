@@ -68,7 +68,7 @@ fmt_codec::~fmt_codec()
 
 std::string fmt_codec::fmt_version()
 {
-    return std::string("1.3.3");
+    return std::string("1.3.4.1");
 }
 
 std::string fmt_codec::fmt_quickinfo()
@@ -108,7 +108,7 @@ s32 fmt_codec::fmt_read_init(const std::string &file)
 s32 fmt_codec::fmt_read_next()
 {
     currentImage++;
-
+    
     if(currentImage)
 	return SQE_NOTOK;
 
@@ -119,10 +119,7 @@ s32 fmt_codec::fmt_read_next()
 
     if(setjmp(jerr.setjmp_buffer)) 
     {
-//        printf("JUMP!!\n");
-	jpeg_destroy_decompress(&cinfo);
-	fclose(fptr);
-	return SQE_NOTOK;
+	return SQE_R_BADFILE;
     }
 
     jpeg_create_decompress(&cinfo);
@@ -164,8 +161,6 @@ s32 fmt_codec::fmt_read_next()
 
     jpeg_saved_marker_ptr it = cinfo.marker_list;
 
-    bool rr = false;
-
     while(true)
     {
         if(!it)
@@ -173,7 +168,7 @@ s32 fmt_codec::fmt_read_next()
 
 	if(it->marker == JPEG_COM)
 	{
-		fmt_metaentry mt;
+            fmt_metaentry mt;
 
 	    mt.group = "JPEG \"COM\" marker";
 
@@ -185,17 +180,10 @@ s32 fmt_codec::fmt_read_next()
 
 	    finfo.meta.push_back(mt);
 
-	    rr = true;
-
     	    break;
 	}
 
 	it = it->next;
-    }
-
-    if(!rr)
-    {
-	finfo.meta.clear();
     }
 
     finfo.image.push_back(image);
@@ -224,7 +212,7 @@ s32 fmt_codec::fmt_read_scanline(RGBA *scan)
 
 void fmt_codec::fmt_read_close()
 {
-    (void)jpeg_finish_decompress(&cinfo);
+    jpeg_abort_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
 
     fclose(fptr);

@@ -58,7 +58,7 @@
 
 AUTOMAKE_OPTIONS = foreign dist-zip dist-tarZ
 
-EXTRA_DIST = README INSTALL COPYRIGHT LICENSE NEWS ChangeLog data acaux
+EXTRA_DIST = README INSTALL COPYRIGHT LICENSE NEWS ChangeLog
 
 # Note: We need to put the derived file "jasper.spec" in the distribution
 # in order to facilitate RPM building.
